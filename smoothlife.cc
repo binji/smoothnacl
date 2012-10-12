@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <GLES2/gl2.h>
+#include <GLES2/gl2ext.h>
 #include <ppapi/lib/gl/gles2/gl2ext_ppapi.h>
 
 const double PI = 6.28318530718;
@@ -16,7 +17,7 @@ const int KR = 1;
 const int KD = 2;
 const int AN = 3;
 const int AM = 4;
-const int ARB = 5;		// number of real buffers
+const int ARB = 5;    // number of real buffers
 
 const int AF = 0;
 const int KRF = 1;
@@ -25,7 +26,7 @@ const int ANF = 3;
 const int AMF = 4;
 const int FFT0 = 5;
 const int FFT1 = 6;
-const int AFB = 7;		// number of Fourier buffers
+const int AFB = 7;    // number of Fourier buffers
 
 double kflr, kfld;
 
@@ -46,7 +47,7 @@ GLuint shader_copybufferrc, shader_copybuffercr;
 GLuint fb[AFB], tb[AFB];
 GLuint fr[ARB], tr[ARB];
 GLuint planx[BMAX][2], plany[BMAX][2];
-GLenum ttd;		// texture target dimension
+GLenum ttd;    // texture target dimension
 
 GLint loc_b1, loc_b2;
 GLint loc_d1, loc_d2;
@@ -160,7 +161,7 @@ bool setShaders (char *dname, char *fname, GLuint &prog)
   ret = false;
 
   glCompileShader (v);
-  if (printShaderInfoLog (v))
+  if (glGetError ())
   {
     printf("error in vertex shader!\n\n"); 
     ret |= true;
@@ -171,7 +172,7 @@ bool setShaders (char *dname, char *fname, GLuint &prog)
   }
 
   glCompileShader (f);
-  if (printShaderInfoLog (f))
+  if (glGetError ())
   {
     printf("error in fragment shader!\n\n"); 
     ret |= true;
@@ -247,7 +248,7 @@ void inita (int a)
   }
 
   glBindTexture (GL_TEXTURE_2D, tr[a]);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_R32F, NX,NY, 0, GL_RED, GL_FLOAT, buf);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RED_EXT, NX,NY, 0, GL_RED_EXT, GL_FLOAT, buf);
 
   free (buf);
 }
@@ -280,7 +281,7 @@ bool create_buffers (void)
     glTexParameterf (ttd, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf (ttd, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTexImage2D (GL_TEXTURE_2D, 0, GL_RG32F, NX/2+1,NY, 0, GL_RG, GL_FLOAT, NULL);
+    glTexImage2D (GL_TEXTURE_2D, 0, GL_RG_EXT, NX/2+1,NY, 0, GL_RG_EXT, GL_FLOAT, NULL);
     err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
 
 
@@ -315,7 +316,7 @@ bool create_buffers (void)
     glTexParameterf (ttd, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf (ttd, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    glTexImage2D (GL_TEXTURE_2D, 0, GL_R32F, NX,NY, 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D (GL_TEXTURE_2D, 0, GL_RED_EXT, NX,NY, 0, GL_RED_EXT, GL_FLOAT, NULL);
     err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
 
 
@@ -337,14 +338,14 @@ bool create_buffers (void)
   {
     for (eb=0; eb<=BX-1+1; eb++)
     {
-      glBindTexture (GL_TEXTURE_1D, planx[eb][s]);
+      glBindTexture (GL_TEXTURE_2D, planx[eb][s]);
       err = glGetError (); printf("BindTexture err %d\n", err);  if (err) return false;
 
-      glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
-      glTexImage1D (GL_TEXTURE_1D, 0, GL_RGBA32F, NX/2+1, 0, GL_RGBA, GL_FLOAT, NULL);
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, NX/2+1, 1, 0, GL_RGBA, GL_FLOAT, NULL);
       err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
     }
   }
@@ -354,14 +355,14 @@ bool create_buffers (void)
   {
     for (eb=1; eb<=BY; eb++)
     {
-      glBindTexture (GL_TEXTURE_1D, plany[eb][s]);
+      glBindTexture (GL_TEXTURE_2D, plany[eb][s]);
       err = glGetError (); printf("BindTexture err %d\n", err);  if (err) return false;
 
-      glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-      glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-      glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameterf (GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
-      glTexImage1D (GL_TEXTURE_1D, 0, GL_RGBA32F, NY, 0, GL_RGBA, GL_FLOAT, NULL);
+      glTexImage2D (GL_TEXTURE_2D, 0, GL_RGBA, NY, 1, 0, GL_RGBA, GL_FLOAT, NULL);
       err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
     }
   }
@@ -530,18 +531,18 @@ void makekernel (int kr, int kd)
               *(ar + iy*NX + ix) = (float)n;
               kflr += n;
               kfld += m;
-            }	// if ix
-          }	// for ix
-        }	// if iy
-      }	// for iy
-    }	// if iz
+            }  // if ix
+          }  // for ix
+        }  // if iy
+      }  // for iy
+    }  // if iz
 
     glBindTexture (GL_TEXTURE_2D, tr[kd]);
-    glTexSubImage2D (GL_TEXTURE_2D, 0, 0,0, NX,NY, GL_RED, GL_FLOAT, ad);
+    glTexSubImage2D (GL_TEXTURE_2D, 0, 0,0, NX,NY, GL_RED_EXT, GL_FLOAT, ad);
 
     glBindTexture (GL_TEXTURE_2D, tr[kr]);
-    glTexSubImage2D (GL_TEXTURE_2D, 0, 0,0, NX,NY, GL_RED, GL_FLOAT, ar);
-  }	// for iz
+    glTexSubImage2D (GL_TEXTURE_2D, 0, 0,0, NX,NY, GL_RED_EXT, GL_FLOAT, ar);
+  }  // for iz
 
   free (ar);
   free (ad);
@@ -644,8 +645,8 @@ void fft_planx (void)
 
       }
 
-      glBindTexture (GL_TEXTURE_1D, planx[eb][s]);
-      glTexSubImage1D (GL_TEXTURE_1D, 0, 0, NX/2+1, GL_RGBA, GL_FLOAT, p);
+      glBindTexture (GL_TEXTURE_2D, planx[eb][s]);
+      glTexSubImage2D (GL_TEXTURE_2D, 0, 0, NX/2+1, 1, GL_RGBA, GL_FLOAT, p);
     }
   }
 
@@ -698,8 +699,8 @@ void fft_plany (void)
         *(p + 4*x + 3) = (float)sin(w);
       }
 
-      glBindTexture (GL_TEXTURE_1D, plany[eb][s]);
-      glTexSubImage1D (GL_TEXTURE_1D, 0, 0, NY, GL_RGBA, GL_FLOAT, p);
+      glBindTexture (GL_TEXTURE_2D, plany[eb][s]);
+      glTexSubImage2D (GL_TEXTURE_2D, 0, 0, NY, 1, GL_RGBA, GL_FLOAT, p);
     }
   }
 
@@ -816,8 +817,8 @@ void fft_stage (int dim, int eb, int si, int fftc, int ffto)
   glUniform1i (glGetUniformLocation (shader_fft, "tex0"), 0);
 
   glActiveTexture (GL_TEXTURE1);
-  if (dim==1) glBindTexture (GL_TEXTURE_1D, planx[eb][(si+1)/2]);
-  if (dim==2) glBindTexture (GL_TEXTURE_1D, plany[eb][(si+1)/2]);
+  if (dim==1) glBindTexture (GL_TEXTURE_2D, planx[eb][(si+1)/2]);
+  if (dim==2) glBindTexture (GL_TEXTURE_2D, plany[eb][(si+1)/2]);
   glUniform1i (glGetUniformLocation (shader_fft, "tex1"), 1);
 
   glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tb[ffto], 0);
@@ -857,7 +858,7 @@ void fft (int vo, int na, int si)
       s=fftcur; fftcur=fftoth; fftoth=s;
     }
   }
-  else	// si==1
+  else  // si==1
   {
     for (t=1; t<=BY; t++)
     {
@@ -968,7 +969,7 @@ void initan (int a)
     }
 
   glBindTexture (GL_TEXTURE_2D, tr[a]);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_R32F, NX,NY, 0, GL_RED, GL_FLOAT, buf);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RED_EXT, NX,NY, 0, GL_RED_EXT, GL_FLOAT, buf);
 
   free (buf);
 }
@@ -987,7 +988,7 @@ void initam (int a)
     }
 
   glBindTexture (GL_TEXTURE_2D, tr[a]);
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_R32F, NX,NY, 0, GL_RED, GL_FLOAT, buf);
+  glTexImage2D (GL_TEXTURE_2D, 0, GL_RED_EXT, NX,NY, 0, GL_RED_EXT, GL_FLOAT, buf);
 
   free (buf);
 }
