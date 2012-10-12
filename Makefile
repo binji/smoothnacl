@@ -14,7 +14,7 @@
 # from the default example directory location.
 #
 THIS_MAKEFILE:=$(abspath $(lastword $(MAKEFILE_LIST)))
-NACL_SDK_ROOT?=$(abspath $(dir $(THIS_MAKEFILE))../nacl_sdk/pepper_23)
+NACL_SDK_ROOT?=$(abspath $(dir $(THIS_MAKEFILE))nacl_sdk/pepper_23)
 CHROME_PATH?=Undefined
 
 #
