@@ -1,0 +1,201 @@
+starting SmoothLife
+hdc
+window is not maximized
+window  sx 752  sy 495
+choose pixelformat 9
+describe
+color bits 32
+depth bits 24
+stencil bits 8
+accum bits 64
+pixel type 0
+flags 8225
+set pixel format
+create context supported
+version string 3.3.0
+making new context current
+new context is current
+setting shader: copybufferrc
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+setting shader: copybuffercr
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+setting shader: fft
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+setting shader: kernelmul
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+setting shader: snm
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+setting shader: draw
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+create buffers 1D 1024
+GenTextures err 0
+GenFramebuffers err 0
+complex buffer 0
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+complex buffer 1
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+complex buffer 2
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+complex buffer 3
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+complex buffer 4
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+complex buffer 5
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+complex buffer 6
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+GenTextures err 0
+GenFramebuffers err 0
+real buffer 0
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+real buffer 1
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+real buffer 2
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+real buffer 3
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+real buffer 4
+BindTexture err 0
+TexImage err 0
+BindFramebuffer err 0
+FramebufferTexture err 0
+FramebufferStatus 0x8cd5
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+all buffers ok
+ra=12.000000 rr=3.000000 rb=12.000000 ri=4.000000 bb=1.000000 kflr=16.000000 kfld=8.000000 kflr/kfld=2.000000
+ending

@@ -1,0 +1,11 @@
+1   2 4 4  10.0   0.257  0.336  0.365  0.549   0.028  0.147    // L
+0   4 4 4  10.0   0.278  0.365  0.267  0.445   0.028  0.147    // the generic smoothglider
+
+
+// time step mode (0 = discrete, 1 = smooth)
+// sigmode  1-4
+// sigtype  0-9
+// mixtype  0-7
+// ra
+// b1 b2 d1 d2
+// sn sm

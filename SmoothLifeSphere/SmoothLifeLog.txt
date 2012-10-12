@@ -1,0 +1,62 @@
+starting SmoothLife
+1 2 4 4 10.000000 0.257000 0.336000 0.365000 0.549000 0.028000 0.147000
+hdc
+window is not maximized
+window  sx 752  sy 495
+choose pixelformat 9
+describe
+color bits 32
+depth bits 24
+stencil bits 8
+accum bits 64
+pixel type 0
+flags 8225
+set pixel format
+create context supported
+version string 3.3.0
+making new context current
+new context is current
+R = 64.000000  K = 128  C 402.123860 512  A 51471.854035 98304  V 1098066.219412 2097152
+ri = 3.333333  ra = 10.000000
+areas flat:  disk 34.906585  ring 279.252680
+ri = 3.333710  ra = 10.010201
+areas sphere:  disk 34.906585  ring 279.252680
+create buffers 128
+GenTextures err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+BindTexture err 0
+TexImage err 0
+GenFramebuffers err 0
+BindFramebuffer err 0
+FramebufferTexture2D err 0
+FramebufferStatus 0x8cd5
+BindFramebuffer err 0
+FramebufferTexture2D err 0
+FramebufferStatus 0x8cd5
+BindFramebuffer err 0
+FramebufferTexture2D err 0
+FramebufferStatus 0x8cd5
+setting shader: program
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+setting shader: color
+
+vertex shader ok
+
+
+fragment shader ok
+
+
+shader program ok
+
+ending
