@@ -131,7 +131,7 @@ endif
 #
 # Per target object lists
 #
-SMOOTHLIFE_OBJS:=main
+SMOOTHLIFE_OBJS:=smoothlife
 
 #
 # Rules for newlib toolchain
@@ -148,7 +148,7 @@ newlib/Release: | newlib
 -include newlib/Release/*.d
 
 PPAPI_DEBUG:=$(abspath newlib/Debug/smoothlife_<ARCH>.nexe);application/x-ppapi-debug
-newlib/Debug/main_x86_32.o : main.cpp $(THIS_MAKE) | newlib/Debug
+newlib/Debug/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | newlib/Debug
 	$(NEWLIB_CC) -o $@ $< -g -O0 -m32 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -157,7 +157,7 @@ SMOOTHLIFE_NEWLIB_DEBUG_x86_32_O:=$(patsubst %,newlib/Debug/%_x86_32.o,$(SMOOTHL
 newlib/Debug/smoothlife_x86_32.nexe : $(SMOOTHLIFE_NEWLIB_DEBUG_x86_32_O)
 	$(NEWLIB_LINK) -o $@ $^ -g -m32 $(NEWLIB_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_newlib/Debug -lppapi_gles2 -lppapi -lpthread
 
-newlib/Debug/main_x86_64.o : main.cpp $(THIS_MAKE) | newlib/Debug
+newlib/Debug/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | newlib/Debug
 	$(NEWLIB_CC) -o $@ $< -g -O0 -m64 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -172,7 +172,7 @@ newlib/Debug/smoothlife.nmf : newlib/Debug/smoothlife_x86_32.nexe newlib/Debug/s
 	$(NMF) -D $(NEWLIB_DUMP) -o $@ $^ -t newlib -s newlib/Debug
 
 PPAPI_RELEASE:=$(abspath newlib/Release/smoothlife_x86_64.nexe);application/x-ppapi-release
-newlib/Release/main_x86_32.o : main.cpp $(THIS_MAKE) | newlib/Release
+newlib/Release/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | newlib/Release
 	$(NEWLIB_CC) -o $@ $< -O2 -m32 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -181,7 +181,7 @@ SMOOTHLIFE_NEWLIB_RELEASE_x86_32_O:=$(patsubst %,newlib/Release/%_x86_32.o,$(SMO
 newlib/Release/smoothlife_x86_32.nexe : $(SMOOTHLIFE_NEWLIB_RELEASE_x86_32_O)
 	$(NEWLIB_LINK) -o $@ $^ -m32 $(NEWLIB_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_newlib/Release -lppapi_gles2 -lppapi -lpthread
 
-newlib/Release/main_x86_64.o : main.cpp $(THIS_MAKE) | newlib/Release
+newlib/Release/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | newlib/Release
 	$(NEWLIB_CC) -o $@ $< -O2 -m64 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -211,7 +211,7 @@ glibc/Release: | glibc
 -include glibc/Release/*.d
 
 PPAPI_DEBUG:=$(abspath glibc/Debug/smoothlife_<ARCH>.nexe);application/x-ppapi-debug
-glibc/Debug/main_x86_32.o : main.cpp $(THIS_MAKE) | glibc/Debug
+glibc/Debug/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | glibc/Debug
 	$(GLIBC_CC) -o $@ $< -g -O0 -m32 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -220,7 +220,7 @@ SMOOTHLIFE_GLIBC_DEBUG_x86_32_O:=$(patsubst %,glibc/Debug/%_x86_32.o,$(SMOOTHLIF
 glibc/Debug/smoothlife_x86_32.nexe : $(SMOOTHLIFE_GLIBC_DEBUG_x86_32_O)
 	$(GLIBC_LINK) -o $@ $^ -g -m32 $(GLIBC_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_glibc/Debug -lppapi_gles2 -lppapi -lpthread
 
-glibc/Debug/main_x86_64.o : main.cpp $(THIS_MAKE) | glibc/Debug
+glibc/Debug/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | glibc/Debug
 	$(GLIBC_CC) -o $@ $< -g -O0 -m64 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -235,7 +235,7 @@ glibc/Debug/smoothlife.nmf : glibc/Debug/smoothlife_x86_32.nexe glibc/Debug/smoo
 	$(NMF) -D $(GLIBC_DUMP) -o $@ $(GLIBC_PATHS) $^ -t glibc -s glibc/Debug $(GLIBC_REMAP)
 
 PPAPI_RELEASE:=$(abspath glibc/Release/smoothlife_x86_64.nexe);application/x-ppapi-release
-glibc/Release/main_x86_32.o : main.cpp $(THIS_MAKE) | glibc/Release
+glibc/Release/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | glibc/Release
 	$(GLIBC_CC) -o $@ $< -O2 -m32 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 
@@ -244,7 +244,7 @@ SMOOTHLIFE_GLIBC_RELEASE_x86_32_O:=$(patsubst %,glibc/Release/%_x86_32.o,$(SMOOT
 glibc/Release/smoothlife_x86_32.nexe : $(SMOOTHLIFE_GLIBC_RELEASE_x86_32_O)
 	$(GLIBC_LINK) -o $@ $^ -m32 $(GLIBC_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_glibc/Release -lppapi_gles2 -lppapi -lpthread
 
-glibc/Release/main_x86_64.o : main.cpp $(THIS_MAKE) | glibc/Release
+glibc/Release/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | glibc/Release
 	$(GLIBC_CC) -o $@ $< -O2 -m64 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
 
 

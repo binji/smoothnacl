@@ -38,18 +38,12 @@
    wheel		zoom
    */
 
-#include <windows.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
 #include <io.h>
-#include <fcntl.h>
-#include <sys\stat.h>
-#include <sys\timeb.h>
-#include "glee.h"
-#include <gl/glu.h>
 
 
 const double PI = 6.28318530718;
@@ -80,8 +74,6 @@ typedef unsigned char ubyte;
 
 ubyte prgname[] = "SmoothLife";
 FILE *logfile=0;
-HWND hwnd;
-HDC hdc;
 int maximized;
 int SX, SY;
 _int64 freq, tim, tima;
@@ -167,79 +159,27 @@ bool write_config (void)
   file = fopen ("SmoothLifeConfig.txt", "a");
   if (file==0) return false;
 
-  fprintf (file, "%d ", (int)dims);
-  fprintf (file, "%d   ", (int)mode);
+  printf("%d ", (int)dims);
+  printf("%d   ", (int)mode);
 
-  fprintf (file, "%.1f  ", ra);
-  fprintf (file, "%.1f  ", rr);
-  fprintf (file, "%.1f  ", rb);
-  fprintf (file, "%.3f   ", dt);
+  printf("%.1f  ", ra);
+  printf("%.1f  ", rr);
+  printf("%.1f  ", rb);
+  printf("%.3f   ", dt);
 
-  fprintf (file, "%.3f  ", b1);
-  fprintf (file, "%.3f  ", b2);
-  fprintf (file, "%.3f  ", d1);
-  fprintf (file, "%.3f   ", d2);
+  printf("%.3f  ", b1);
+  printf("%.3f  ", b2);
+  printf("%.3f  ", d1);
+  printf("%.3f   ", d2);
 
-  fprintf (file, "%d ", (int)sigmode);
-  fprintf (file, "%d ", (int)sigtype);
-  fprintf (file, "%d   ", (int)mixtype);
+  printf("%d ", (int)sigmode);
+  printf("%d ", (int)sigtype);
+  printf("%d   ", (int)mixtype);
 
-  fprintf (file, "%.3f  ", sn);
-  fprintf (file, "%.3f    //\n", sm);
+  printf("%.3f  ", sn);
+  printf("%.3f    //\n", sm);
 
   fclose (file);
-  return true;
-}
-
-
-bool create_render_buffer (void)
-{
-  unsigned int err;
-
-  glGenTextures (1, &sptb);
-  err = glGetError (); fprintf (logfile, "sp GenTextures err %d\n", err); fflush (logfile); if (err) return false;
-
-  glBindTexture (GL_TEXTURE_2D, sptb);
-  err = glGetError (); fprintf (logfile, "sp BindTexture err %d\n", err); fflush (logfile); if (err) return false;
-
-  glTexImage2D (GL_TEXTURE_2D, 0, GL_RGB8, NX, NY, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-  err = glGetError (); fprintf (logfile, "sp TexImage %d %d  err %d\n", NX, NY, err); fflush (logfile); if (err) return false;
-
-
-  glGenFramebuffers (1, &spfb);
-  err = glGetError (); fprintf (logfile, "sp GenFramebuffers err %d\n", err); fflush (logfile); if (err) return false;
-
-
-  glBindFramebuffer (GL_FRAMEBUFFER, spfb);
-  err = glGetError (); fprintf (logfile, "sp BindFramebuffer err %d\n", err); fflush (logfile); if (err) return false;
-
-  glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, sptb, 0);
-  err = glGetError (); fprintf (logfile, "sp FramebufferTexture2D err %d\n", err); fflush (logfile); if (err) return false;
-
-  err = glCheckFramebufferStatus (GL_FRAMEBUFFER);
-  fprintf (logfile, "sp FramebufferStatus 0x%x\n", err); fflush (logfile); if (err!=0x8cd5) return false;
-
-
-  fprintf (logfile, "\n"); fflush (logfile);
-  return true;
-}
-
-
-bool delete_render_buffer (void)
-{
-  unsigned int err;
-
-  glBindTexture (GL_TEXTURE_2D, 0);
-  err = glGetError (); fprintf (logfile, "sp BindTexture 0 err %d\n", err); fflush (logfile); if (err) return false;
-  glDeleteTextures (1, &sptb);
-  err = glGetError (); fprintf (logfile, "sp DeleteTextures err %d\n", err); fflush (logfile); if (err) return false;
-
-  glBindFramebuffer (GL_FRAMEBUFFER, 0);
-  err = glGetError (); fprintf (logfile, "sp BindFramebuffer 0 err %d\n", err); fflush (logfile); if (err) return false;
-  glDeleteFramebuffers (1, &spfb);
-  err = glGetError (); fprintf (logfile, "sp DeleteFramebuffers err %d\n", err); fflush (logfile); if (err) return false;
-
-  fprintf (logfile, "\n"); fflush (logfile);
   return true;
 }
 
@@ -257,11 +197,11 @@ bool setShaders (char *dname, char *fname, GLuint &prog)
   int count=0;
   char filename[128];
 
-  fprintf (logfile, "setting shader: %s\n", fname);
+  printf("setting shader: %s\n", fname);
 
   sprintf (filename, "%s\\%s.vert", dname, fname);
   fp = fopen (filename, "rt");
-  if (fp == NULL) { fprintf (logfile, "couldn't open .vert\n"); fflush (logfile); return false; }
+  if (fp == NULL) { printf("couldn't open .vert\n");  return false; }
   fseek (fp, 0, SEEK_END);
   count = ftell (fp);
   rewind (fp);
@@ -275,7 +215,7 @@ bool setShaders (char *dname, char *fname, GLuint &prog)
 
   sprintf (filename, "%s\\%s.frag", dname, fname);
   fp = fopen (filename, "rt");
-  if (fp == NULL) { fprintf (logfile, "couldn't open .frag\n"); fflush (logfile); return false; }
+  if (fp == NULL) { printf("couldn't open .frag\n");  return false; }
   fseek (fp, 0, SEEK_END);
   count = ftell (fp);
   rewind (fp);
@@ -344,23 +284,23 @@ bool setShaders (char *dname, char *fname, GLuint &prog)
   glCompileShader (v);
   if (printShaderInfoLog (v))
   {
-    fprintf (logfile, "error in vertex shader!\n\n"); fflush (logfile);
+    printf("error in vertex shader!\n\n"); 
     ret |= true;
   }
   else
   {
-    fprintf (logfile, "vertex shader ok\n\n"); fflush (logfile);
+    printf("vertex shader ok\n\n"); 
   }
 
   glCompileShader (f);
   if (printShaderInfoLog (f))
   {
-    fprintf (logfile, "error in fragment shader!\n\n"); fflush (logfile);
+    printf("error in fragment shader!\n\n"); 
     ret |= true;
   }
   else
   {
-    fprintf (logfile, "fragment shader ok\n\n"); fflush (logfile);
+    printf("fragment shader ok\n\n"); 
   }
 
   prog = glCreateProgram ();
@@ -370,12 +310,12 @@ bool setShaders (char *dname, char *fname, GLuint &prog)
   glLinkProgram (prog);
   if (printProgramInfoLog (prog))
   {
-    fprintf (logfile, "shader program error!\n\n"); fflush (logfile);
+    printf("shader program error!\n\n"); 
     ret |= true;
   }
   else
   {
-    fprintf (logfile, "shader program ok\n\n"); fflush (logfile);
+    printf("shader program ok\n\n"); 
   }
 
   return ret;
@@ -440,22 +380,22 @@ bool create_buffers (void)
   unsigned int err;
   int t, s, eb;
 
-  fprintf (logfile, "create buffers 2D %d %d\n", NX, NY); fflush (logfile);
+  printf("create buffers 2D %d %d\n", NX, NY); 
 
   // Fourier (complex) buffers
 
   glGenTextures (AFB, &tb[0]);
-  err = glGetError (); fprintf (logfile, "GenTextures err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("GenTextures err %d\n", err);  if (err) return false;
 
   glGenFramebuffers (AFB, &fb[0]);
-  err = glGetError (); fprintf (logfile, "GenFramebuffers err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("GenFramebuffers err %d\n", err);  if (err) return false;
 
   for (t=0; t<AFB; t++)
   {
-    fprintf (logfile, "complex buffer %d\n", t); fflush (logfile);
+    printf("complex buffer %d\n", t); 
 
     glBindTexture (ttd, tb[t]);
-    err = glGetError (); fprintf (logfile, "BindTexture err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("BindTexture err %d\n", err);  if (err) return false;
 
     glTexParameterf (ttd, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf (ttd, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -463,34 +403,34 @@ bool create_buffers (void)
     glTexParameterf (ttd, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glTexImage2D (GL_TEXTURE_2D, 0, GL_RG32F, NX/2+1,NY, 0, GL_RG, GL_FLOAT, NULL);
-    err = glGetError (); fprintf (logfile, "TexImage err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
 
 
     glBindFramebuffer (GL_FRAMEBUFFER, fb[t]);
-    err = glGetError (); fprintf (logfile, "BindFramebuffer err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("BindFramebuffer err %d\n", err);  if (err) return false;
 
     glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tb[t], 0);
-    err = glGetError (); fprintf (logfile, "FramebufferTexture err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("FramebufferTexture err %d\n", err);  if (err) return false;
 
     err = glCheckFramebufferStatus (GL_FRAMEBUFFER);
-    fprintf (logfile, "FramebufferStatus 0x%x\n", err); fflush (logfile); if (err!=0x8cd5) return false;
+    printf("FramebufferStatus 0x%x\n", err);  if (err!=0x8cd5) return false;
   }
 
 
   // real buffers
 
   glGenTextures (ARB, &tr[0]);
-  err = glGetError (); fprintf (logfile, "GenTextures err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("GenTextures err %d\n", err);  if (err) return false;
 
   glGenFramebuffers (ARB, &fr[0]);
-  err = glGetError (); fprintf (logfile, "GenFramebuffers err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("GenFramebuffers err %d\n", err);  if (err) return false;
 
   for (t=0; t<ARB; t++)
   {
-    fprintf (logfile, "real buffer %d\n", t); fflush (logfile);
+    printf("real buffer %d\n", t); 
 
     glBindTexture (ttd, tr[t]);
-    err = glGetError (); fprintf (logfile, "BindTexture err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("BindTexture err %d\n", err);  if (err) return false;
 
     glTexParameterf (ttd, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameterf (ttd, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -498,17 +438,17 @@ bool create_buffers (void)
     glTexParameterf (ttd, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     glTexImage2D (GL_TEXTURE_2D, 0, GL_R32F, NX,NY, 0, GL_RED, GL_FLOAT, NULL);
-    err = glGetError (); fprintf (logfile, "TexImage err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
 
 
     glBindFramebuffer (GL_FRAMEBUFFER, fr[t]);
-    err = glGetError (); fprintf (logfile, "BindFramebuffer err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("BindFramebuffer err %d\n", err);  if (err) return false;
 
     glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tr[t], 0);
-    err = glGetError (); fprintf (logfile, "FramebufferTexture err %d\n", err); fflush (logfile); if (err) return false;
+    err = glGetError (); printf("FramebufferTexture err %d\n", err);  if (err) return false;
 
     err = glCheckFramebufferStatus (GL_FRAMEBUFFER);
-    fprintf (logfile, "FramebufferStatus 0x%x\n", err); fflush (logfile); if (err!=0x8cd5) return false;
+    printf("FramebufferStatus 0x%x\n", err);  if (err!=0x8cd5) return false;
   }
 
 
@@ -520,14 +460,14 @@ bool create_buffers (void)
     for (eb=0; eb<=BX-1+1; eb++)
     {
       glBindTexture (GL_TEXTURE_1D, planx[eb][s]);
-      err = glGetError (); fprintf (logfile, "BindTexture err %d\n", err); fflush (logfile); if (err) return false;
+      err = glGetError (); printf("BindTexture err %d\n", err);  if (err) return false;
 
       glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
       glTexImage1D (GL_TEXTURE_1D, 0, GL_RGBA32F, NX/2+1, 0, GL_RGBA, GL_FLOAT, NULL);
-      err = glGetError (); fprintf (logfile, "TexImage err %d\n", err); fflush (logfile); if (err) return false;
+      err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
     }
   }
 
@@ -537,18 +477,18 @@ bool create_buffers (void)
     for (eb=1; eb<=BY; eb++)
     {
       glBindTexture (GL_TEXTURE_1D, plany[eb][s]);
-      err = glGetError (); fprintf (logfile, "BindTexture err %d\n", err); fflush (logfile); if (err) return false;
+      err = glGetError (); printf("BindTexture err %d\n", err);  if (err) return false;
 
       glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
       glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameterf (GL_TEXTURE_1D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 
       glTexImage1D (GL_TEXTURE_1D, 0, GL_RGBA32F, NY, 0, GL_RGBA, GL_FLOAT, NULL);
-      err = glGetError (); fprintf (logfile, "TexImage err %d\n", err); fflush (logfile); if (err) return false;
+      err = glGetError (); printf("TexImage err %d\n", err);  if (err) return false;
     }
   }
 
-  fprintf (logfile, "all buffers ok\n"); fflush (logfile);
+  printf("all buffers ok\n"); 
 
 
   return true;
@@ -559,25 +499,25 @@ bool delete_buffers (void)
 {
   unsigned int err;
 
-  fprintf (logfile, "delete buffers\n"); fflush (logfile);
+  printf("delete buffers\n"); 
 
   glBindTexture (ttd, 0);
-  err = glGetError (); fprintf (logfile, "BindTexture 0 err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("BindTexture 0 err %d\n", err);  if (err) return false;
   glDeleteTextures (AFB, &tb[0]);
-  err = glGetError (); fprintf (logfile, "DeleteTextures err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("DeleteTextures err %d\n", err);  if (err) return false;
   glDeleteTextures (ARB, &tr[0]);
-  err = glGetError (); fprintf (logfile, "DeleteTextures err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("DeleteTextures err %d\n", err);  if (err) return false;
   glDeleteTextures ((BX-1+2)*2, &planx[0][0]);
-  err = glGetError (); fprintf (logfile, "DeleteTextures err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("DeleteTextures err %d\n", err);  if (err) return false;
   glDeleteTextures ((BY+1)*2, &plany[0][0]);
-  err = glGetError (); fprintf (logfile, "DeleteTextures err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("DeleteTextures err %d\n", err);  if (err) return false;
 
   glBindFramebuffer (GL_FRAMEBUFFER, 0);
-  err = glGetError (); fprintf (logfile, "BindFramebuffer 0 err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("BindFramebuffer 0 err %d\n", err);  if (err) return false;
   glDeleteFramebuffers (AFB, &fb[0]);
-  err = glGetError (); fprintf (logfile, "DeleteFramebuffers err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("DeleteFramebuffers err %d\n", err);  if (err) return false;
   glDeleteFramebuffers (ARB, &fr[0]);
-  err = glGetError (); fprintf (logfile, "DeleteFramebuffers err %d\n", err); fflush (logfile); if (err) return false;
+  err = glGetError (); printf("DeleteFramebuffers err %d\n", err);  if (err) return false;
 
   return true;
 }
@@ -674,10 +614,10 @@ void makekernel (int kr, int kd)
   double ri, bb;
 
   ad = (float*)calloc (NX*NY, sizeof(float));
-  if (ad==0) { fprintf (logfile, "ad failed\n"); fflush (logfile); return; }
+  if (ad==0) { printf("ad failed\n");  return; }
 
   ar = (float*)calloc (NX*NY, sizeof(float));
-  if (ar==0) { fprintf (logfile, "ar failed\n"); fflush (logfile); return; }
+  if (ar==0) { printf("ar failed\n");  return; }
 
   ri = ra/rr;
   bb = ra/rb;
@@ -728,7 +668,7 @@ void makekernel (int kr, int kd)
   free (ar);
   free (ad);
 
-  fprintf (logfile, "ra=%lf rr=%lf rb=%lf ri=%lf bb=%lf kflr=%lf kfld=%lf kflr/kfld=%lf\n", ra, rr, rb, ri, bb, kflr, kfld, kflr/kfld); fflush (logfile);
+  printf("ra=%lf rr=%lf rb=%lf ri=%lf bb=%lf kflr=%lf kfld=%lf kflr/kfld=%lf\n", ra, rr, rb, ri, bb, kflr, kfld, kflr/kfld); 
 }
 
 
@@ -1308,7 +1248,7 @@ LRESULT CALLBACK PrgWndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
           SX = rect.right;
           SY = rect.bottom;
           maximized = 0;
-          //fprintf (logfile, "restored to %d %d\n", SX, SY); fflush (logfile);
+          //printf("restored to %d %d\n", SX, SY); 
         }
         else
         {
@@ -1330,7 +1270,7 @@ LRESULT CALLBACK PrgWndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
           SX = rect.right;
           SY = rect.bottom;
           maximized = 0;
-          //fprintf (logfile, "restored to %d %d\n", SX, SY); fflush (logfile);
+          //printf("restored to %d %d\n", SX, SY); 
         }
       }
       break;
@@ -1414,7 +1354,7 @@ LRESULT CALLBACK PrgWndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
       {
         SX = rect.right;
         SY = rect.bottom;
-        //fprintf (logfile, "resized to %d %d\n", SX, SY); fflush (logfile);
+        //printf("resized to %d %d\n", SX, SY); 
       }
       break;
 
@@ -1427,7 +1367,7 @@ LRESULT CALLBACK PrgWndProc (HWND hWnd, UINT message, WPARAM wParam, LPARAM lPar
         SetWindowLong (hWnd, GWL_STYLE, WS_POPUP);
         SetWindowPos (hWnd, HWND_TOP, 0, 0, SX, SY, SWP_SHOWWINDOW|SWP_FRAMECHANGED);
         maximized = 1;
-        //fprintf (logfile, "maximized to %d %d\n", SX, SY); fflush (logfile);
+        //printf("maximized to %d %d\n", SX, SY); 
       }
       break;
 
@@ -1497,13 +1437,13 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
   _fmode = O_TEXT;
   logfile = fopen ("SmoothLifeLog.txt", "w");
   if (logfile==0) goto ende;
-  fprintf (logfile, "starting SmoothLife\n"); fflush (logfile);
+  printf("starting SmoothLife\n"); 
 
-  if (! read_config ()) { fprintf (logfile, "couldn't read config file\n"); fflush (logfile); goto ende; }
+  if (! read_config ()) { printf("couldn't read config file\n");  goto ende; }
 
   maximized = 0;
 
-  if (hpi) { fprintf (logfile, "only one instance allowed\n"); fflush (logfile); goto ende; }
+  if (hpi) { printf("only one instance allowed\n");  goto ende; }
 
   registerprg (hi);
 
@@ -1514,14 +1454,14 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
       //0, 0, SX, SY,
       NULL, NULL, hi, NULL);
 
-  if (hwnd==NULL) { fprintf (logfile, "couldn't open window\n"); fflush (logfile); goto ende; }
+  if (hwnd==NULL) { printf("couldn't open window\n");  goto ende; }
 
   ShowWindow (hwnd, SW_SHOWNORMAL);
   windowfocus = 1;
 
   hdc = GetDC (hwnd);
   if (hdc==NULL) goto ende;
-  fprintf (logfile, "hdc\n"); fflush (logfile);
+  printf("hdc\n"); 
 
   RECT rect;
 
@@ -1532,7 +1472,7 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
 
   if (rect.right==SX && rect.bottom==SY)
   {
-    fprintf (logfile, "window is maximized\n"); fflush (logfile);
+    printf("window is maximized\n"); 
     maximized = 1;
     oldx = (int)(0.1*SX);
     oldy = (int)(0.1*SY);
@@ -1541,7 +1481,7 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
   }
   else
   {
-    fprintf (logfile, "window is not maximized\n"); fflush (logfile);
+    printf("window is not maximized\n"); 
     GetWindowRect (hwnd, &rect);
     oldx = rect.left;
     oldy = rect.top;
@@ -1553,7 +1493,7 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
   SX = rect.right;
   SY = rect.bottom;
 
-  fprintf (logfile, "window  sx %d  sy %d\n", SX, SY); fflush (logfile);
+  printf("window  sx %d  sy %d\n", SX, SY); 
 
 
   PIXELFORMATDESCRIPTOR pfd, cpfd;
@@ -1573,18 +1513,18 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
   pfd.cAccumBits = 0;
 
   pixelformat = ChoosePixelFormat (hdc, &pfd);
-  fprintf (logfile, "choose pixelformat %d\n", pixelformat); fflush (logfile);
+  printf("choose pixelformat %d\n", pixelformat); 
   if (pixelformat==0) goto ende;
 
   //pixelformat = GetPixelFormat (hdc);
   DescribePixelFormat (hdc, pixelformat, sizeof(PIXELFORMATDESCRIPTOR), &cpfd);
-  fprintf (logfile, "describe\n"); fflush (logfile);
-  fprintf (logfile, "color bits %d\n", cpfd.cColorBits); fflush (logfile);
-  fprintf (logfile, "depth bits %d\n", cpfd.cDepthBits); fflush (logfile);
-  fprintf (logfile, "stencil bits %d\n", cpfd.cStencilBits); fflush (logfile);
-  fprintf (logfile, "accum bits %d\n", cpfd.cAccumBits); fflush (logfile);
-  fprintf (logfile, "pixel type %d\n", cpfd.iPixelType); fflush (logfile);
-  fprintf (logfile, "flags %x\n", cpfd.dwFlags); fflush (logfile);
+  printf("describe\n"); 
+  printf("color bits %d\n", cpfd.cColorBits); 
+  printf("depth bits %d\n", cpfd.cDepthBits); 
+  printf("stencil bits %d\n", cpfd.cStencilBits); 
+  printf("accum bits %d\n", cpfd.cAccumBits); 
+  printf("pixel type %d\n", cpfd.iPixelType); 
+  printf("flags %x\n", cpfd.dwFlags); 
 
   //if (cpfd.cColorBits != pfd.cColorBits) goto ende;
   //if (cpfd.cDepthBits != pfd.cDepthBits) goto ende;
@@ -1592,38 +1532,38 @@ int WINAPI WinMain (HINSTANCE hi, HINSTANCE hpi, LPSTR lpszCmdLine, int cmdShow)
   //if (cpfd.dwFlags != pfd.dwFlags) goto ende;
 
   if (! SetPixelFormat (hdc, pixelformat, &cpfd)) goto ende;
-  fprintf (logfile, "set pixel format\n"); fflush (logfile);
+  printf("set pixel format\n"); 
 
   hglrc = wglCreateContext (hdc); if (hglrc==NULL) goto ende;
   if (! wglMakeCurrent (hdc, hglrc)) goto ende;
 
   if (GLEE_WGL_ARB_create_context)
   {
-    fprintf (logfile, "create context supported\n"); fflush (logfile);
+    printf("create context supported\n"); 
     nhglrc = wglCreateContextAttribsARB (hdc, 0, attribs);
   }
   else
   {
-    fprintf (logfile, "create context not supported\n"); fflush (logfile);
+    printf("create context not supported\n"); 
     nhglrc = hglrc;
   }
 
   GLVersionString = glGetString (GL_VERSION);
-  fprintf (logfile, "version string %s\n", GLVersionString); fflush (logfile);
+  printf("version string %s\n", GLVersionString); 
 
   if (! nhglrc)
   {
-    fprintf (logfile, "no nhglrc\n"); fflush (logfile);
+    printf("no nhglrc\n"); 
     goto ende;
   }
   else
   {
-    fprintf (logfile, "making new context current\n"); fflush (logfile);
+    printf("making new context current\n"); 
     wglMakeCurrent (NULL, NULL);
     wglDeleteContext (hglrc);
     hglrc = 0;
     wglMakeCurrent (hdc, nhglrc);
-    fprintf (logfile, "new context is current\n"); fflush (logfile);
+    printf("new context is current\n"); 
   }
 
   SelectObject (hdc, GetStockObject (SYSTEM_FONT));
