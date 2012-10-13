@@ -15,7 +15,8 @@
 #
 THIS_MAKEFILE:=$(abspath $(lastword $(MAKEFILE_LIST)))
 NACL_SDK_ROOT?=$(abspath $(dir $(THIS_MAKEFILE))nacl_sdk/pepper_23)
-CHROME_PATH?=Undefined
+CHROME_PATH?=/home/binji/dev/chromium/src/out/Debug/chrome
+NEXE_ARGS?=--enable-nacl --ignore-gpu-blacklist --incognito
 
 #
 # Defaults
@@ -85,6 +86,14 @@ export CYGWIN
 #
 # Defaults for TOOLS
 #
+Debug_CCFLAGS?=-g -O0
+Release_CCFLAGS?=-O2
+Debug_LDFLAGS?=-g
+Release_LDFLAGS?=
+x86_32_CCFLAGS?=-m32
+x86_64_CCFLAGS?=-m64
+x86_32_LDFLAGS?=-m32
+x86_64_LDFLAGS?=-m64
 
 newlib_CC?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-gcc -c
 newlib_CXX?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -c -std=gnu++98
@@ -92,11 +101,7 @@ newlib_LINK?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -Wl,-as-needed
 newlib_LIB?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-ar r
 newlib_DUMP?=$(TC_PATH)/$(OSNAME)_x86_newlib/x86_64-nacl/bin/objdump
 newlib_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
-newlib_Debug_CCFLAGS?=$(newlib_CCFLAGS) -g -O0
-newlib_Release_CCFLAGS?=$(newlib_CCFLAGS) -O2
 newlib_LDFLAGS?=-pthread
-newlib_Debug_LDFLAGS?=$(newlib_LDFLAGS) -g
-newlib_Release_LDFLAGS?=$(newlib_LDFLAGS)
 
 glibc_CC?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-gcc -c
 glibc_CXX?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -c -std=gnu++98
@@ -106,11 +111,7 @@ glibc_DUMP?=$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/bin/objdump
 glibc_PATHS:=-L $(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/lib32
 glibc_PATHS+=-L $(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/lib
 glibc_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
-glibc_Debug_CCFLAGS?=$(glibc_CCFLAGS) -g -O0
-glibc_Release_CCFLAGS?=$(glibc_CCFLAGS) -O2
 glibc_LDFLAGS?=-pthread
-glibc_Debug_LDFLAGS?=$(glibc_LDFLAGS) -g
-glibc_Release_LDFLAGS?=$(glibc_LDFLAGS)
 
 
 
@@ -144,14 +145,14 @@ SMOOTHLIFE_OBJS:=hello_world matrix
 # $1 toolchain, $2 config, $3 arch, $4 object
 define CC_RULE
 $(1)/$(2)/$(4)_$(3).o : $(4).cc $(THIS_MAKE) | $(1)/$(2)
-	$$($(1)_CC) -o $$@ $$< $$($(1)_$(2)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS)
+	$$($(1)_CC) -o $$@ $$< $$($(2)_CCFLAGS) $$($(3)_CCFLAGS) $$($(1)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS)
 endef
 
 # $1 toolchain, $2 config, $3 arch
 define ARCH_RULE
 SMOOTHLIFE_$(1)_$(2)_$(3)_O:=$$(patsubst %,$(1)/$(2)/%_$(3).o,$(SMOOTHLIFE_OBJS))
 $(1)/$(2)/smoothlife_$(3).nexe : $$(SMOOTHLIFE_$(1)_$(2)_$(3)_O)
-	$$($(1)_LINK) -o $$@ $$^ $$($(1)_$(2)_LDFLAGS) $$(SMOOTHLIFE_LDFLAGS) -L$$(NACL_SDK_ROOT)/lib/$$(OSNAME)_$(1)_$(3)/$(2) -lppapi_gles2 -lppapi -lpthread
+	$$($(1)_LINK) -o $$@ $$^ $$($(2)_LDFLAGS) $$($(3)_LDFLAGS) $$($(1)_LDFLAGS) $$(SMOOTHLIFE_LDFLAGS) -L$$(NACL_SDK_ROOT)/lib/$$(OSNAME)_$(1)_$(3)/$(2) -lppapi_gles2 -lppapi -lpthread
 
 $$(foreach obj,$$(SMOOTHLIFE_OBJS),$$(eval $$(call CC_RULE,$(1),$(2),$(3),$$(obj))))
 endef
