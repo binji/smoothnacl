@@ -86,23 +86,31 @@ export CYGWIN
 # Defaults for TOOLS
 #
 
-NEWLIB_CC?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-gcc -c
-NEWLIB_CXX?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -c -std=gnu++98
-NEWLIB_LINK?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -Wl,-as-needed
-NEWLIB_LIB?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-ar r
-NEWLIB_DUMP?=$(TC_PATH)/$(OSNAME)_x86_newlib/x86_64-nacl/bin/objdump
-NEWLIB_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
-NEWLIB_LDFLAGS?=-pthread
+newlib_CC?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-gcc -c
+newlib_CXX?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -c -std=gnu++98
+newlib_LINK?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -Wl,-as-needed
+newlib_LIB?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-ar r
+newlib_DUMP?=$(TC_PATH)/$(OSNAME)_x86_newlib/x86_64-nacl/bin/objdump
+newlib_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
+newlib_Debug_CCFLAGS?=$(newlib_CCFLAGS) -g -O0
+newlib_Release_CCFLAGS?=$(newlib_CCFLAGS) -O2
+newlib_LDFLAGS?=-pthread
+newlib_Debug_LDFLAGS?=$(newlib_LDFLAGS) -g
+newlib_Release_LDFLAGS?=$(newlib_LDFLAGS)
 
-GLIBC_CC?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-gcc -c
-GLIBC_CXX?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -c -std=gnu++98
-GLIBC_LINK?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -Wl,-as-needed
-GLIBC_LIB?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-ar r
-GLIBC_DUMP?=$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/bin/objdump
-GLIBC_PATHS:=-L $(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/lib32
-GLIBC_PATHS+=-L $(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/lib
-GLIBC_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
-GLIBC_LDFLAGS?=-pthread
+glibc_CC?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-gcc -c
+glibc_CXX?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -c -std=gnu++98
+glibc_LINK?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -Wl,-as-needed
+glibc_LIB?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-ar r
+glibc_DUMP?=$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/bin/objdump
+glibc_PATHS:=-L $(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/lib32
+glibc_PATHS+=-L $(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/lib
+glibc_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
+glibc_Debug_CCFLAGS?=$(glibc_CCFLAGS) -g -O0
+glibc_Release_CCFLAGS?=$(glibc_CCFLAGS) -O2
+glibc_LDFLAGS?=-pthread
+glibc_Debug_LDFLAGS?=$(glibc_LDFLAGS) -g
+glibc_Release_LDFLAGS?=$(glibc_LDFLAGS)
 
 
 
@@ -131,132 +139,46 @@ endif
 #
 # Per target object lists
 #
-SMOOTHLIFE_OBJS:=smoothlife
+SMOOTHLIFE_OBJS:=hello_world matrix
 
-#
-# Rules for newlib toolchain
-#
-newlib:
-	$(MKDIR) newlib
-newlib/Debug: | newlib
-	$(MKDIR) newlib/Debug
-newlib/Release: | newlib
-	$(MKDIR) newlib/Release
+# $1 toolchain, $2 config, $3 arch, $4 object
+define CC_RULE
+$(1)/$(2)/$(4)_$(3).o : $(4).cc $(THIS_MAKE) | $(1)/$(2)
+	$$($(1)_CC) -o $$@ $$< $$($(1)_$(2)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS)
+endef
 
-# Include header dependency files.
--include newlib/Debug/*.d
--include newlib/Release/*.d
+# $1 toolchain, $2 config, $3 arch
+define ARCH_RULE
+SMOOTHLIFE_$(1)_$(2)_$(3)_O:=$$(patsubst %,$(1)/$(2)/%_$(3).o,$(SMOOTHLIFE_OBJS))
+$(1)/$(2)/smoothlife_$(3).nexe : $$(SMOOTHLIFE_$(1)_$(2)_$(3)_O)
+	$$($(1)_LINK) -o $$@ $$^ $$($(1)_$(2)_LDFLAGS) $$(SMOOTHLIFE_LDFLAGS) -L$$(NACL_SDK_ROOT)/lib/$$(OSNAME)_$(1)_$(3)/$(2) -lppapi_gles2 -lppapi -lpthread
 
-PPAPI_DEBUG:=$(abspath newlib/Debug/smoothlife_<ARCH>.nexe);application/x-ppapi-debug
-newlib/Debug/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | newlib/Debug
-	$(NEWLIB_CC) -o $@ $< -g -O0 -m32 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
+$$(foreach obj,$$(SMOOTHLIFE_OBJS),$$(eval $$(call CC_RULE,$(1),$(2),$(3),$$(obj))))
+endef
 
+# $1 toolchain, $2 config, $3 arch list
+define CONFIG_RULE
+$(1)/$(2): | $(1)
+	$$(MKDIR) $(1)/$(2)
+-include $(1)/$(2)/*.d
 
+ALL_TARGETS+=$(1)/$(2)/smoothlife.nmf
+SMOOTHLIFE_$(1)_$(2)_NEXES:=$$(patsubst %,$(1)/$(2)/smoothlife_%.nexe,$(3))
+$(1)/$(2)/smoothlife.nmf : $$(SMOOTHLIFE_$(1)_$(2)_NEXES)
+	$$(NMF) -D $$($(1)_DUMP) $$($(1)_PATHS) -o $$@ $$^ -t $(1) -s $(1)/$(2)
+$$(foreach arch,$(3),$$(eval $$(call ARCH_RULE,$(1),$(2),$$(arch))))
+endef
 
-SMOOTHLIFE_NEWLIB_DEBUG_x86_32_O:=$(patsubst %,newlib/Debug/%_x86_32.o,$(SMOOTHLIFE_OBJS))
-newlib/Debug/smoothlife_x86_32.nexe : $(SMOOTHLIFE_NEWLIB_DEBUG_x86_32_O)
-	$(NEWLIB_LINK) -o $@ $^ -g -m32 $(NEWLIB_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_newlib/Debug -lppapi_gles2 -lppapi -lpthread
+# $1 toolchain, $2 arch list
+define TOOLCHAIN_RULE
+$(1):
+	$$(MKDIR) $(1)
+$$(eval $$(call CONFIG_RULE,$(1),Debug,$(2)))
+$$(eval $$(call CONFIG_RULE,$(1),Release,$(2)))
+endef
 
-newlib/Debug/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | newlib/Debug
-	$(NEWLIB_CC) -o $@ $< -g -O0 -m64 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_NEWLIB_DEBUG_x86_64_O:=$(patsubst %,newlib/Debug/%_x86_64.o,$(SMOOTHLIFE_OBJS))
-newlib/Debug/smoothlife_x86_64.nexe : $(SMOOTHLIFE_NEWLIB_DEBUG_x86_64_O)
-	$(NEWLIB_LINK) -o $@ $^ -g -m64 $(NEWLIB_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_64_newlib/Debug -lppapi_gles2 -lppapi -lpthread
-
-
-ALL_TARGETS+=newlib/Debug/smoothlife.nmf
-newlib/Debug/smoothlife.nmf : newlib/Debug/smoothlife_x86_32.nexe newlib/Debug/smoothlife_x86_64.nexe
-	$(NMF) -D $(NEWLIB_DUMP) -o $@ $^ -t newlib -s newlib/Debug
-
-PPAPI_RELEASE:=$(abspath newlib/Release/smoothlife_x86_64.nexe);application/x-ppapi-release
-newlib/Release/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | newlib/Release
-	$(NEWLIB_CC) -o $@ $< -O2 -m32 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_NEWLIB_RELEASE_x86_32_O:=$(patsubst %,newlib/Release/%_x86_32.o,$(SMOOTHLIFE_OBJS))
-newlib/Release/smoothlife_x86_32.nexe : $(SMOOTHLIFE_NEWLIB_RELEASE_x86_32_O)
-	$(NEWLIB_LINK) -o $@ $^ -m32 $(NEWLIB_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_newlib/Release -lppapi_gles2 -lppapi -lpthread
-
-newlib/Release/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | newlib/Release
-	$(NEWLIB_CC) -o $@ $< -O2 -m64 $(NEWLIB_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_NEWLIB_RELEASE_x86_64_O:=$(patsubst %,newlib/Release/%_x86_64.o,$(SMOOTHLIFE_OBJS))
-newlib/Release/smoothlife_x86_64.nexe : $(SMOOTHLIFE_NEWLIB_RELEASE_x86_64_O)
-	$(NEWLIB_LINK) -o $@ $^ -m64 $(NEWLIB_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_64_newlib/Release -lppapi_gles2 -lppapi -lpthread
-
-
-ALL_TARGETS+=newlib/Release/smoothlife.nmf
-newlib/Release/smoothlife.nmf : newlib/Release/smoothlife_x86_32.nexe newlib/Release/smoothlife_x86_64.nexe
-	$(NMF) -D $(NEWLIB_DUMP) -o $@ $^ -t newlib -s newlib/Release
-
-
-#
-# Rules for glibc toolchain
-#
-glibc:
-	$(MKDIR) glibc
-glibc/Debug: | glibc
-	$(MKDIR) glibc/Debug
-glibc/Release: | glibc
-	$(MKDIR) glibc/Release
-
-# Include header dependency files.
--include glibc/Debug/*.d
--include glibc/Release/*.d
-
-PPAPI_DEBUG:=$(abspath glibc/Debug/smoothlife_<ARCH>.nexe);application/x-ppapi-debug
-glibc/Debug/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | glibc/Debug
-	$(GLIBC_CC) -o $@ $< -g -O0 -m32 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_GLIBC_DEBUG_x86_32_O:=$(patsubst %,glibc/Debug/%_x86_32.o,$(SMOOTHLIFE_OBJS))
-glibc/Debug/smoothlife_x86_32.nexe : $(SMOOTHLIFE_GLIBC_DEBUG_x86_32_O)
-	$(GLIBC_LINK) -o $@ $^ -g -m32 $(GLIBC_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_glibc/Debug -lppapi_gles2 -lppapi -lpthread
-
-glibc/Debug/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | glibc/Debug
-	$(GLIBC_CC) -o $@ $< -g -O0 -m64 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_GLIBC_DEBUG_x86_64_O:=$(patsubst %,glibc/Debug/%_x86_64.o,$(SMOOTHLIFE_OBJS))
-glibc/Debug/smoothlife_x86_64.nexe : $(SMOOTHLIFE_GLIBC_DEBUG_x86_64_O)
-	$(GLIBC_LINK) -o $@ $^ -g -m64 $(GLIBC_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_64_glibc/Debug -lppapi_gles2 -lppapi -lpthread
-
-
-ALL_TARGETS+=glibc/Debug/smoothlife.nmf
-glibc/Debug/smoothlife.nmf : glibc/Debug/smoothlife_x86_32.nexe glibc/Debug/smoothlife_x86_64.nexe
-	$(NMF) -D $(GLIBC_DUMP) -o $@ $(GLIBC_PATHS) $^ -t glibc -s glibc/Debug $(GLIBC_REMAP)
-
-PPAPI_RELEASE:=$(abspath glibc/Release/smoothlife_x86_64.nexe);application/x-ppapi-release
-glibc/Release/smoothlife_x86_32.o : smoothlife.cc $(THIS_MAKE) | glibc/Release
-	$(GLIBC_CC) -o $@ $< -O2 -m32 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_GLIBC_RELEASE_x86_32_O:=$(patsubst %,glibc/Release/%_x86_32.o,$(SMOOTHLIFE_OBJS))
-glibc/Release/smoothlife_x86_32.nexe : $(SMOOTHLIFE_GLIBC_RELEASE_x86_32_O)
-	$(GLIBC_LINK) -o $@ $^ -m32 $(GLIBC_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_32_glibc/Release -lppapi_gles2 -lppapi -lpthread
-
-glibc/Release/smoothlife_x86_64.o : smoothlife.cc $(THIS_MAKE) | glibc/Release
-	$(GLIBC_CC) -o $@ $< -O2 -m64 $(GLIBC_CCFLAGS) $(SMOOTHLIFE_CXXFLAGS)  
-
-
-
-SMOOTHLIFE_GLIBC_RELEASE_x86_64_O:=$(patsubst %,glibc/Release/%_x86_64.o,$(SMOOTHLIFE_OBJS))
-glibc/Release/smoothlife_x86_64.nexe : $(SMOOTHLIFE_GLIBC_RELEASE_x86_64_O)
-	$(GLIBC_LINK) -o $@ $^ -m64 $(GLIBC_LDFLAGS) $(SMOOTHLIFE_LDFLAGS) -L$(NACL_SDK_ROOT)/lib/$(OSNAME)_x86_64_glibc/Release -lppapi_gles2 -lppapi -lpthread
-
-
-ALL_TARGETS+=glibc/Release/smoothlife.nmf
-glibc/Release/smoothlife.nmf : glibc/Release/smoothlife_x86_32.nexe glibc/Release/smoothlife_x86_64.nexe
-	$(NMF) -D $(GLIBC_DUMP) -o $@ $(GLIBC_PATHS) $^ -t glibc -s glibc/Release $(GLIBC_REMAP)
+$(eval $(call TOOLCHAIN_RULE,newlib,x86_32 x86_64))
+$(eval $(call TOOLCHAIN_RULE,glibc,x86_32 x86_64))
 
 #
 # Target to remove temporary files
@@ -271,9 +193,6 @@ clean:
 
 all: $(ALL_TARGETS)
 
-
-
-
 RUN: all
 	python ../httpd.py
 
@@ -285,6 +204,4 @@ ifeq (,$(wildcard $(PAGE)))
 	$(warning No valid HTML page found at $(PAGE))
 	$(error Make sure TOOLCHAIN and CONFIG are properly set)
 endif
-	$(CHROME_PATH) $(NEXE_ARGS) --register-pepper-plugins="$(PPAPI_DEBUG),$(PPAPI_RELEASE)" localhost:5103/$(PAGE)
-
-
+	$(CHROME_PATH) $(NEXE_ARGS) localhost:5103/$(PAGE)

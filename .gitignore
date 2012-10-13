@@ -1,3 +1,4 @@
 nacl_sdk/
 nacl_sdk.zip
 newlib/
+glibc/
