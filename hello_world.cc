@@ -49,39 +49,37 @@ static PP_Instance g_instance;
 static PP_Resource g_context;
 
 GLuint  g_positionLoc;
-GLuint  g_texCoordLoc;
 GLuint  g_colorLoc;
 GLuint  g_MVPLoc;
 GLuint  g_vboID;
-GLuint  g_ibID;
-GLubyte g_Indices[36];
 
 GLuint g_programObj;
 GLuint g_vertexShader;
 GLuint g_fragmentShader;
 
-GLuint g_textureLoc = 0;
-GLuint g_textureID = 0;
+//GLuint g_textureLoc = 0;
+//GLuint g_textureID = 0;
 
 struct Vertex {
-  float tu, tv;
+//  float tu, tv;
   float color[3];
   float loc[3];
 };
 
 Vertex *g_quadVertices = NULL;
-const char *g_TextureData = NULL;
-const char *g_VShaderData = NULL;
-const char *g_FShaderData = NULL;
+
+const int kNumResources = 2;
+const char* g_toLoad[kNumResources] = {
+  "vertex_shader_es2.vert",
+  "fragment_shader_es2.frag",
+};
+const char* g_loadedData[kNumResources];
 int g_LoadCnt = 0;
 
-//-----------------------------------------------------------------------------
-// PROTOTYPES
-//-----------------------------------------------------------------------------
+
 void PostMessage(const char *fmt, ...);
 char* LoadFile(const char *fileName);
 
-void BuildQuad(Vertex* verts, int axis[3], float depth, float color[3]);
 Vertex* BuildCube();
 
 void InitGL();
@@ -111,11 +109,12 @@ void PostMessage(const char *fmt, ...) {
 }
 
 void MainLoop(void* foo, int bar) {
-  if (g_LoadCnt == 3) {
+  if (g_LoadCnt == 2) {
+    printf("initializing...\n");
     InitProgram();
     g_LoadCnt++;
   }
-  if (g_LoadCnt > 3) {
+  if (g_LoadCnt > 2) {
     Render();
     PP_CompletionCallback cc = PP_MakeCompletionCallback(MainLoop, 0);
     ppb_g3d_interface->SwapBuffers(g_context, cc);
@@ -128,8 +127,6 @@ void MainLoop(void* foo, int bar) {
 void InitGL() {
   int32_t attribs[] = {
     PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
-    PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 24,
-    PP_GRAPHICS3DATTRIB_STENCIL_SIZE, 8,
     PP_GRAPHICS3DATTRIB_SAMPLES, 0,
     PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
     PP_GRAPHICS3DATTRIB_WIDTH, 640,
@@ -158,6 +155,14 @@ GLuint compileShader(GLenum type, const char *data) {
   GLuint shader = glCreateShader(type);
   glShaderSource(shader, 1, shaderStrings, NULL);
   glCompileShader(shader);
+
+  if (glGetError()) {
+    char buffer[4096];
+    GLsizei length;
+    glGetShaderInfoLog(shader, 4096, &length, &buffer[0]);
+    buffer[length] = 0;
+    printf("shaderLog: %s\n", buffer);
+  }
   return shader;
 }
 
@@ -165,8 +170,8 @@ GLuint compileShader(GLenum type, const char *data) {
 void InitProgram() {
   glSetCurrentContextPPAPI(g_context);
 
-  g_vertexShader = compileShader(GL_VERTEX_SHADER, g_VShaderData);
-  g_fragmentShader = compileShader(GL_FRAGMENT_SHADER, g_FShaderData);
+  g_vertexShader = compileShader(GL_VERTEX_SHADER, g_loadedData[0]);
+  g_fragmentShader = compileShader(GL_FRAGMENT_SHADER, g_loadedData[1]);
 
   g_programObj = glCreateProgram();
   glAttachShader(g_programObj, g_vertexShader);
@@ -175,127 +180,92 @@ void InitProgram() {
 
   glGenBuffers(1, &g_vboID);
   glBindBuffer(GL_ARRAY_BUFFER, g_vboID);
-  glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(Vertex), (void*)&g_quadVertices[0],
-               GL_STATIC_DRAW);
-
-  glGenBuffers(1, &g_ibID);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibID);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, 36 * sizeof(char), (void*)&g_Indices[0],
+  glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), (void*)&g_quadVertices[0],
                GL_STATIC_DRAW);
 
   //
   // Create a texture to test out our fragment shader...
   //
+  /*
   glGenTextures(1, &g_textureID);
   glBindTexture(GL_TEXTURE_2D, g_textureID);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 128, 0, GL_RGB, GL_UNSIGNED_BYTE,
-               g_TextureData);
+             g_TextureData);
+             */
 
   //
   // Locate some parameters by name so we can set them later...
   //
-  g_textureLoc = glGetUniformLocation(g_programObj, "arrowTexture");
   g_positionLoc = glGetAttribLocation(g_programObj, "a_position");
-  g_texCoordLoc = glGetAttribLocation(g_programObj, "a_texCoord");
   g_colorLoc = glGetAttribLocation(g_programObj, "a_color");
-  g_MVPLoc = glGetUniformLocation(g_programObj, "a_MVP");
-}
-
-
-void BuildQuad(Vertex* verts, int axis[3], float depth, float color[3]) {
-  static float X[4] = { -1.0f, 1.0f, 1.0f, -1.0f };
-  static float Y[4] = { -1.0f, -1.0f, 1.0f, 1.0f };
-
-  for (int i = 0; i < 4; i++) {
-    verts[i].tu = (1.0 - X[i]) / 2.0f;
-    verts[i].tv = (Y[i] + 1.0f) / -2.0f * depth;
-    verts[i].loc[axis[0]] = X[i] * depth;
-    verts[i].loc[axis[1]] = Y[i] * depth;
-    verts[i].loc[axis[2]] = depth;
-    for (int j = 0; j < 3; j++) 
-      verts[i].color[j] = color[j] * (Y[i] + 1.0f) / 2.0f;
-  }
+  g_MVPLoc = glGetUniformLocation(g_programObj, "u_MVP");
 }
 
 
 Vertex *BuildCube() {
-  Vertex *verts = new Vertex[24];
-  for (int i = 0; i < 3; i++) {
-    int Faxis[3];
-    int Baxis[3];
-    float Fcolor[3];
-    float Bcolor[3];
-    for (int j = 0; j < 3; j++) {
-      Faxis[j] = (j + i) % 3;
-      Baxis[j] = (j + i) % 3;
-    }
-    memset(Fcolor, 0, sizeof(float) * 3);
-    memset(Bcolor, 0, sizeof(float) * 3);
-    Fcolor[i] = 0.5f;
-    Bcolor[i] = 1.0f;
-    BuildQuad(&verts[0 + i * 4], Faxis, 1.0f, Fcolor);
-    BuildQuad(&verts[12 + i * 4], Baxis, -1.0f, Bcolor);
-  }
-
-  for(int i = 0; i < 6; i++) {
-    g_Indices[i*6 + 0] = 2 + i * 4;
-    g_Indices[i*6 + 1] = 1 + i * 4;
-    g_Indices[i*6 + 2] = 0 + i * 4;
-    g_Indices[i*6 + 3] = 3 + i * 4;
-    g_Indices[i*6 + 4] = 2 + i * 4;
-    g_Indices[i*6 + 5] = 0 + i * 4;
-  }
+  Vertex *verts = new Vertex[4];
+  float f = 1.0f;
+  verts[0].loc[0] = -f;
+  verts[0].loc[1] = -f;
+  verts[0].loc[2] = 0.0f;
+  verts[0].color[0] = 1.0f;
+  verts[0].color[1] = 1.0f;
+  verts[0].color[2] = 1.0f;
+  verts[1].loc[0] = +f;
+  verts[1].loc[1] = -f;
+  verts[1].loc[2] = 0.0f;
+  verts[1].color[0] = 1.0f;
+  verts[1].color[1] = 1.0f;
+  verts[1].color[2] = 1.0f;
+  verts[2].loc[0] = -f;
+  verts[2].loc[1] = +f;
+  verts[2].loc[2] = 0.0f;
+  verts[2].color[0] = 1.0f;
+  verts[2].color[1] = 1.0f;
+  verts[2].color[2] = 1.0f;
+  verts[3].loc[0] = +f;
+  verts[3].loc[1] = +f;
+  verts[3].loc[2] = 0.0f;
+  verts[3].color[0] = 1.0f;
+  verts[3].color[1] = 1.0f;
+  verts[3].color[2] = 1.0f;
   return verts;
 }
 
 
 void Render() {
-  static float xRot = 0.0;
-  static float yRot = 0.0;
-
-  xRot += 2.0f;
-  yRot += 0.5f;
-  if (xRot >= 360.0f) xRot = 0.0;
-  if (yRot >= 360.0f) yRot = 0.0;
-
   glClearColor(0.5, 0.5, 0.5, 1);
-  glClearDepthf(1.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glEnable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT);
 
   //set what program to use
   glUseProgram(g_programObj);
+  /*
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, g_textureID);
   glUniform1i(g_textureLoc, 0);
+  */
 
   //create our perspective matrix
   float mpv[16];
-  float trs[16];
-  float rot[16];
 
   identity_matrix(mpv);
-  glhPerspectivef2(&mpv[0], 45.0f, 640.0f / 480.0f, 1, 10);
-
-  translate_matrix(0, 0, -4.0, trs);
-  rotate_matrix(xRot, yRot, 0.0f, rot);
-  multiply_matrix(trs, rot, trs);
-  multiply_matrix(mpv, trs, mpv);
+  //glhOrtho(&mpv[0], 0, 640.f, 0.f, 480.f, -1.f, 1.f);
   glUniformMatrix4fv(g_MVPLoc, 1, GL_FALSE, (GLfloat*) mpv);
 
   //define the attributes of the vertex
   glBindBuffer(GL_ARRAY_BUFFER, g_vboID);
   glVertexAttribPointer(g_positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, loc));
   glEnableVertexAttribArray(g_positionLoc);
+  /*
   glVertexAttribPointer(g_texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tu));
   glEnableVertexAttribArray(g_texCoordLoc);
+  */
   glVertexAttribPointer(g_colorLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
   glEnableVertexAttribArray(g_colorLoc);
 
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibID);
-  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 
@@ -430,67 +400,23 @@ void Loaded(void* data) {
 }
 
 
-/**
- * Called when the NaCl module is instantiated on the web page. The identifier
- * of the new instance will be passed in as the first argument (this value is
- * generated by the browser and is an opaque handle).  This is called for each
- * instantiation of the NaCl module, which is each time the <embed> tag for
- * this module is encountered.
- *
- * If this function reports a failure (by returning @a PP_FALSE), the NaCl
- * module will be deleted and DidDestroy will be called.
- * @param[in] instance The identifier of the new instance representing this
- *     NaCl module.
- * @param[in] argc The number of arguments contained in @a argn and @a argv.
- * @param[in] argn An array of argument names.  These argument names are
- *     supplied in the <embed> tag, for example:
- *       <embed id="nacl_module" dimensions="2">
- *     will produce two arguments, one named "id" and one named "dimensions".
- * @param[in] argv An array of argument values.  These are the values of the
- *     arguments listed in the <embed> tag.  In the above example, there will
- *     be two elements in this array, "nacl_module" and "2".  The indices of
- *     these values match the indices of the corresponding names in @a argn.
- * @return @a PP_TRUE on success.
- */
 static PP_Bool Instance_DidCreate(PP_Instance instance,
                                   uint32_t argc,
                                   const char* argn[],
                                   const char* argv[]) {
   g_instance = instance;
-  LoadURL(instance, "hello.raw", Loaded, &g_TextureData);
-  LoadURL(instance, "vertex_shader_es2.vert", Loaded, &g_VShaderData);
-  LoadURL(instance, "fragment_shader_es2.frag", Loaded, &g_FShaderData);
+  for (int i = 0; i < kNumResources; ++i)
+    LoadURL(instance, g_toLoad[i], Loaded, &g_loadedData[i]);
   g_quadVertices = BuildCube();
   return PP_TRUE;
 }
 
-
-/**
- * Called when the NaCl module is destroyed. This will always be called,
- * even if DidCreate returned failure. This routine should deallocate any data
- * associated with the instance.
- * @param[in] instance The identifier of the instance representing this NaCl
- *     module.
- */
 static void Instance_DidDestroy(PP_Instance instance) {
-  delete[] g_TextureData;
-  delete[] g_VShaderData;
-  delete[] g_FShaderData;
+  for (int i = 0; i < kNumResources; ++i)
+    delete[] g_loadedData[i];
   delete[] g_quadVertices;
 }
 
-/**
- * Called when the position, the size, or the clip rect of the element in the
- * browser that corresponds to this NaCl module has changed.
- * @param[in] instance The identifier of the instance representing this NaCl
- *     module.
- * @param[in] position The location on the page of this NaCl module. This is
- *     relative to the top left corner of the viewport, which changes as the
- *     page is scrolled.
- * @param[in] clip The visible region of the NaCl module. This is relative to
- *     the top left of the plugin's coordinate system (not the page).  If the
- *     plugin is invisible, @a clip will be (0, 0, 0, 0).
- */
 static void Instance_DidChangeView(PP_Instance instance,
                                    PP_Resource view_resource) {
   if (g_context == 0) {
@@ -499,37 +425,10 @@ static void Instance_DidChangeView(PP_Instance instance,
   }
 }
 
-/**
- * Notification that the given NaCl module has gained or lost focus.
- * Having focus means that keyboard events will be sent to the NaCl module
- * represented by @a instance. A NaCl module's default condition is that it
- * will not have focus.
- *
- * Note: clicks on NaCl modules will give focus only if you handle the
- * click event. You signal if you handled it by returning @a true from
- * HandleInputEvent. Otherwise the browser will bubble the event and give
- * focus to the element on the page that actually did end up consuming it.
- * If you're not getting focus, check to make sure you're returning true from
- * the mouse click in HandleInputEvent.
- * @param[in] instance The identifier of the instance representing this NaCl
- *     module.
- * @param[in] has_focus Indicates whether this NaCl module gained or lost
- *     event focus.
- */
 static void Instance_DidChangeFocus(PP_Instance instance,
                                     PP_Bool has_focus) {
 }
 
-/**
- * Handler that gets called after a full-frame module is instantiated based on
- * registered MIME types.  This function is not called on NaCl modules.  This
- * function is essentially a place-holder for the required function pointer in
- * the PPP_Instance structure.
- * @param[in] instance The identifier of the instance representing this NaCl
- *     module.
- * @param[in] url_loader A PP_Resource an open PPB_URLLoader instance.
- * @return PP_FALSE.
- */
 static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
                                            PP_Resource url_loader) {
   /* NaCl modules do not need to handle the document load function. */
@@ -537,13 +436,6 @@ static PP_Bool Instance_HandleDocumentLoad(PP_Instance instance,
 }
 
 
-/**
- * Entry points for the module.
- * Initialize needed interfaces: PPB_Core, PPB_Messaging and PPB_Var.
- * @param[in] a_module_id module ID
- * @param[in] get_browser pointer to PPB_GetInterface
- * @return PP_OK on success, any other value on failure.
- */
 PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
                                        PPB_GetInterface get_browser) {
   ppb_core_interface = (PPB_Core*)(get_browser(PPB_CORE_INTERFACE));
@@ -562,12 +454,6 @@ PP_EXPORT int32_t PPP_InitializeModule(PP_Module a_module_id,
 }
 
 
-/**
- * Returns an interface pointer for the interface of the given name, or NULL
- * if the interface is not supported.
- * @param[in] interface_name name of the interface
- * @return pointer to the interface
- */
 PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
   if (strcmp(interface_name, PPP_INSTANCE_INTERFACE) == 0) {
     static PPP_Instance instance_interface = {
@@ -583,8 +469,5 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
 }
 
 
-/**
- * Called before the plugin module is unloaded.
- */
 PP_EXPORT void PPP_ShutdownModule() {
 }

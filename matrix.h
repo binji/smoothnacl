@@ -23,6 +23,8 @@ typedef GLfloat Matrix_t[16];
 /// http://www.opengl.org/wiki/GluPerspective_code
 void glhFrustumf2(Matrix_t mat, GLfloat left, GLfloat right, GLfloat bottom,
                   GLfloat top, GLfloat znear, GLfloat zfar);
+void glhOrtho(Matrix_t mat, GLfloat left, GLfloat right, GLfloat bottom,
+              GLfloat top, GLfloat znear, GLfloat zfar);
 
 void glhPerspectivef2(Matrix_t mat, GLfloat fovyInDegrees,
                       GLfloat aspectRatio, GLfloat znear, GLfloat zfar);

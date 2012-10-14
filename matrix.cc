@@ -14,38 +14,56 @@
 #define deg_to_rad(x) (x * (M_PI/180.0f))
 
 void glhFrustumf2(Matrix_t mat, GLfloat left, GLfloat right, GLfloat bottom,
-                  GLfloat top, GLfloat znear, GLfloat zfar)
-{
-    float temp, temp2, temp3, temp4;
-    temp = 2.0f * znear;
-    temp2 = right - left;
-    temp3 = top - bottom;
-    temp4 = zfar - znear;
-    mat[0] = temp / temp2;
-    mat[1] = 0.0f;
-    mat[2] = 0.0f;
-    mat[3] = 0.0f;
-    mat[4] = 0.0f;
-    mat[5] = temp / temp3;
-    mat[6] = 0.0f;
-    mat[7] = 0.0f;
-    mat[8] = (right + left) / temp2;
-    mat[9] = (top + bottom) / temp3;
-    mat[10] = (-zfar - znear) / temp4;
-    mat[11] = -1.0f;
-    mat[12] = 0.0f;
-    mat[13] = 0.0f;
-    mat[14] = (-temp * zfar) / temp4;
-    mat[15] = 0.0f;
+                  GLfloat top, GLfloat znear, GLfloat zfar) {
+  float temp, temp2, temp3, temp4;
+  temp = 2.0f * znear;
+  temp2 = right - left;
+  temp3 = top - bottom;
+  temp4 = zfar - znear;
+  mat[0] = temp / temp2;
+  mat[1] = 0.0f;
+  mat[2] = 0.0f;
+  mat[3] = 0.0f;
+  mat[4] = 0.0f;
+  mat[5] = temp / temp3;
+  mat[6] = 0.0f;
+  mat[7] = 0.0f;
+  mat[8] = (right + left) / temp2;
+  mat[9] = (top + bottom) / temp3;
+  mat[10] = (-zfar - znear) / temp4;
+  mat[11] = -1.0f;
+  mat[12] = 0.0f;
+  mat[13] = 0.0f;
+  mat[14] = (-temp * zfar) / temp4;
+  mat[15] = 0.0f;
+}
+
+void glhOrtho(Matrix_t mat, GLfloat left, GLfloat right, GLfloat bottom,
+              GLfloat top, GLfloat znear, GLfloat zfar) {
+  mat[0] = 2.0f / (right - left);
+  mat[1] = 0.0f;
+  mat[2] = 0.0f;
+  mat[3] = 0.0f;
+  mat[4] = 0.0f;
+  mat[5] = 2.0f / (top - bottom);
+  mat[6] = 0.0f;
+  mat[7] = 0.0f;
+  mat[8] = 0.0f;
+  mat[9] = 0.0f;
+  mat[10] = -2.0f / (zfar - znear);
+  mat[11] = 0.0f;
+  mat[12] = (right + left) / (right - left);
+  mat[13] = (top + bottom) / (top - bottom);
+  mat[14] = (zfar + znear) / (zfar - znear);
+  mat[15] = 1.0f;
 }
 
 void glhPerspectivef2(Matrix_t mat, GLfloat fovyInDegrees,
-                      GLfloat aspectRatio, GLfloat znear, GLfloat zfar)
-{
-    float ymax, xmax;
-    ymax = znear * tanf(fovyInDegrees * 3.14f / 360.0f);
-    xmax = ymax * aspectRatio;
-    glhFrustumf2(mat, -xmax, xmax, -ymax, ymax, znear, zfar);
+                      GLfloat aspectRatio, GLfloat znear, GLfloat zfar) {
+  float ymax, xmax;
+  ymax = znear * tanf(fovyInDegrees * 3.14f / 360.0f);
+  xmax = ymax * aspectRatio;
+  glhFrustumf2(mat, -xmax, xmax, -ymax, ymax, znear, zfar);
 }
 
 void identity_matrix(Matrix_t mat) {
