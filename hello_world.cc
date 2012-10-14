@@ -3,15 +3,6 @@
  * found in the LICENSE file.
  */
 
-/** @file hello_world_gles.cc
- * This example demonstrates loading and running a simple 3D openGL ES 2.0
- * application.
- */
-
-//-----------------------------------------------------------------------------
-// The spinning Cube
-//-----------------------------------------------------------------------------
-
 #define _USE_MATH_DEFINES 1
 #include <limits.h>
 #include <math.h>
@@ -72,14 +63,7 @@ GLuint g_fragmentShader;
 GLuint g_textureLoc = 0;
 GLuint g_textureID = 0;
 
-float g_fSpinX = 0.0f;
-float g_fSpinY = 0.0f;
-
-//-----------------------------------------------------------------------------
-// Rendering Assets
-//-----------------------------------------------------------------------------
-struct Vertex
-{
+struct Vertex {
   float tu, tv;
   float color[3];
   float loc[3];
@@ -98,11 +82,11 @@ void PostMessage(const char *fmt, ...);
 char* LoadFile(const char *fileName);
 
 void BuildQuad(Vertex* verts, int axis[3], float depth, float color[3]);
-Vertex* BuildCube(void);
+Vertex* BuildCube();
 
-void InitGL(void);
-void InitProgram(void);
-void Render(void);
+void InitGL();
+void InitProgram();
+void Render();
 
 
 static struct PP_Var CStrToVar(const char* str) {
@@ -141,8 +125,7 @@ void MainLoop(void* foo, int bar) {
   }
 }
 
-void InitGL(void)
-{
+void InitGL() {
   int32_t attribs[] = {
     PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
     PP_GRAPHICS3DATTRIB_DEPTH_SIZE, 24,
@@ -156,16 +139,15 @@ void InitGL(void)
 
   g_context =  ppb_g3d_interface->Create(g_instance, 0, attribs);
   int32_t success =  ppb_instance_interface->BindGraphics(g_instance, g_context);
-  if (success == PP_FALSE) 
-  {
+  if (success == PP_FALSE) {
     glSetCurrentContextPPAPI(0);
     printf("Failed to set context.\n");
     return;
   }
   glSetCurrentContextPPAPI(g_context);
 
-  glViewport(0,0, 640,480);
-  glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );
+  glViewport(0, 0, 640, 480);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
 
@@ -174,14 +156,13 @@ GLuint compileShader(GLenum type, const char *data) {
   shaderStrings[0] = data;
 
   GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, shaderStrings, NULL );
+  glShaderSource(shader, 1, shaderStrings, NULL);
   glCompileShader(shader);
   return shader;
 }
 
 
-void InitProgram( void )
-{
+void InitProgram() {
   glSetCurrentContextPPAPI(g_context);
 
   g_vertexShader = compileShader(GL_VERTEX_SHADER, g_VShaderData);
@@ -207,8 +188,8 @@ void InitProgram( void )
   //
   glGenTextures(1, &g_textureID);
   glBindTexture(GL_TEXTURE_2D, g_textureID);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 128, 0, GL_RGB, GL_UNSIGNED_BYTE,
                g_TextureData);
 
@@ -270,8 +251,7 @@ Vertex *BuildCube() {
 }
 
 
-void Render( void )
-{
+void Render() {
   static float xRot = 0.0;
   static float yRot = 0.0;
 
@@ -280,16 +260,16 @@ void Render( void )
   if (xRot >= 360.0f) xRot = 0.0;
   if (yRot >= 360.0f) yRot = 0.0;
 
-  glClearColor(0.5,0.5,0.5,1);
+  glClearColor(0.5, 0.5, 0.5, 1);
   glClearDepthf(1.0);
-  glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
 
   //set what program to use
-  glUseProgram( g_programObj );
-  glActiveTexture ( GL_TEXTURE0 );
-  glBindTexture ( GL_TEXTURE_2D,g_textureID );
-  glUniform1i ( g_textureLoc, 0 );
+  glUseProgram(g_programObj);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, g_textureID);
+  glUniform1i(g_textureLoc, 0);
 
   //create our perspective matrix
   float mpv[16];
@@ -297,25 +277,25 @@ void Render( void )
   float rot[16];
 
   identity_matrix(mpv);
-  glhPerspectivef2(&mpv[0], 45.0f, 640.0f / 480.0f,1, 10);
+  glhPerspectivef2(&mpv[0], 45.0f, 640.0f / 480.0f, 1, 10);
 
   translate_matrix(0, 0, -4.0, trs);
-  rotate_matrix(xRot, yRot , 0.0f ,rot);
+  rotate_matrix(xRot, yRot, 0.0f, rot);
   multiply_matrix(trs, rot, trs);
   multiply_matrix(mpv, trs, mpv);
   glUniformMatrix4fv(g_MVPLoc, 1, GL_FALSE, (GLfloat*) mpv);
 
   //define the attributes of the vertex
   glBindBuffer(GL_ARRAY_BUFFER, g_vboID);
-  glVertexAttribPointer(g_positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,loc));
+  glVertexAttribPointer(g_positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, loc));
   glEnableVertexAttribArray(g_positionLoc);
-  glVertexAttribPointer(g_texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,tu));
+  glVertexAttribPointer(g_texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tu));
   glEnableVertexAttribArray(g_texCoordLoc);
-  glVertexAttribPointer(g_colorLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex,color));
+  glVertexAttribPointer(g_colorLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
   glEnableVertexAttribArray(g_colorLoc);
 
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ibID);
-  glDrawElements ( GL_TRIANGLES, 36, GL_UNSIGNED_BYTE ,0 );
+  glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_BYTE, 0);
 }
 
 
