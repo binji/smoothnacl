@@ -140,7 +140,7 @@ endif
 #
 # Per target object lists
 #
-SMOOTHLIFE_OBJS:=hello_world matrix
+SMOOTHLIFE_OBJS:=hello_world matrix smoothlife
 
 # $1 toolchain, $2 config, $3 arch, $4 object
 define CC_RULE

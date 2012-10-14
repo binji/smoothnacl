@@ -36,6 +36,7 @@
 
 #include <GLES2/gl2.h>
 #include "matrix.h"
+#include "smoothlife.h"
 
 static PPB_Messaging* ppb_messaging_interface = NULL;
 static PPB_Var* ppb_var_interface = NULL;
@@ -48,39 +49,19 @@ static PPB_URLLoader* ppb_urlloader_interface = NULL;
 static PP_Instance g_instance;
 static PP_Resource g_context;
 
-GLuint  g_positionLoc;
-GLuint  g_colorLoc;
-GLuint  g_MVPLoc;
-GLuint  g_vboID;
-
-GLuint g_programObj;
-GLuint g_vertexShader;
-GLuint g_fragmentShader;
-
-//GLuint g_textureLoc = 0;
-//GLuint g_textureID = 0;
-
-struct Vertex {
-//  float tu, tv;
-  float color[3];
-  float loc[3];
-};
-
-Vertex *g_quadVertices = NULL;
-
 const int kNumResources = 2;
 const char* g_toLoad[kNumResources] = {
-  "vertex_shader_es2.vert",
-  "fragment_shader_es2.frag",
+  "2D/snm.vert",
+  "2D/snm.frag",
 };
 const char* g_loadedData[kNumResources];
 int g_LoadCnt = 0;
 
+GLuint g_snm_prog;
+
 
 void PostMessage(const char *fmt, ...);
 char* LoadFile(const char *fileName);
-
-Vertex* BuildCube();
 
 void InitGL();
 void InitProgram();
@@ -109,15 +90,17 @@ void PostMessage(const char *fmt, ...) {
 }
 
 void MainLoop(void* foo, int bar) {
-  if (g_LoadCnt == 2) {
+  if (g_LoadCnt == kNumResources) {
     printf("initializing...\n");
     InitProgram();
     g_LoadCnt++;
   }
-  if (g_LoadCnt > 2) {
+  if (g_LoadCnt > kNumResources) {
     Render();
-    PP_CompletionCallback cc = PP_MakeCompletionCallback(MainLoop, 0);
-    ppb_g3d_interface->SwapBuffers(g_context, cc);
+    if (!glGetError()) {
+      PP_CompletionCallback cc = PP_MakeCompletionCallback(MainLoop, 0);
+      ppb_g3d_interface->SwapBuffers(g_context, cc);
+    }
   } else {
     PP_CompletionCallback cc = PP_MakeCompletionCallback(MainLoop, 0);
     ppb_core_interface->CallOnMainThread(0, cc, 0);
@@ -148,124 +131,23 @@ void InitGL() {
 }
 
 
-GLuint compileShader(GLenum type, const char *data) {
-  const char *shaderStrings[1];
-  shaderStrings[0] = data;
-
-  GLuint shader = glCreateShader(type);
-  glShaderSource(shader, 1, shaderStrings, NULL);
-  glCompileShader(shader);
-
-  if (glGetError()) {
-    char buffer[4096];
-    GLsizei length;
-    glGetShaderInfoLog(shader, 4096, &length, &buffer[0]);
-    buffer[length] = 0;
-    printf("shaderLog: %s\n", buffer);
-  }
-  return shader;
-}
-
-
 void InitProgram() {
   glSetCurrentContextPPAPI(g_context);
 
-  g_vertexShader = compileShader(GL_VERTEX_SHADER, g_loadedData[0]);
-  g_fragmentShader = compileShader(GL_FRAGMENT_SHADER, g_loadedData[1]);
-
-  g_programObj = glCreateProgram();
-  glAttachShader(g_programObj, g_vertexShader);
-  glAttachShader(g_programObj, g_fragmentShader);
-  glLinkProgram(g_programObj);
-
-  glGenBuffers(1, &g_vboID);
-  glBindBuffer(GL_ARRAY_BUFFER, g_vboID);
-  glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(Vertex), (void*)&g_quadVertices[0],
-               GL_STATIC_DRAW);
-
-  //
-  // Create a texture to test out our fragment shader...
-  //
-  /*
-  glGenTextures(1, &g_textureID);
-  glBindTexture(GL_TEXTURE_2D, g_textureID);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 128, 128, 0, GL_RGB, GL_UNSIGNED_BYTE,
-             g_TextureData);
-             */
-
-  //
-  // Locate some parameters by name so we can set them later...
-  //
-  g_positionLoc = glGetAttribLocation(g_programObj, "a_position");
-  g_colorLoc = glGetAttribLocation(g_programObj, "a_color");
-  g_MVPLoc = glGetUniformLocation(g_programObj, "u_MVP");
-}
-
-
-Vertex *BuildCube() {
-  Vertex *verts = new Vertex[4];
-  float f = 1.0f;
-  verts[0].loc[0] = -f;
-  verts[0].loc[1] = -f;
-  verts[0].loc[2] = 0.0f;
-  verts[0].color[0] = 1.0f;
-  verts[0].color[1] = 1.0f;
-  verts[0].color[2] = 1.0f;
-  verts[1].loc[0] = +f;
-  verts[1].loc[1] = -f;
-  verts[1].loc[2] = 0.0f;
-  verts[1].color[0] = 1.0f;
-  verts[1].color[1] = 1.0f;
-  verts[1].color[2] = 1.0f;
-  verts[2].loc[0] = -f;
-  verts[2].loc[1] = +f;
-  verts[2].loc[2] = 0.0f;
-  verts[2].color[0] = 1.0f;
-  verts[2].color[1] = 1.0f;
-  verts[2].color[2] = 1.0f;
-  verts[3].loc[0] = +f;
-  verts[3].loc[1] = +f;
-  verts[3].loc[2] = 0.0f;
-  verts[3].color[0] = 1.0f;
-  verts[3].color[1] = 1.0f;
-  verts[3].color[2] = 1.0f;
-  return verts;
+  InitializeVbo();
+  InitializeTextures();
+  g_snm_prog = MakeProgram(g_loadedData[0], g_loadedData[1]);
+  GetSNMLocations(g_snm_prog);
+  if (glGetError()) {
+    printf("Error initializing program!\n");
+  }
 }
 
 
 void Render() {
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
-
-  //set what program to use
-  glUseProgram(g_programObj);
-  /*
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, g_textureID);
-  glUniform1i(g_textureLoc, 0);
-  */
-
-  //create our perspective matrix
-  float mpv[16];
-
-  identity_matrix(mpv);
-  //glhOrtho(&mpv[0], 0, 640.f, 0.f, 480.f, -1.f, 1.f);
-  glUniformMatrix4fv(g_MVPLoc, 1, GL_FALSE, (GLfloat*) mpv);
-
-  //define the attributes of the vertex
-  glBindBuffer(GL_ARRAY_BUFFER, g_vboID);
-  glVertexAttribPointer(g_positionLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, loc));
-  glEnableVertexAttribArray(g_positionLoc);
-  /*
-  glVertexAttribPointer(g_texCoordLoc, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, tu));
-  glEnableVertexAttribArray(g_texCoordLoc);
-  */
-  glVertexAttribPointer(g_colorLoc, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, color));
-  glEnableVertexAttribArray(g_colorLoc);
-
-  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  makesnm(g_snm_prog, AN, AM, AA);
 }
 
 
@@ -407,14 +289,12 @@ static PP_Bool Instance_DidCreate(PP_Instance instance,
   g_instance = instance;
   for (int i = 0; i < kNumResources; ++i)
     LoadURL(instance, g_toLoad[i], Loaded, &g_loadedData[i]);
-  g_quadVertices = BuildCube();
   return PP_TRUE;
 }
 
 static void Instance_DidDestroy(PP_Instance instance) {
   for (int i = 0; i < kNumResources; ++i)
     delete[] g_loadedData[i];
-  delete[] g_quadVertices;
 }
 
 static void Instance_DidChangeView(PP_Instance instance,

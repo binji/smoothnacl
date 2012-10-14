@@ -52,9 +52,9 @@ void glhOrtho(Matrix_t mat, GLfloat left, GLfloat right, GLfloat bottom,
   mat[9] = 0.0f;
   mat[10] = -2.0f / (zfar - znear);
   mat[11] = 0.0f;
-  mat[12] = (right + left) / (right - left);
-  mat[13] = (top + bottom) / (top - bottom);
-  mat[14] = (zfar + znear) / (zfar - znear);
+  mat[12] = -(right + left) / (right - left);
+  mat[13] = -(top + bottom) / (top - bottom);
+  mat[14] = -(zfar + znear) / (zfar - znear);
   mat[15] = 1.0f;
 }
 
