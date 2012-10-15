@@ -37,5 +37,6 @@ void drawa(GLuint prog, int a);
 void fft_planx();
 void fft_plany();
 void makekernel(int kr, int kd);
+void fft(GLuint rcprog, GLuint crprog, GLuint fftprog, int vo, int na, int si);
 
 #endif  // SMOOTHLIFE_H_

@@ -49,7 +49,7 @@ static PPB_URLLoader* ppb_urlloader_interface = NULL;
 static PP_Instance g_instance;
 static PP_Resource g_context;
 
-const int kNumResources = 8;
+const int kNumResources = 12;
 const char* g_toLoad[kNumResources] = {
   "2D/draw.vert",
   "2D/draw.frag",
@@ -59,6 +59,10 @@ const char* g_toLoad[kNumResources] = {
   "2D/copybufferrc.frag",
   "2D/copybuffercr.vert",
   "2D/copybuffercr.frag",
+  "2D/fft.vert",
+  "2D/fft.frag",
+  "2D/kernelmul.vert",
+  "2D/kernelmul.frag",
 };
 const char* g_loadedData[kNumResources];
 int g_LoadCnt = 0;
@@ -67,6 +71,8 @@ GLuint g_snm_prog;
 GLuint g_draw_prog;
 GLuint g_copybufferrc_prog;
 GLuint g_copybuffercr_prog;
+GLuint g_fft_prog;
+GLuint g_kernelmul_prog;
 
 
 void PostMessage(const char *fmt, ...);
@@ -149,6 +155,8 @@ void InitProgram() {
   g_snm_prog = MakeProgram(g_loadedData[2], g_loadedData[3]);
   g_copybufferrc_prog = MakeProgram(g_loadedData[4], g_loadedData[5]);
   g_copybuffercr_prog = MakeProgram(g_loadedData[6], g_loadedData[7]);
+  g_fft_prog = MakeProgram(g_loadedData[8], g_loadedData[9]);
+  g_kernelmul_prog = MakeProgram(g_loadedData[10], g_loadedData[11]);
   fft_planx();
   fft_plany();
   makekernel(KR, KD);

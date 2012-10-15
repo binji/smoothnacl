@@ -9,9 +9,9 @@
 
 const double PI = 6.28318530718;
 const float mode = 0;
-const float ra = 12.0f;
-const float rr = 3.0f;
-const float rb = 12.0f;
+const float ra = 12.f;
+const float rr = 3.f;
+const float rb = 12.f;
 const float dt = 0.100f;
 const float b1 = 0.278f;
 const float b2 = 0.365f;
@@ -37,6 +37,7 @@ struct SnmVertex {
 GLuint g_quad_vbo;
 GLuint g_copybufferrc_vbo;
 GLuint g_copybuffercr_vbo;
+GLuint g_fftstage_vbo;
 
 void InitializeVbo() {
   SnmVertex verts[4];
@@ -66,19 +67,19 @@ void InitializeVbo() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 
   memset(verts, 0, sizeof(verts));
-  verts[0].tex[0] = 0-1.0f/NX; verts[0].tex[1] = 0.f;
+  verts[0].tex[0] = 0-1.f/NX; verts[0].tex[1] = 0.f;
   verts[0].tex[2] = 0; verts[0].tex[3] = 0.f;
   verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
 
-  verts[1].tex[0] = 1-1.0f/NX; verts[1].tex[1] = 0.f;
+  verts[1].tex[0] = 1-1.f/NX; verts[1].tex[1] = 0.f;
   verts[1].tex[2] = 1; verts[1].tex[3] = 0.f;
   verts[1].loc[0] = NX/2; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
 
-  verts[2].tex[0] = 0-1.0f/NX; verts[2].tex[1] = 1.f;
+  verts[2].tex[0] = 0-1.f/NX; verts[2].tex[1] = 1.f;
   verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
   verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
 
-  verts[3].tex[0] = 1-1.0f/NX; verts[3].tex[1] = 1.f;
+  verts[3].tex[0] = 1-1.f/NX; verts[3].tex[1] = 1.f;
   verts[3].tex[2] = 1.f; verts[3].tex[3] = 1.f;
   verts[3].loc[0] = NX/2; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
 
@@ -91,7 +92,7 @@ void InitializeVbo() {
   verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
   verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
 
-  verts[1].tex[0] = 1-1.0f/(NX/2+1); verts[1].tex[1] = 0.f;
+  verts[1].tex[0] = 1-1.f/(NX/2+1); verts[1].tex[1] = 0.f;
   verts[1].tex[2] = NX; verts[1].tex[3] = 0.f;
   verts[1].loc[0] = NX; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
 
@@ -99,12 +100,33 @@ void InitializeVbo() {
   verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
   verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
 
-  verts[3].tex[0] = 1-1.0f/(NX/2+1); verts[3].tex[1] = 1.f;
+  verts[3].tex[0] = 1-1.f/(NX/2+1); verts[3].tex[1] = 1.f;
   verts[3].tex[2] = NX; verts[3].tex[3] = 1.f;
   verts[3].loc[0] = NX; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
 
   glGenBuffers(1, &g_copybuffercr_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, g_copybuffercr_vbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
+
+  memset(verts, 0, sizeof(verts));
+  verts[0].tex[0] = 0.f; verts[0].tex[1] = 0.f;
+  verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
+  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
+
+  verts[1].tex[0] = 1.f; verts[1].tex[1] = 0.f;
+  verts[1].tex[2] = 1.f; verts[1].tex[3] = 0.f;
+  verts[1].loc[0] = NX/2+1; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
+
+  verts[2].tex[0] = 0.f; verts[2].tex[1] = 1.f;
+  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
+  verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
+
+  verts[3].tex[0] = 1.f; verts[3].tex[1] = 1.f;
+  verts[3].tex[2] = 1.f; verts[3].tex[3] = 1.f;
+  verts[3].loc[0] = NX/2+1; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
+
+  glGenBuffers(1, &g_fftstage_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, g_fftstage_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 }
 
@@ -591,10 +613,123 @@ void copybuffercr(GLuint prog, int vo, int na) {
   glBindTexture(GL_TEXTURE_2D, tb[vo]);
   glUniform1i(glGetUniformLocation(prog, "tex1"), 1);
 
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tb[na], 0);
+
   GLuint loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
   GLuint loc_texcoord1 = glGetAttribLocation(prog, "a_texcoord1");
   GLuint loc_position = glGetAttribLocation(prog, "a_position");
   glBindBuffer(GL_ARRAY_BUFFER, g_copybuffercr_vbo);
+  glVertexAttribPointer(loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
+  glVertexAttribPointer(loc_texcoord1, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 2));
+  glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
+  glEnableVertexAttribArray(loc_texcoord0);
+  glEnableVertexAttribArray(loc_texcoord1);
+  glEnableVertexAttribArray(loc_position);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glUseProgram(0);
+}
+
+void fft_stage(GLuint prog, int dim, int eb, int si, int fftc, int ffto) {
+  GLfloat mat[16];
+  glUseProgram(prog);
+  identity_matrix(&mat[0]);
+  glhOrtho(&mat[0], 0, NX/2+1, 0, NY, -1, 1);
+  glUniformMatrix4fv(glGetUniformLocation(prog, "u_mat"), 1, GL_FALSE, &mat[0]);
+  glViewport(0, 0, NX/2+1, NY);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, fb[ffto]);
+  glUseProgram(prog);
+  glUniform1i(glGetUniformLocation(prog, "dim"), dim);
+
+  int tang = 0;
+  double tangsc = 0.0;
+  glUniform1i(glGetUniformLocation(prog, "tang"), tang);
+  glUniform1f(glGetUniformLocation(prog, "tangsc"), (float)tangsc);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, tb[fftc]);
+  glUniform1i(glGetUniformLocation(prog, "tex0"), 0);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, plany[eb][(si+1)/2]);
+  glUniform1i(glGetUniformLocation(prog, "tex1"), 1);
+
+  glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tb[ffto], 0);
+  GLuint loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
+  GLuint loc_texcoord1 = glGetAttribLocation(prog, "a_texcoord1");
+  GLuint loc_position = glGetAttribLocation(prog, "a_position");
+  glBindBuffer(GL_ARRAY_BUFFER, g_fftstage_vbo);
+  glVertexAttribPointer(loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
+  glVertexAttribPointer(loc_texcoord1, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 2));
+  glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
+  glEnableVertexAttribArray(loc_texcoord0);
+  glEnableVertexAttribArray(loc_texcoord1);
+  glEnableVertexAttribArray(loc_position);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glUseProgram(0);
+}
+
+void fft(GLuint rcprog, GLuint crprog, GLuint fftprog, int vo, int na, int si) {
+  int t, s;
+  int fftcur, fftoth;
+
+  fftcur = FFT0;
+  fftoth = FFT1;
+
+  if (si==-1) {
+    copybufferrc(rcprog, vo, fftcur);
+
+    for (t=1; t<=BX-1+1; t++) {
+      fft_stage(fftprog, 1, t, si, fftcur, fftoth);
+      s=fftcur; fftcur=fftoth; fftoth=s;
+    }
+
+    for (t=1; t<=BY; t++) {
+      if (t==BY) fft_stage(fftprog, 2, t, si, fftcur, na);
+      else fft_stage(fftprog, 2, t, si, fftcur, fftoth);
+      s=fftcur; fftcur=fftoth; fftoth=s;
+    }
+  } else {
+    for (t=1; t<=BY; t++) {
+      if (t==1) fft_stage(fftprog, 2, t, si, vo, fftoth);
+      else fft_stage(fftprog, 2, t, si, fftcur, fftoth);
+      s=fftcur; fftcur=fftoth; fftoth=s;
+    }
+
+    for (t=0; t<=BX-1; t++) {
+      fft_stage(fftprog, 1, t, si, fftcur, fftoth);
+      s=fftcur; fftcur=fftoth; fftoth=s;
+    }
+
+    copybuffercr(crprog, fftcur, na);
+  }
+}
+
+void kernelmul(GLuint prog, int vo, int ke, int na, double sc) {
+  GLfloat mat[16];
+  glUseProgram(prog);
+  identity_matrix(&mat[0]);
+  glhOrtho(&mat[0], 0, NX/2+1, 0, NY, -1, 1);
+  glUniformMatrix4fv(glGetUniformLocation(prog, "u_mat"), 1, GL_FALSE, &mat[0]);
+  glViewport(0, 0, NX/2+1, NY);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, fb[na]);
+  glUseProgram(prog);
+  glUniform1f(glGetUniformLocation(prog, "sc"), (float)sc);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, tb[vo]);
+  glUniform1i(glGetUniformLocation(prog, "tex0"), 0);
+
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, tb[ke]);
+  glUniform1i(glGetUniformLocation(prog, "tex1"), 1);
+
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tb[na], 0);
+  GLuint loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
+  GLuint loc_texcoord1 = glGetAttribLocation(prog, "a_texcoord1");
+  GLuint loc_position = glGetAttribLocation(prog, "a_position");
+  glBindBuffer(GL_ARRAY_BUFFER, g_fftstage_vbo);
   glVertexAttribPointer(loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
   glVertexAttribPointer(loc_texcoord1, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 2));
   glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
