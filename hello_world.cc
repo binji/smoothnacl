@@ -160,6 +160,7 @@ void InitProgram() {
   fft_planx();
   fft_plany();
   makekernel(KR, KD);
+  inita2D(AA);
   if (glGetError()) {
     printf("Error initializing program!\n");
   }
@@ -195,6 +196,7 @@ void Render() {
   fft(p1, p2, p3, AMF, AM, 1);
   snm(g_snm_prog, AN, AM, AA);
 #endif
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 

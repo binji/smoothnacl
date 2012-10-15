@@ -43,5 +43,7 @@ void fft_plany();
 void makekernel(int kr, int kd);
 void fft(GLuint rcprog, GLuint crprog, GLuint fftprog, int vo, int na, int si);
 void kernelmul(GLuint prog, int vo, int ke, int na, double sc);
+void splat2D(float *buf);
+void inita2D(int a);
 
 #endif  // SMOOTHLIFE_H_
