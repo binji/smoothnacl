@@ -22,13 +22,16 @@ const float sigtype = 4;
 const float mixtype = 4;
 const float sn = 0.028f;
 const float sm = 0.147f;
-const float colscheme = 3;
+const float colscheme = 1;
 const float phase = 0;
 const int BMAX = 16;
 
 GLuint fb[AFB], tb[AFB];
 GLuint fr[ARB], tr[ARB];
 GLuint planx[BMAX][2], plany[BMAX][2];
+
+double kflr = 0.f;
+double kfld = 0.f;
 
 struct SnmVertex {
   GLfloat tex[6];
@@ -518,8 +521,8 @@ void makekernel (int kr, int kd) {
   //Ra = (int)(ra+bb/2+1.0);
   Ra = (int)(ra*2);
 
-  double kflr = 0.0;
-  double kfld = 0.0;
+  kflr = 0.0;
+  kfld = 0.0;
 
   for (iz=0; iz<NZ; iz++) {
     memset (ad, 0, NX*NY*sizeof(float));

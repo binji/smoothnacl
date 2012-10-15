@@ -29,14 +29,19 @@ static const int SY = 480;
 static const int BX = 9;
 static const int BY = 9;
 
+extern double kflr;
+extern double kfld;
+
 void InitializeVbo();
 void InitializeTextures();
 GLuint MakeProgram(const char* vertex_shader, const char* frag_shader);
+void snm(GLuint prog, int an, int am, int na);
 void makesnm(GLuint prog, int an, int am, int asnm);
 void drawa(GLuint prog, int a);
 void fft_planx();
 void fft_plany();
 void makekernel(int kr, int kd);
 void fft(GLuint rcprog, GLuint crprog, GLuint fftprog, int vo, int na, int si);
+void kernelmul(GLuint prog, int vo, int ke, int na, double sc);
 
 #endif  // SMOOTHLIFE_H_

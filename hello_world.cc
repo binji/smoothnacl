@@ -167,10 +167,34 @@ void InitProgram() {
 
 
 void Render() {
+  static bool first = true;
+  GLuint p1 = g_copybufferrc_prog;
+  GLuint p2 = g_copybuffercr_prog;
+  GLuint p3 = g_fft_prog;
+
+  if (first) {
+    fft(p1, p2, p3, KR, KRF, -1);
+    fft(p1, p2, p3, KD, KDF, -1);
+    first = false;
+  }
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
+#if 0
+#if 0
   makesnm(g_snm_prog, AN, AM, AA);
   drawa(g_draw_prog, AA);
+#else
+  drawa(g_draw_prog, KD);
+#endif
+#else
+  drawa(g_draw_prog, AA);
+  fft(p1, p2, p3, AA, AF, -1);
+  kernelmul(g_kernelmul_prog, AF, KRF, ANF, sqrt(NX*NY*NZ)/kflr);
+  kernelmul(g_kernelmul_prog, AF, KDF, AMF, sqrt(NX*NY*NZ)/kfld);
+  fft(p1, p2, p3, ANF, AN, 1);
+  fft(p1, p2, p3, AMF, AM, 1);
+  snm(g_snm_prog, AN, AM, AA);
+#endif
 }
 
 
