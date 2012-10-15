@@ -26,11 +26,16 @@ static const int NZ = 1;
 static const int SX = 640;
 static const int SY = 480;
 
+static const int BX = 9;
+static const int BY = 9;
 
 void InitializeVbo();
 void InitializeTextures();
 GLuint MakeProgram(const char* vertex_shader, const char* frag_shader);
 void makesnm(GLuint prog, int an, int am, int asnm);
 void drawa(GLuint prog, int a);
+void fft_planx();
+void fft_plany();
+void makekernel(int kr, int kd);
 
 #endif  // SMOOTHLIFE_H_
