@@ -23,11 +23,14 @@ static const int NX = 512;
 static const int NY = 512;
 static const int NZ = 1;
 
+static const int SX = 640;
+static const int SY = 480;
+
 
 void InitializeVbo();
 void InitializeTextures();
 GLuint MakeProgram(const char* vertex_shader, const char* frag_shader);
-void GetSNMLocations(GLuint prog);
-void makesnm (GLuint prog, int an, int am, int asnm);
+void makesnm(GLuint prog, int an, int am, int asnm);
+void drawa(GLuint prog, int a);
 
 #endif  // SMOOTHLIFE_H_

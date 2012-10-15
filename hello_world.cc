@@ -49,8 +49,10 @@ static PPB_URLLoader* ppb_urlloader_interface = NULL;
 static PP_Instance g_instance;
 static PP_Resource g_context;
 
-const int kNumResources = 2;
+const int kNumResources = 4;
 const char* g_toLoad[kNumResources] = {
+  "2D/draw.vert",
+  "2D/draw.frag",
   "2D/snm.vert",
   "2D/snm.frag",
 };
@@ -58,6 +60,7 @@ const char* g_loadedData[kNumResources];
 int g_LoadCnt = 0;
 
 GLuint g_snm_prog;
+GLuint g_draw_prog;
 
 
 void PostMessage(const char *fmt, ...);
@@ -136,8 +139,8 @@ void InitProgram() {
 
   InitializeVbo();
   InitializeTextures();
-  g_snm_prog = MakeProgram(g_loadedData[0], g_loadedData[1]);
-  GetSNMLocations(g_snm_prog);
+  g_draw_prog = MakeProgram(g_loadedData[0], g_loadedData[1]);
+  g_snm_prog = MakeProgram(g_loadedData[2], g_loadedData[3]);
   if (glGetError()) {
     printf("Error initializing program!\n");
   }
@@ -148,6 +151,7 @@ void Render() {
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
   makesnm(g_snm_prog, AN, AM, AA);
+  drawa(g_draw_prog, AA);
 }
 
 

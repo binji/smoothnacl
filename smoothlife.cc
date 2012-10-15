@@ -17,86 +17,48 @@ const float sigtype = 4;
 const float mixtype = 4;
 const float sn = 0.028f;
 const float sm = 0.147f;
+const float colscheme = 3;
+const float phase = 0;
 
 GLuint fb[AFB], tb[AFB];
 GLuint fr[ARB], tr[ARB];
-
-GLuint g_loc_mode;
-GLuint g_loc_dt;
-GLuint g_loc_b1;
-GLuint g_loc_b2;
-GLuint g_loc_d1;
-GLuint g_loc_d2;
-GLuint g_loc_sigmode;
-GLuint g_loc_sigtype;
-GLuint g_loc_mixtype;
-GLuint g_loc_sn;
-GLuint g_loc_sm;
-GLuint g_loc_tex0;
-GLuint g_loc_tex1;
-GLuint g_loc_tex2;
-GLuint g_loc_texcoord0;
-GLuint g_loc_texcoord1;
-GLuint g_loc_texcoord2;
-GLuint g_loc_position;
-GLuint g_loc_mat;
 
 struct SnmVertex {
   GLfloat tex[6];
   GLfloat loc[3];
 };
-GLuint g_snm_vbo;
+GLuint g_quad_vbo;
 
 void InitializeVbo() {
   SnmVertex verts[4];
-  verts[0].tex[0] = 0.f;
-  verts[0].tex[1] = 0.f;
-  verts[0].tex[2] = 0.f;
-  verts[0].tex[3] = 0.f;
-  verts[0].tex[4] = 0.f;
-  verts[0].tex[5] = 0.f;
-  verts[0].loc[0] = 0;
-  verts[0].loc[1] = 0;
-  verts[0].loc[2] = 0;
+  verts[0].tex[0] = 0.f; verts[0].tex[1] = 0.f;
+  verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
+  verts[0].tex[4] = 0.f; verts[0].tex[5] = 0.f;
+  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
 
-  verts[1].tex[0] = 1.f;
-  verts[1].tex[1] = 0.f;
-  verts[1].tex[2] = 1.f;
-  verts[1].tex[3] = 0.f;
-  verts[1].tex[4] = 1.f;
-  verts[1].tex[5] = 0.f;
-  verts[1].loc[0] = NX;
-  verts[1].loc[1] = 0;
-  verts[1].loc[2] = 0;
+  verts[1].tex[0] = 1.f; verts[1].tex[1] = 0.f;
+  verts[1].tex[2] = 1.f; verts[1].tex[3] = 0.f;
+  verts[1].tex[4] = 1.f; verts[1].tex[5] = 0.f;
+  verts[1].loc[0] = 1; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
 
-  verts[2].tex[0] = 0.f;
-  verts[2].tex[1] = 1.f;
-  verts[2].tex[2] = 0.f;
-  verts[2].tex[3] = 1.f;
-  verts[2].tex[4] = 0.f;
-  verts[2].tex[5] = 1.f;
-  verts[2].loc[0] = 0;
-  verts[2].loc[1] = NY;
-  verts[2].loc[2] = 0;
+  verts[2].tex[0] = 0.f; verts[2].tex[1] = 1.f;
+  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
+  verts[2].tex[4] = 0.f; verts[2].tex[5] = 1.f;
+  verts[2].loc[0] = 0; verts[2].loc[1] = 1; verts[2].loc[2] = 0;
 
-  verts[3].tex[0] = 1.f;
-  verts[3].tex[1] = 1.f;
-  verts[3].tex[2] = 1.f;
-  verts[3].tex[3] = 1.f;
-  verts[3].tex[4] = 1.f;
-  verts[3].tex[5] = 1.f;
-  verts[3].loc[0] = NX;
-  verts[3].loc[1] = NY;
-  verts[3].loc[2] = 0;
+  verts[3].tex[0] = 1.f; verts[3].tex[1] = 1.f;
+  verts[3].tex[2] = 1.f; verts[3].tex[3] = 1.f;
+  verts[3].tex[4] = 1.f; verts[3].tex[5] = 1.f;
+  verts[3].loc[0] = 1; verts[3].loc[1] = 1; verts[3].loc[2] = 0;
 
-  glGenBuffers(1, &g_snm_vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, g_snm_vbo);
+  glGenBuffers(1, &g_quad_vbo);
+  glBindBuffer(GL_ARRAY_BUFFER, g_quad_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 }
 
 void InitializeTextures() {
   glGenTextures(ARB, &tr[0]);
-  //glGenFramebuffers(ARB, &fr[0]);
+  glGenFramebuffers(ARB, &fr[0]);
 
   for (int t=0; t<ARB; t++) {
     glBindTexture(GL_TEXTURE_2D, tr[t]);
@@ -107,15 +69,15 @@ void InitializeTextures() {
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, NX, NY, 0, GL_LUMINANCE, GL_FLOAT, NULL);
 
-    //glBindFramebuffer(GL_FRAMEBUFFER, fr[t]);
-    //glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tr[t], 0);
-    //GLint err = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    //if (err != GL_FRAMEBUFFER_COMPLETE) {
-    //  printf("glCheckFramebufferStatus: %d\n", err);
-    //}
+    glBindFramebuffer(GL_FRAMEBUFFER, fr[t]);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tr[t], 0);
+    GLint err = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (err != GL_FRAMEBUFFER_COMPLETE) {
+      printf("glCheckFramebufferStatus: %d\n", err);
+    }
   }
 
-  //glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 GLuint CompileShader(GLenum type, const char *data) {
@@ -151,72 +113,54 @@ GLuint MakeProgram(const char* vertex_shader, const char* frag_shader) {
   return prog;
 }
 
-void GetSNMLocations(GLuint prog) {
-  g_loc_mode = glGetUniformLocation(prog, "mode");
-  g_loc_dt = glGetUniformLocation(prog, "dt");
-  g_loc_b1 = glGetUniformLocation(prog, "b1");
-  g_loc_b2 = glGetUniformLocation(prog, "b2");
-  g_loc_d1 = glGetUniformLocation(prog, "d1");
-  g_loc_d2 = glGetUniformLocation(prog, "d2");
-  g_loc_sigmode = glGetUniformLocation(prog, "sigmode");
-  g_loc_sigtype = glGetUniformLocation(prog, "sigtype");
-  g_loc_mixtype = glGetUniformLocation(prog, "mixtype");
-  g_loc_sn = glGetUniformLocation(prog, "sn");
-  g_loc_sm = glGetUniformLocation(prog, "sm");
-  g_loc_tex0 = glGetUniformLocation(prog, "tex0");
-  g_loc_tex1 = glGetUniformLocation(prog, "tex1");
-  g_loc_tex2 = glGetUniformLocation(prog, "tex2");
-  g_loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
-  g_loc_texcoord1 = glGetAttribLocation(prog, "a_texcoord1");
-  g_loc_texcoord2 = glGetAttribLocation(prog, "a_texcoord2");
-  g_loc_position = glGetAttribLocation(prog, "a_position");
-  g_loc_mat = glGetUniformLocation(prog, "u_mat");
-}
-
 void snm(GLuint prog, int an, int am, int na) {
   GLfloat mat[16];
 
-//  glBindFramebuffer(GL_FRAMEBUFFER, fr[na]);
+  glBindFramebuffer(GL_FRAMEBUFFER, fr[na]);
   glUseProgram(prog);
   identity_matrix(&mat[0]);
-  glhOrtho(&mat[0], 0, NX, 0, NY, -NZ, NZ);
-//  glViewport(0, 0, NX, NY);
-  glUniformMatrix4fv(g_loc_mat, 1, GL_FALSE, &mat[0]);
-  glUniform1f(g_loc_mode, (float)mode);
-  glUniform1f(g_loc_dt, (float)dt);
-  glUniform1f(g_loc_b1, (float)b1);
-  glUniform1f(g_loc_b2, (float)b2);
-  glUniform1f(g_loc_d1, (float)d1);
-  glUniform1f(g_loc_d2, (float)d2);
-  glUniform1f(g_loc_sigmode, (float)sigmode);
-  glUniform1f(g_loc_sigtype, (float)sigtype);
-  glUniform1f(g_loc_mixtype, (float)mixtype);
-  glUniform1f(g_loc_sn, (float)sn);
-  glUniform1f(g_loc_sm, (float)sm);
+  glhOrtho(&mat[0], 0, 1, 0, 1, -NZ, NZ);
+  glViewport(0, 0, NX, NY);
+  glUniformMatrix4fv(glGetUniformLocation(prog, "u_mat"), 1, GL_FALSE, &mat[0]);
+  glUniform1f(glGetUniformLocation(prog, "mode"), (float)mode);
+  glUniform1f(glGetUniformLocation(prog, "dt"), (float)dt);
+  glUniform1f(glGetUniformLocation(prog, "b1"), (float)b1);
+  glUniform1f(glGetUniformLocation(prog, "b2"), (float)b2);
+  glUniform1f(glGetUniformLocation(prog, "d1"), (float)d1);
+  glUniform1f(glGetUniformLocation(prog, "d2"), (float)d2);
+  glUniform1f(glGetUniformLocation(prog, "sigmode"), (float)sigmode);
+  glUniform1f(glGetUniformLocation(prog, "sigtype"), (float)sigtype);
+  glUniform1f(glGetUniformLocation(prog, "mixtype"), (float)mixtype);
+  glUniform1f(glGetUniformLocation(prog, "sn"), (float)sn);
+  glUniform1f(glGetUniformLocation(prog, "sm"), (float)sm);
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, tr[an]);
-  glUniform1i(g_loc_tex0, 0);
+  glUniform1i(glGetUniformLocation(prog, "tex0"), 0);
 
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, tr[am]);
-  glUniform1i(g_loc_tex1, 1);
+  glUniform1i(glGetUniformLocation(prog, "tex1"), 1);
 
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, tr[na]);
-  glUniform1i(g_loc_tex2, 2);
+  glUniform1i(glGetUniformLocation(prog, "tex2"), 2);
 
-//  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tr[na], 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tr[na], 0);
 
-  glBindBuffer(GL_ARRAY_BUFFER, g_snm_vbo);
-  glVertexAttribPointer(g_loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
-  glVertexAttribPointer(g_loc_texcoord1, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 2));
-  glVertexAttribPointer(g_loc_texcoord2, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 4));
-  glVertexAttribPointer(g_loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
-  glEnableVertexAttribArray(g_loc_texcoord0);
-  glEnableVertexAttribArray(g_loc_texcoord1);
-  glEnableVertexAttribArray(g_loc_texcoord2);
-  glEnableVertexAttribArray(g_loc_position);
+  GLuint loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
+  GLuint loc_texcoord1 = glGetAttribLocation(prog, "a_texcoord1");
+  GLuint loc_texcoord2 = glGetAttribLocation(prog, "a_texcoord2");
+  GLuint loc_position = glGetAttribLocation(prog, "a_position");
+  glBindBuffer(GL_ARRAY_BUFFER, g_quad_vbo);
+  glVertexAttribPointer(loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
+  glVertexAttribPointer(loc_texcoord1, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 2));
+  glVertexAttribPointer(loc_texcoord2, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)(offsetof(SnmVertex, tex) + sizeof(float) * 4));
+  glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
+  glEnableVertexAttribArray(loc_texcoord0);
+  glEnableVertexAttribArray(loc_texcoord1);
+  glEnableVertexAttribArray(loc_texcoord2);
+  glEnableVertexAttribArray(loc_position);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glUseProgram(0);
 }
@@ -226,11 +170,8 @@ void snm(GLuint prog, int an, int am, int na) {
 //
 void initan(int a) {
   float *buf = (float*)calloc(NX*NY, sizeof(float));
-
-  int x, y;
-
-  for (y=0; y<NY; y++) {
-    for (x=0; x<NX; x++) {
+  for (int y=0; y<NY; y++) {
+    for (int x=0; x<NX; x++) {
       buf[y*NX+x] = (float)x/NX;
     }
   }
@@ -245,10 +186,8 @@ void initan(int a) {
 void initam(int a) {
   float *buf = (float*)calloc(NX*NY, sizeof(float));
 
-  int x, y;
-
-  for (y=0; y<NY; y++) {
-    for (x=0; x<NX; x++) {
+  for (int y=0; y<NY; y++) {
+    for (int x=0; x<NX; x++) {
       buf[y*NX+x] = (float)y/NY;
     }
   }
@@ -263,4 +202,32 @@ void makesnm(GLuint prog, int an, int am, int asnm) {
   initan(an);
   initam(am);
   snm(prog, an, am, asnm);
+}
+
+void drawa(GLuint prog, int a) {
+  GLfloat mat[16];
+  glUseProgram(prog);
+  identity_matrix(&mat[0]);
+  glhOrtho(&mat[0], 0, 1, 0, 1, -1, 1);
+  glUniformMatrix4fv(glGetUniformLocation(prog, "u_mat"), 1, GL_FALSE, &mat[0]);
+  glViewport(0, 0, SX, SY);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, tr[a]);
+
+  glUniform1i(glGetUniformLocation(prog, "tex0"), 0);
+  glUniform1f(glGetUniformLocation(prog, "colscheme"), (float)colscheme);
+  glUniform1f(glGetUniformLocation(prog, "phase"), (float)phase);
+
+  GLuint loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
+  GLuint loc_position = glGetAttribLocation(prog, "a_position");
+  glBindBuffer(GL_ARRAY_BUFFER, g_quad_vbo);
+  glVertexAttribPointer(loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
+  glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
+  glEnableVertexAttribArray(loc_texcoord0);
+  glEnableVertexAttribArray(loc_position);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glUseProgram(0);
 }
