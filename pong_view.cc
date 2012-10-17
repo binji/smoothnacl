@@ -231,7 +231,7 @@ double func_kernel (double x, double a, double ea) {
 }
 
 void makekernel(double* kr, double* kd) {
-  int ix, iy, x, y, z;
+  int ix, iy, x, y;
   double l, n, m;
   int Ra;
   double ri, bb;
@@ -247,18 +247,17 @@ void makekernel(double* kr, double* kd) {
 
   memset(kd, 0, NX*NY*sizeof(double));
   memset(kr, 0, NX*NY*sizeof(double));
-  z = 0;
-  for (ix=0; ix<NX; ix++) {
-    x = (ix < NX/2) ? ix : ix - NX;
-    if (x>=-Ra && x<=Ra) {
-      for (iy=0; iy<NY; iy++) {
-        y = (iy < NY / 2) ? iy : iy - NY;
-        if (y>=-Ra && y<=Ra) {
-          l = sqrt (x*x + y*y + z*z);
+  for (iy=0; iy<NY; iy++) {
+    y = (iy < NY / 2) ? iy : iy - NY;
+    if (y>=-Ra && y<=Ra) {
+      for (ix=0; ix<NX; ix++) {
+        x = (ix < NX/2) ? ix : ix - NX;
+        if (x>=-Ra && x<=Ra) {
+          l = sqrt (x*x + y*y);
           m = 1 - func_kernel(l, ri, bb);
           n = func_kernel(l, ri, bb) * (1 - func_kernel(l, ra, bb));
-          *(kd + ix*NY + iy) = m;
-          *(kr + ix*NY + iy) = n;
+          *(kd + iy * NX + ix) = m;
+          *(kr + iy * NX + ix) = n;
           kflr += n;
           kfld += m;
         }
@@ -277,8 +276,8 @@ void PongView::DrawBuffer(double* a) {
 
   for (int y = 0; y < NY; ++y) {
     for (int x = 0; x < NX; ++x) {
-      double av = *(a + x * NY + y);
-      uint8_t v = 255 * (1 - av);
+      double av = *(a + y * NX + x);
+      uint8_t v = 255 * av; //255 * (1 - av);
       uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
       *(pixels + y * width + x) = color;
     }
@@ -286,61 +285,43 @@ void PongView::DrawBuffer(double* a) {
 }
 
 void kernelmul(fftw_complex* vo, fftw_complex* ke, fftw_complex* na, double sc) {
-  for (int x = 0; x < NX; ++x) {
-    for (int y = 0; y < NY/2+1; ++y) {
-      fftw_complex* vov = vo + x * (NY/2+1) + y;
-      fftw_complex* kev = ke + x * (NY/2+1) + y;
-      fftw_complex* nav = na + x * (NY/2+1) + y;
-      (*kev)[0] *= sc;
-      (*kev)[1] *= sc;
-      (*nav)[0] = (*vov)[0] * (*kev)[0] - (*vov)[1] * (*kev)[1];
-      (*nav)[1] = (*vov)[0] * (*kev)[1] + (*vov)[1] * (*kev)[0];
+  for (int y = 0; y < NY; ++y) {
+    for (int x = 0; x < NX/2+1; ++x) {
+      fftw_complex& vov = vo[y * (NX/2+1) + x];
+      fftw_complex& kev = ke[y * (NX/2+1) + x];
+      fftw_complex& nav = na[y * (NX/2+1) + x];
+      nav[0] = sc * (vov[0] * kev[0] - vov[1] * kev[1]);
+      nav[1] = sc * (vov[0] * kev[1] + vov[1] * kev[0]);
     }
   }
 }
 
 double sigmoid_ab(double x, double a, double b) {
-#if 0
   return func_smooth(x, a, sn)*(1.0 - func_smooth(x, b, sn));
-#else
-  return func_hermite(x, a, sn)*(1.0 - func_hermite(x, b, sn));
-#endif
 }
 
-double sigmoid_mix(double x, double y, int m) {
-#if 0
-  return x*(1.0 - func_smooth(m, 0.5, sm)) + y*func_smooth(m, 0.5, sm);
-#else
-  return x*(1.0 - func_hermite(m, 0.5, sm)) + y*func_hermite(m, 0.5, sm);
-#endif
+double sigmoid_mix(double x, double y, double m) {
+  return x + func_smooth(m, 0.5, sm) * (y - x);
 }
 
 void snm(double* an, double* am, double* na) {
-  for (int x = 0; x < NX; ++x) {
-    for (int y = 0; y < NY; ++y) {
-      double anv = *(an + x * NY + y);
-      double amv = *(am + x * NY + y);
-      double* nav = na + x * NY + y;
-#if 1
-      double f = sigmoid_ab(anv,
-                            sigmoid_mix(b1, d1, amv),
-                            sigmoid_mix(b2, d2, amv));
-#else
-      double f = sigmoid_mix(sigmoid_ab(anv, b1, b2),
-                             sigmoid_ab(anv, d1, d2),
-                             amv);
-#endif
+  for (int y = 0; y < NY; ++y) {
+    for (int x = 0; x < NX; ++x) {
+      double n = an[y * NX + x];
+      double m = am[y * NX + x];
+      double* nav = na + y * NX + x;
+      double f = sigmoid_ab(n,
+                            sigmoid_mix(b1, d1, m),
+                            sigmoid_mix(b2, d2, m));
 
-#if 0
       switch (mode) {
         default:
         case 0: break;
         case 1: f = *nav + dt * (2.0 * f - 1.0); break;
         case 2: f = *nav + dt * (f - *nav); break;
-        case 3: f = amv + dt * (2.0 * f - 1.0); break;
-        case 4: f = amv + dt * (f - amv);
+        case 3: f = m + dt * (2.0 * f - 1.0); break;
+        case 4: f = m + dt * (f - m);
       }
-#endif
       *nav = f > 1.0 ? 1.0 : f < 0.0 ? 0.0 : f;
     }
   }
@@ -358,8 +339,8 @@ void splat2D(double *buf) {
   my = RND(NY);
   u = ra*(RND(0.5) + 0.5);
 
-  for (ix=(int)(mx-u-1); ix<=(int)(mx+u+1); ix++) {
-    for (iy=(int)(my-u-1); iy<=(int)(my+u+1); iy++) {
+  for (iy=(int)(my-u-1); iy<=(int)(my+u+1); iy++) {
+    for (ix=(int)(mx-u-1); ix<=(int)(mx+u+1); ix++) {
       dx = mx-ix;
       dy = my-iy;
       l = sqrt(dx*dx+dy*dy);
@@ -371,7 +352,7 @@ void splat2D(double *buf) {
         while (py<  0) py+=NY;
         while (py>=NY) py-=NY;
         if (px>=0 && px<NX && py>=0 && py<NY) {
-          *(buf + NY*px + py) = 1.0;
+          *(buf + NX*py + px) = 1.0;
         }
       }
     }
@@ -391,18 +372,26 @@ void inita2D(double* a) {
 }
 
 void initan(double* buf) {
-  for (int x=0; x<NX; x++) {
-    for (int y=0; y<NY; y++) {
-      buf[x*NY+y] = (double)x/NX;
+  for (int y=0; y<NY; y++) {
+    for (int x=0; x<NX; x++) {
+      buf[y*NX+x] = (double)x/NX;
     }
   }
 }
 
 
 void initam(double* buf) {
-  for (int x=0; x<NX; x++) {
-    for (int y=0; y<NY; y++) {
-      buf[x*NY+y] = (double)y/NY;
+  for (int y=0; y<NY; y++) {
+    for (int x=0; x<NX; x++) {
+      buf[y*NX+x] = (double)y/NY;
+    }
+  }
+}
+
+void scale(double* buf, double sc) {
+  for (int y=0; y<NY; y++) {
+    for (int x=0; x<NX; x++) {
+      buf[y*NX+x] *= sc;
     }
   }
 }
@@ -437,11 +426,16 @@ void* PongView::SmoothlifeThread(void* param) {
   while (!self->quit_) {
 #if 0
     self->DrawBuffer(AA);
+
     fftw_execute(aa_plan);
     kernelmul(AAF, KRF, ANF, sqrt(NX*NY)/kflr);
-    kernelmul(AAF, KDF, AMF, sqrt(NX*NY)/kfld);
     fftw_execute(anf_plan);
+    scale(AN, 1.0/(NX*NY));
+
+    kernelmul(AAF, KDF, AMF, sqrt(NX*NY)/kfld);
     fftw_execute(amf_plan);
+    scale(AM, 1.0/(NX*NY));
+
     snm(AN, AM, AA);
 #else
     initan(AN);
