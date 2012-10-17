@@ -180,8 +180,8 @@ void Render() {
   }
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
-#if 0
-#if 0
+#if 1
+#if 1
   makesnm(g_snm_prog, AN, AM, AA);
   drawa(g_draw_prog, AA);
 #else

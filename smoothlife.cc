@@ -8,8 +8,8 @@
 #include "matrix.h"
 
 const double PI = 6.28318530718;
-#if 0
-const float mode = 1;
+#if 1
+const float mode = 0;
 const float ra = 12.f;
 const float rr = 3.f;
 const float rb = 12.f;
