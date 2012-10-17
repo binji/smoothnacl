@@ -7,11 +7,9 @@
 #include <string.h>
 #include "matrix.h"
 
-#define NPOT
-
 const double PI = 6.28318530718;
-const float mode = 0;
 #if 0
+const float mode = 1;
 const float ra = 12.f;
 const float rr = 3.f;
 const float rb = 12.f;
@@ -26,21 +24,23 @@ const float mixtype = 4;
 const float sn = 0.028f;
 const float sm = 0.147f;
 #else
-const float ra = 31.8f;
+//2 1   31.8  3.0  31.8  0.157   0.092  0.098  0.256  0.607   4 4 4   0.015  0.340    // 2d alien stuff
+const float mode = 3;
+const float ra = 31.8;
 const float rr = 3.f;
-const float rb = 31.8f;
-const float dt = 0.157f;
-const float b1 = 0.092f;
-const float b2 = 0.098f;
-const float d1 = 0.256f;
-const float d2 = 0.607f;
+const float rb = 31.8;
+const float dt = 0.157;
+const float b1 = 0.092;
+const float b2 = 0.098;
+const float d1 = 0.256;
+const float d2 = 0.607;
 const float sigmode = 4;
 const float sigtype = 4;
 const float mixtype = 4;
-const float sn = 0.015f;
-const float sm = 0.340f;
+const float sn = 0.015;
+const float sm = 0.340;
 #endif
-const float colscheme = 1;
+const float colscheme = 5;
 const float phase = 0;
 const int BMAX = 16;
 
@@ -64,109 +64,91 @@ GLuint g_fftstage2_vbo;
 void InitializeVbo() {
   SnmVertex verts[4];
   memset(verts, 0, sizeof(verts));
-  verts[0].tex[0] = 0.f; verts[0].tex[1] = 0.f;
-  verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
-  verts[0].tex[4] = 0.f; verts[0].tex[5] = 0.f;
-  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
-
-  verts[1].tex[0] = 1.f; verts[1].tex[1] = 0.f;
-  verts[1].tex[2] = 1.f; verts[1].tex[3] = 0.f;
-  verts[1].tex[4] = 1.f; verts[1].tex[5] = 0.f;
-  verts[1].loc[0] = 1; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
-
-  verts[2].tex[0] = 0.f; verts[2].tex[1] = 1.f;
-  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
-  verts[2].tex[4] = 0.f; verts[2].tex[5] = 1.f;
-  verts[2].loc[0] = 0; verts[2].loc[1] = 1; verts[2].loc[2] = 0;
-
+  verts[1].tex[0] = 1.f;
+  verts[1].tex[2] = 1.f;
+  verts[1].tex[4] = 1.f;
+  verts[1].loc[0] = 1;
+  verts[2].tex[1] = 1.f;
+  verts[2].tex[3] = 1.f;
+  verts[2].tex[5] = 1.f;
+  verts[2].loc[1] = 1;
   verts[3].tex[0] = 1.f; verts[3].tex[1] = 1.f;
   verts[3].tex[2] = 1.f; verts[3].tex[3] = 1.f;
   verts[3].tex[4] = 1.f; verts[3].tex[5] = 1.f;
-  verts[3].loc[0] = 1; verts[3].loc[1] = 1; verts[3].loc[2] = 0;
+  verts[3].loc[0] = 1; verts[3].loc[1] = 1;
 
   glGenBuffers(1, &g_quad_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, g_quad_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 
   memset(verts, 0, sizeof(verts));
-  verts[0].tex[0] = 0-1.f/NX; verts[0].tex[1] = 0.f;
-  verts[0].tex[2] = 0; verts[0].tex[3] = 0.f;
-  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
-
-  verts[1].tex[0] = 1-1.f/NX; verts[1].tex[1] = 0.f;
-  verts[1].tex[2] = 1; verts[1].tex[3] = 0.f;
-  verts[1].loc[0] = NX/2; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
-
+  verts[0].tex[0] = 0-1.f/NX;
+  verts[1].tex[0] = 1-1.f/NX;
+  verts[1].tex[2] = 1;
+  verts[1].loc[0] = NX/2;
   verts[2].tex[0] = 0-1.f/NX; verts[2].tex[1] = 1.f;
-  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
-  verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
-
+  verts[2].tex[3] = 1.f;
+  verts[2].loc[1] = NY;
   verts[3].tex[0] = 1-1.f/NX; verts[3].tex[1] = 1.f;
   verts[3].tex[2] = 1.f; verts[3].tex[3] = 1.f;
-  verts[3].loc[0] = NX/2; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
+  verts[3].loc[0] = NX/2; verts[3].loc[1] = NY;
 
   glGenBuffers(1, &g_copybufferrc_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, g_copybufferrc_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 
   memset(verts, 0, sizeof(verts));
-  verts[0].tex[0] = 0.f; verts[0].tex[1] = 0.f;
-  verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
-  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
-
-  verts[1].tex[0] = 1-1.f/(NX/2+1); verts[1].tex[1] = 0.f;
-  verts[1].tex[2] = NX; verts[1].tex[3] = 0.f;
-  verts[1].loc[0] = NX; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
-
-  verts[2].tex[0] = 0.f; verts[2].tex[1] = 1.f;
-  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
-  verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
-
+  verts[1].tex[0] = 1-1.f/(NX/2+1);
+  verts[1].tex[2] = NX;
+  verts[1].loc[0] = NX;
+  verts[2].tex[1] = 1.f;
+  verts[2].tex[3] = 1.f;
+  verts[2].loc[1] = NY;
   verts[3].tex[0] = 1-1.f/(NX/2+1); verts[3].tex[1] = 1.f;
   verts[3].tex[2] = NX; verts[3].tex[3] = 1.f;
-  verts[3].loc[0] = NX; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
+  verts[3].loc[0] = NX; verts[3].loc[1] = NY;
 
   glGenBuffers(1, &g_copybuffercr_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, g_copybuffercr_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 
   memset(verts, 0, sizeof(verts));
-  verts[0].tex[0] = 0.f; verts[0].tex[1] = 0.f;
-  verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
-  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
-
-  verts[1].tex[0] = 1.f; verts[1].tex[1] = 0.f;
-  verts[1].tex[2] = 1.f; verts[1].tex[3] = 0.f;
-  verts[1].loc[0] = NX/2+1; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
-
-  verts[2].tex[0] = 0.f; verts[2].tex[1] = 1.f;
-  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
-  verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
-
+  verts[1].tex[0] = 1.f;
+  verts[1].tex[2] = 1.f;
+  verts[1].loc[0] = NX/2+1;
+  verts[2].tex[1] = 1.f;
+  verts[2].tex[3] = 1.f;
+  verts[2].loc[1] = NY;
   verts[3].tex[0] = 1.f; verts[3].tex[1] = 1.f;
   verts[3].tex[2] = 1.f; verts[3].tex[3] = 1.f;
-  verts[3].loc[0] = NX/2+1; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
+  verts[3].loc[0] = NX/2+1; verts[3].loc[1] = NY;
 
   glGenBuffers(1, &g_fftstage_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, g_fftstage_vbo);
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts), &verts[0], GL_STATIC_DRAW);
 
   memset(verts, 0, sizeof(verts));
-  verts[0].tex[0] = 0.f; verts[0].tex[1] = 0.f;
-  verts[0].tex[2] = 0.f; verts[0].tex[3] = 0.f;
-  verts[0].loc[0] = 0; verts[0].loc[1] = 0; verts[0].loc[2] = 0;
-
-  verts[1].tex[0] = 1-1.f/(NX/2+1); verts[1].tex[1] = 0.f;
-  verts[1].tex[2] = 1-1.f/(NX/2+1); verts[1].tex[3] = 0.f;
-  verts[1].loc[0] = NX/2; verts[1].loc[1] = 0; verts[1].loc[2] = 0;
-
-  verts[2].tex[0] = 0.f; verts[2].tex[1] = 1.f;
-  verts[2].tex[2] = 0.f; verts[2].tex[3] = 1.f;
-  verts[2].loc[0] = 0; verts[2].loc[1] = NY; verts[2].loc[2] = 0;
-
+#if 1
+  verts[1].tex[0] = 1-1.f/(NX/2+1);
+  verts[1].tex[2] = 1-1.f/(NX/2+1);
+  verts[1].loc[0] = NX/2;
+  verts[2].tex[1] = 1.f;
+  verts[2].tex[3] = 1.f;
+  verts[2].loc[1] = NY;
   verts[3].tex[0] = 1-1.f/(NX/2+1); verts[3].tex[1] = 1.f;
   verts[3].tex[2] = 1-1.f/(NX/2+1); verts[3].tex[3] = 1.f;
-  verts[3].loc[0] = NX/2; verts[3].loc[1] = NY; verts[3].loc[2] = 0;
+  verts[3].loc[0] = NX/2; verts[3].loc[1] = NY;
+#else
+  verts[1].tex[0] = 1;
+  verts[1].tex[2] = 1;
+  verts[1].loc[0] = NX/2;
+  verts[2].tex[1] = 1.f;
+  verts[2].tex[3] = 1.f;
+  verts[2].loc[1] = NY;
+  verts[3].tex[0] = 1; verts[3].tex[1] = 1.f;
+  verts[3].tex[2] = 1; verts[3].tex[3] = 1.f;
+  verts[3].loc[0] = NX/2; verts[3].loc[1] = NY;
+#endif
 
   glGenBuffers(1, &g_fftstage2_vbo);
   glBindBuffer(GL_ARRAY_BUFFER, g_fftstage2_vbo);
@@ -184,11 +166,7 @@ void InitializeTextures() {
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-#ifdef NPOT
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NX/2+1, NY, 0, GL_RGBA, GL_FLOAT, NULL);
-#else
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NX/2, NY, 0, GL_RGBA, GL_FLOAT, NULL);
-#endif
     glBindFramebuffer(GL_FRAMEBUFFER, fb[t]);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tb[t], 0);
     GLint err = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -224,11 +202,7 @@ void InitializeTextures() {
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-#ifdef NPOT
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NX/2+1, 1, 0, GL_RGBA, GL_FLOAT, NULL);
-#else
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NX/2, 2, 0, GL_RGBA, GL_FLOAT, NULL);
-#endif
     }
   }
 
@@ -240,11 +214,7 @@ void InitializeTextures() {
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
       glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-#ifdef NPOT
       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NY, 1, 0, GL_RGBA, GL_FLOAT, NULL);
-#else
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, NY, 2, 0, GL_RGBA, GL_FLOAT, NULL);
-#endif
     }
   }
 
@@ -471,11 +441,7 @@ void fft_planx() {
       }
 
       glBindTexture(GL_TEXTURE_2D, planx[eb][s]);
-#ifdef NPOT
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, NX/2+1, 1, GL_RGBA, GL_FLOAT, p);
-#else
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, NX/2, 1, GL_RGBA, GL_FLOAT, p);
-#endif
     }
   }
 
@@ -516,11 +482,7 @@ void fft_plany() {
       }
 
       glBindTexture(GL_TEXTURE_2D, plany[eb][s]);
-#ifdef NPOT
       glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, NY, 1, GL_RGBA, GL_FLOAT, p);
-#else
-      glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, NY, 2, GL_RGBA, GL_FLOAT, p);
-#endif
     }
   }
 
