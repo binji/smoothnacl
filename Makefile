@@ -101,7 +101,7 @@ newlib_LINK?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -Wl,-as-needed
 newlib_LIB?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-ar r
 newlib_DUMP?=$(TC_PATH)/$(OSNAME)_x86_newlib/x86_64-nacl/bin/objdump
 newlib_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
-newlib_LDFLAGS?=-pthread
+newlib_LDFLAGS?=-pthread -L 
 
 glibc_CC?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-gcc -c
 glibc_CXX?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -c -std=gnu++98
@@ -140,19 +140,19 @@ endif
 #
 # Per target object lists
 #
-SMOOTHLIFE_OBJS:=hello_world matrix smoothlife
+SMOOTHLIFE_OBJS:=pong_instance pong_view pong_module
 
 # $1 toolchain, $2 config, $3 arch, $4 object
 define CC_RULE
 $(1)/$(2)/$(4)_$(3).o : $(4).cc $(THIS_MAKE) | $(1)/$(2)
-	$$($(1)_CC) -o $$@ $$< $$($(2)_CCFLAGS) $$($(3)_CCFLAGS) $$($(1)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS)
+	$$($(1)_CC) -o $$@ $$< $$($(2)_CCFLAGS) $$($(3)_CCFLAGS) $$($(1)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS) -Ilib/$(1)_$(3)/include
 endef
 
 # $1 toolchain, $2 config, $3 arch
 define ARCH_RULE
 SMOOTHLIFE_$(1)_$(2)_$(3)_O:=$$(patsubst %,$(1)/$(2)/%_$(3).o,$(SMOOTHLIFE_OBJS))
 $(1)/$(2)/smoothlife_$(3).nexe : $$(SMOOTHLIFE_$(1)_$(2)_$(3)_O)
-	$$($(1)_LINK) -o $$@ $$^ $$($(2)_LDFLAGS) $$($(3)_LDFLAGS) $$($(1)_LDFLAGS) $$(SMOOTHLIFE_LDFLAGS) -L$$(NACL_SDK_ROOT)/lib/$$(OSNAME)_$(1)_$(3)/$(2) -lppapi_gles2 -lppapi -lpthread
+	$$($(1)_LINK) -o $$@ $$^ $$($(2)_LDFLAGS) $$($(3)_LDFLAGS) $$($(1)_LDFLAGS) $$(SMOOTHLIFE_LDFLAGS) -L$$(NACL_SDK_ROOT)/lib/$$(OSNAME)_$(1)_$(3)/$(2) -Llib/$(1)_$(3)/lib -lppapi_gles2 -lppapi -lpthread -lppapi_cpp -lfftw3
 
 $$(foreach obj,$$(SMOOTHLIFE_OBJS),$$(eval $$(call CC_RULE,$(1),$(2),$(3),$$(obj))))
 endef
@@ -179,7 +179,7 @@ $$(eval $$(call CONFIG_RULE,$(1),Release,$(2)))
 endef
 
 $(eval $(call TOOLCHAIN_RULE,newlib,x86_32 x86_64))
-$(eval $(call TOOLCHAIN_RULE,glibc,x86_32 x86_64))
+#$(eval $(call TOOLCHAIN_RULE,glibc,x86_32 x86_64))
 
 #
 # Target to remove temporary files
