@@ -158,7 +158,7 @@ void PongView::UnlockPixels() {
 }
 
 //0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
-//1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
+#if 0
 const int mode = 0;
 const double ra = 12.0;
 const double rr = 3.0;
@@ -173,6 +173,39 @@ const int sigtype = 4;
 const int mixtype = 4;
 const double sn = 0.028;
 const double sm = 0.147;
+#elif 0
+//1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
+const int mode = 1;
+const double ra = 31.8;
+const double rr = 3.0;
+const double rb = 31.8;
+const double dt = 0.157;
+const double b1 = 0.092;
+const double b2 = 0.098;
+const double d1 = 0.256;
+const double d2 = 0.607;
+const int sigmode = 4;
+const int sigtype = 4;
+const int mixtype = 4;
+const double sn = 0.015;
+const double sm = 0.340;
+#else
+//2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
+const int mode = 2;
+const double ra = 12.0;
+const double rr = 3.0;
+const double rb = 12.0;
+const double dt = 0.115;
+const double b1 = 0.269;
+const double b2 = 0.340;
+const double d1 = 0.523;
+const double d2 = 0.746;
+const int sigmode = 4;
+const int sigtype = 4;
+const int mixtype = 4;
+const double sn = 0.028;
+const double sm = 0.147;
+#endif
 
 
 
@@ -190,20 +223,20 @@ double* AllocateReal() {
 fftw_complex* AllocateComplex() {
   const int kComplexSize = NX * (NY / 2 + 1);
   return static_cast<fftw_complex*>(
-      fftw_malloc(sizeof(fftw_complex*) * kComplexSize));
+      fftw_malloc(sizeof(fftw_complex) * kComplexSize));
 }
 
-double func_hard (double x, double a) {
+double func_hard(double x, double a) {
   if (x>=a) return 1.0; else return 0.0;
 }
 
-double func_linear (double x, double a, double ea) {
+double func_linear(double x, double a, double ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
   else return (x-a)/ea + 0.5;
 }
 
-double func_hermite (double x, double a, double ea) {
+double func_hermite(double x, double a, double ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
   else {
@@ -212,22 +245,22 @@ double func_hermite (double x, double a, double ea) {
   }
 }
 
-double func_sin (double x, double a, double ea) {
+double func_sin(double x, double a, double ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
   else return sin(PI/2.0*(x-a)/ea)*0.5+0.5;
 }
 
-double func_smooth (double x, double a, double ea) {
+double func_smooth(double x, double a, double ea) {
   return 1.0/(1.0+exp(-(x-a)*4.0/ea));
 }
 
-double func_kernel (double x, double a, double ea) {
-  //return func_hard   (x, a);
-  return func_linear  (x, a, ea);
-  //return func_hermite (x, a, ea);
-  //return func_sin     (x, a, ea);
-  //return func_smooth  (x, a, ea);
+double func_kernel(double x, double a, double ea) {
+  //return func_hard(x, a);
+  return func_linear(x, a, ea);
+  //return func_hermite(x, a, ea);
+  //return func_sin(x, a, ea);
+  //return func_smooth(x, a, ea);
 }
 
 void makekernel(double* kr, double* kd) {
@@ -253,7 +286,7 @@ void makekernel(double* kr, double* kd) {
       for (ix=0; ix<NX; ix++) {
         x = (ix < NX/2) ? ix : ix - NX;
         if (x>=-Ra && x<=Ra) {
-          l = sqrt (x*x + y*y);
+          l = sqrt(x*x + y*y);
           m = 1 - func_kernel(l, ri, bb);
           n = func_kernel(l, ri, bb) * (1 - func_kernel(l, ra, bb));
           *(kd + iy * NX + ix) = m;
@@ -327,7 +360,7 @@ void snm(double* an, double* am, double* na) {
   }
 }
 
-double RND (double x) {
+double RND(double x) {
   return x * (double)rand()/((double)RAND_MAX + 1);
 }
 
@@ -424,24 +457,21 @@ void* PongView::SmoothlifeThread(void* param) {
   TRACE(inita2D(AA));
 
   while (!self->quit_) {
-#if 0
+#if 1
     self->DrawBuffer(AA);
-
     fftw_execute(aa_plan);
-    kernelmul(AAF, KRF, ANF, sqrt(NX*NY)/kflr);
+    kernelmul(AAF, KRF, ANF, 1.0/kflr);
+    kernelmul(AAF, KDF, AMF, 1.0/kfld);
     fftw_execute(anf_plan);
-    scale(AN, 1.0/(NX*NY));
-
-    kernelmul(AAF, KDF, AMF, sqrt(NX*NY)/kfld);
     fftw_execute(amf_plan);
+    scale(AN, 1.0/(NX*NY));
     scale(AM, 1.0/(NX*NY));
-
     snm(AN, AM, AA);
 #else
     initan(AN);
     initam(AM);
     snm(AN, AM, AA);
-    self->DrawBuffer(AA);
+    self->DrawBuffer(KR);
 #endif
   }
 
