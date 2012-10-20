@@ -173,22 +173,22 @@ const int sigtype = 4;
 const int mixtype = 4;
 const double sn = 0.028;
 const double sm = 0.147;
-#elif 0
+#elif 1
 //1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
-const int mode = 1;
-const double ra = 31.8;
-const double rr = 3.0;
-const double rb = 31.8;
-const double dt = 0.157;
-const double b1 = 0.092;
-const double b2 = 0.098;
-const double d1 = 0.256;
-const double d2 = 0.607;
-const int sigmode = 4;
-const int sigtype = 4;
-const int mixtype = 4;
-const double sn = 0.015;
-const double sm = 0.340;
+int mode = 1;
+double ra = 12.8;
+double rr = 3.0;
+double rb = 5.8;
+double dt = 0.157;
+double b1 = 0.092;
+double b2 = 0.198;
+double d1 = 0.256;
+double d2 = 0.307;
+int sigmode = 4;
+int sigtype = 4;
+int mixtype = 4;
+double sn = 0.055;
+double sm = 0.090;
 #else
 //2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
 const int mode = 2;
