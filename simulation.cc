@@ -57,18 +57,16 @@ double RND(double x) {
 
 }  // namespace
 
-Simulation::Simulation(const pp::Size& size,
-                       const KernelConfig& kernel_config,
-                       const SmootherConfig& smoother_config)
-  : size_(size),
-    kernel_(size, kernel_config),
-    smoother_(size, smoother_config),
-    aa_(size),
-    an_(size),
-    am_(size),
-    aaf_(size, ReduceSizeForComplex()),
-    anf_(size, ReduceSizeForComplex()),
-    amf_(size, ReduceSizeForComplex()) {
+Simulation::Simulation(const SimulationConfig& config)
+  : size_(config.size),
+    kernel_(config.size, config.kernel_config),
+    smoother_(config.size, config.smoother_config),
+    aa_(config.size),
+    an_(config.size),
+    am_(config.size),
+    aaf_(config.size, ReduceSizeForComplex()),
+    anf_(config.size, ReduceSizeForComplex()),
+    amf_(config.size, ReduceSizeForComplex()) {
   aa_plan_ = fftw_plan_dft_r2c_2d(size_.width(), size_.height(),
                                   aa_.data(), aaf_.data(), FFTW_ESTIMATE);
   anf_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),

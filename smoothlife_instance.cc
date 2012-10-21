@@ -11,58 +11,59 @@
 #include "ppapi/cpp/rect.h"
 #include "ppapi/cpp/var.h"
 
-#include "smoothlife_instance.h"
-#include "smoothlife_view.h"
 #include "kernel.h"
-#include "smoother.h"
 #include "simulation.h"
-
-namespace {
-
-const pp::Size kDefaultSimulationSize(512, 512);
-
-}  // namespace
+#include "smoother.h"
+#include "smoothlife_instance.h"
+#include "smoothlife_thread.h"
+#include "smoothlife_view.h"
 
 SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
     : pp::Instance(instance),
       factory_(this),
       view_(NULL),
       is_initial_view_change_(true),
-      thread_create_result_(0),
-      quit_(false),
-      locked_buffer_(new AlignedReals(kDefaultSimulationSize)),
-      sim_size_(kDefaultSimulationSize) {
+      thread_(NULL),
+      locked_buffer_(NULL),
+      task_queue_(NULL) {
   // Request to receive input events.
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
 
 SmoothlifeInstance::~SmoothlifeInstance() {
-  quit_ = true;
-  if (thread_create_result_ == 0)
-    pthread_join(thread_, NULL);
+  delete task_queue_;
+  delete locked_buffer_;
+  delete thread_;
   delete view_;
 }
 
 bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
-  kernel_config_.ra = 12.0;
-  kernel_config_.rr = 3.0;
-  kernel_config_.rb = 12.0;
-  smoother_config_.timestep.type = TIMESTEP_SMOOTH2;
-  smoother_config_.timestep.dt = 0.115;
-  smoother_config_.b1 = 0.269;
-  smoother_config_.b2 = 0.340;
-  smoother_config_.d1 = 0.523;
-  smoother_config_.d2 = 0.746;
-  smoother_config_.mode = SIGMOID_MODE_4;
-  smoother_config_.sigmoid = SIGMOID_SMOOTH;
-  smoother_config_.mix = SIGMOID_SMOOTH;
-  smoother_config_.sn = 0.028;
-  smoother_config_.sm = 0.147;
-  view_ = new SmoothlifeView(&locked_buffer_);
+  SimulationConfig config;
+  config.size = pp::Size(512, 512);
+  config.kernel_config.ra = 12.0;
+  config.kernel_config.rr = 3.0;
+  config.kernel_config.rb = 12.0;
+  config.smoother_config.timestep.type = TIMESTEP_SMOOTH2;
+  config.smoother_config.timestep.dt = 0.115;
+  config.smoother_config.b1 = 0.269;
+  config.smoother_config.b2 = 0.340;
+  config.smoother_config.d1 = 0.523;
+  config.smoother_config.d2 = 0.746;
+  config.smoother_config.mode = SIGMOID_MODE_4;
+  config.smoother_config.sigmoid = SIGMOID_SMOOTH;
+  config.smoother_config.mix = SIGMOID_SMOOTH;
+  config.smoother_config.sn = 0.028;
+  config.smoother_config.sm = 0.147;
 
-  thread_create_result_ = pthread_create(
-      &thread_, NULL, &SmoothlifeThreadThunk, this);
+  AlignedReals* buffer = new AlignedReals(config.size);
+  locked_buffer_ = new LockedObject<AlignedReals>(buffer);
+
+  ThreadContext context;
+  context.config = config;
+  context.buffer = locked_buffer_;
+  thread_ = new SmoothlifeThread(context);
+  view_ = new SmoothlifeView(locked_buffer_);
 
   return true;
 }
@@ -74,9 +75,7 @@ void SmoothlifeInstance::DidChangeView(const pp::View& view) {
     return;
   }
 
-  if (is_initial_view_change_) {
-    is_initial_view_change_ = false;
-  }
+  is_initial_view_change_ = false;
 }
 
 bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
@@ -96,31 +95,4 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
 void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string())
     return;
-}
-
-void* SmoothlifeInstance::SmoothlifeThreadThunk(void* param) {
-  SmoothlifeInstance* self = static_cast<SmoothlifeInstance*>(param);
-  self->SmoothlifeThread();
-  return NULL;
-}
-
-void SmoothlifeInstance::SmoothlifeThread() {
-  //0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
-  //1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
-  //1 21.8 3.0 21.8 0.157 0.192 0.200 0.355 0.600 4 4 4 0.025 0.490
-  //1 21.8 3.0 21.8 0.157 0.232 0.337 0.599 0.699 4 4 4 0.025 0.290
-  //2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
-  //2 12.0 3.0 12.0 0.415 0.269 0.350 0.513 0.756 4 4 4 0.028 0.147
-  Simulation simulation(sim_size_, kernel_config_, smoother_config_);
-  simulation.Clear(0);
-  simulation.inita2D(kernel_config_.ra);
-
-  while (!quit_) {
-    AlignedReals* out_data = locked_buffer_.Lock();
-    std::copy(simulation.buffer().begin(), simulation.buffer().end(),
-              out_data->begin());
-    locked_buffer_.Unlock();
-
-    simulation.Step();
-  }
 }

@@ -6,11 +6,15 @@
 #include "kernel.h"
 #include "smoother.h"
 
+struct SimulationConfig {
+  pp::Size size;
+  KernelConfig kernel_config;
+  SmootherConfig smoother_config;
+};
+
 class Simulation {
  public:
-  Simulation(const pp::Size& size,
-             const KernelConfig& kernel_config,
-             const SmootherConfig& smoother_config);
+  explicit Simulation(const SimulationConfig& config);
   ~Simulation();
 
   void SetKernel(const KernelConfig& config);
@@ -37,6 +41,9 @@ class Simulation {
   fftw_plan aa_plan_;
   fftw_plan anf_plan_;
   fftw_plan amf_plan_;
+
+  Simulation(const Simulation&);  // Undefined.
+  Simulation& operator =(const Simulation&);  // Undefined.
 };
 
 #endif  // SIMULATION_H_

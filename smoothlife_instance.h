@@ -5,14 +5,19 @@
 #ifndef EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
 #define EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
 
+#include <deque>
 #include "ppapi/cpp/instance.h"
 #include "ppapi/utility/completion_callback_factory.h"
 #include "fft_allocation.h"
-#include "kernel.h"
 #include "locked_object.h"
-#include "smoother.h"
 
+
+class SmoothlifeThread;
 class SmoothlifeView;
+class Task;
+
+typedef std::deque<Task*> TaskQueue;
+
 
 class SmoothlifeInstance : public pp::Instance {
  public:
@@ -24,20 +29,12 @@ class SmoothlifeInstance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
-  static void* SmoothlifeThreadThunk(void* param);
-  void SmoothlifeThread();
-
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   SmoothlifeView* view_;
   bool is_initial_view_change_;
-  pthread_t thread_;
-  int thread_create_result_;
-  bool quit_;
-
-  LockedObject<AlignedReals> locked_buffer_;
-  pp::Size sim_size_;
-  KernelConfig kernel_config_;
-  SmootherConfig smoother_config_;
+  SmoothlifeThread* thread_;
+  LockedObject<AlignedReals>* locked_buffer_;
+  LockedObject<TaskQueue>* task_queue_;
 
   // Disallow copy constructor and assignment operator.
   SmoothlifeInstance(const SmoothlifeInstance&);
