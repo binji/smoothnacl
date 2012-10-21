@@ -95,16 +95,14 @@ x86_64_CCFLAGS?=-m64
 x86_32_LDFLAGS?=-m32
 x86_64_LDFLAGS?=-m64
 
-newlib_CC?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-gcc -c
-newlib_CXX?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -c -std=gnu++98
+newlib_CXX?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -c -std=c++0x
 newlib_LINK?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-g++ -Wl,-as-needed
 newlib_LIB?=$(TC_PATH)/$(OSNAME)_x86_newlib/bin/i686-nacl-ar r
 newlib_DUMP?=$(TC_PATH)/$(OSNAME)_x86_newlib/x86_64-nacl/bin/objdump
 newlib_CCFLAGS?=-MMD -pthread $(NACL_WARNINGS) -idirafter $(NACL_SDK_ROOT)/include
 newlib_LDFLAGS?=-pthread -L 
 
-glibc_CC?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-gcc -c
-glibc_CXX?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -c -std=gnu++98
+glibc_CXX?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -c -std=c++0x
 glibc_LINK?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-g++ -Wl,-as-needed
 glibc_LIB?=$(TC_PATH)/$(OSNAME)_x86_glibc/bin/i686-nacl-ar r
 glibc_DUMP?=$(TC_PATH)/$(OSNAME)_x86_glibc/x86_64-nacl/bin/objdump
@@ -145,7 +143,7 @@ SMOOTHLIFE_OBJS:=smoothlife_instance smoothlife_view smoothlife_module kernel fu
 # $1 toolchain, $2 config, $3 arch, $4 object
 define CC_RULE
 $(1)/$(2)/$(4)_$(3).o : $(4).cc $(THIS_MAKE) | $(1)/$(2)
-	$$($(1)_CC) -o $$@ $$< $$($(2)_CCFLAGS) $$($(3)_CCFLAGS) $$($(1)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS) -Ilib/$(1)_$(3)/include
+	$$($(1)_CXX) -o $$@ $$< $$($(2)_CCFLAGS) $$($(3)_CCFLAGS) $$($(1)_CCFLAGS) $$(SMOOTHLIFE_CXXFLAGS) -Ilib/$(1)_$(3)/include
 endef
 
 # $1 toolchain, $2 config, $3 arch

@@ -1,8 +1,10 @@
 #include "smoothlife_thread.h"
 #include <algorithm>
+#include "task.h"
 
 SmoothlifeThread::SmoothlifeThread(const ThreadContext& context)
     : context_(context),
+      simulation_(NULL),
       thread_create_result_(0),
       quit_(false) {
   thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
@@ -14,6 +16,27 @@ SmoothlifeThread::~SmoothlifeThread() {
     pthread_join(thread_, NULL);
 }
 
+void SmoothlifeThread::TaskSetKernel(const KernelConfig& config) {
+  simulation_->SetKernel(config);
+}
+
+void SmoothlifeThread::TaskSetSmoother(const SmootherConfig& config) {
+  simulation_->SetSmoother(config);
+}
+
+void SmoothlifeThread::TaskClear(double color) {
+  simulation_->Clear(color);
+}
+
+void SmoothlifeThread::TaskSplat() {
+  simulation_->Splat();
+}
+
+void SmoothlifeThread::TaskDrawFilledCircle(double x, double y, double radius,
+                                            double color) {
+  simulation_->DrawFilledCircle(x, y, radius, color);
+}
+
 // static
 void* SmoothlifeThread::MainLoopThunk(void* param) {
   SmoothlifeThread* self = static_cast<SmoothlifeThread*>(param);
@@ -22,22 +45,31 @@ void* SmoothlifeThread::MainLoopThunk(void* param) {
 }
 
 void SmoothlifeThread::MainLoop() {
-  //0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
-  //1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
-  //1 21.8 3.0 21.8 0.157 0.192 0.200 0.355 0.600 4 4 4 0.025 0.490
-  //1 21.8 3.0 21.8 0.157 0.232 0.337 0.599 0.699 4 4 4 0.025 0.290
-  //2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
-  //2 12.0 3.0 12.0 0.415 0.269 0.350 0.513 0.756 4 4 4 0.028 0.147
-  Simulation simulation(context_.config);
-  simulation.Clear(0);
-  simulation.inita2D(context_.config.kernel_config.ra);
+  simulation_ = new Simulation(context_.config);
+  simulation_->Clear(0);
+  simulation_->Splat();
 
   while (!quit_) {
-    AlignedReals* out_data = context_.buffer->Lock();
-    std::copy(simulation.buffer().begin(), simulation.buffer().end(),
-              out_data->begin());
-    context_.buffer->Unlock();
-
-    simulation.Step();
+    CopyBuffer();
+    ProcessQueue();
+    simulation_->Step();
   }
+}
+
+void SmoothlifeThread::CopyBuffer() {
+  AlignedReals* out_data = context_.buffer->Lock();
+  std::copy(simulation_->buffer().begin(), simulation_->buffer().end(),
+            out_data->begin());
+  context_.buffer->Unlock();
+}
+
+void SmoothlifeThread::ProcessQueue() {
+  TaskQueue* queue = context_.queue->Lock();
+  for (TaskQueue::iterator iter = queue->begin(), end = queue->end();
+       iter != end;
+       ++iter) {
+    (*iter)->Run(this);
+  }
+  queue->clear();
+  context_.queue->Unlock();
 }

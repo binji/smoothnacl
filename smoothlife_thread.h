@@ -5,11 +5,11 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "simulation.h"
-//#include "task_queue.h"
+#include "task_queue.h"
 
 struct ThreadContext {
   SimulationConfig config;
-  //TaskQueue queue;
+  LockedObject<TaskQueue>* queue;  // Weak.
   LockedObject<AlignedReals>* buffer;  // Weak.
 };
 
@@ -18,11 +18,21 @@ class SmoothlifeThread {
   explicit SmoothlifeThread(const ThreadContext& context);
   ~SmoothlifeThread();
 
+  // Tasks: Do not call these directly, use MakeFunctionTask(...) instead.
+  void TaskSetKernel(const KernelConfig& config);
+  void TaskSetSmoother(const SmootherConfig& config);
+  void TaskClear(double color);
+  void TaskSplat();
+  void TaskDrawFilledCircle(double x, double y, double radius, double color);
+
  private:
   static void* MainLoopThunk(void*);
   void MainLoop();
+  void CopyBuffer();
+  void ProcessQueue();
 
   ThreadContext context_;
+  Simulation* simulation_;
   pthread_t thread_;
   int thread_create_result_;
   bool quit_;

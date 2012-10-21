@@ -17,6 +17,7 @@
 #include "smoothlife_instance.h"
 #include "smoothlife_thread.h"
 #include "smoothlife_view.h"
+#include "task.h"
 
 SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
     : pp::Instance(instance),
@@ -39,6 +40,12 @@ SmoothlifeInstance::~SmoothlifeInstance() {
 
 bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
+  //0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
+  //1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
+  //1 21.8 3.0 21.8 0.157 0.192 0.200 0.355 0.600 4 4 4 0.025 0.490
+  //1 21.8 3.0 21.8 0.157 0.232 0.337 0.599 0.699 4 4 4 0.025 0.290
+  //2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
+  //2 12.0 3.0 12.0 0.415 0.269 0.350 0.513 0.756 4 4 4 0.028 0.147
   SimulationConfig config;
   config.size = pp::Size(512, 512);
   config.kernel_config.ra = 12.0;
@@ -58,10 +65,12 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   AlignedReals* buffer = new AlignedReals(config.size);
   locked_buffer_ = new LockedObject<AlignedReals>(buffer);
+  task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
 
   ThreadContext context;
   context.config = config;
   context.buffer = locked_buffer_;
+  context.queue = task_queue_;
   thread_ = new SmoothlifeThread(context);
   view_ = new SmoothlifeView(locked_buffer_);
 
@@ -83,6 +92,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN) {
     // By notifying the browser mouse clicks are handled, the application window
     // is able to get focus and receive key events.
+    EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSplat));
     return true;
   } else if (event.GetType() == PP_INPUTEVENT_TYPE_KEYUP) {
     return true;
@@ -95,4 +105,10 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
 void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string())
     return;
+}
+
+void SmoothlifeInstance::EnqueueTask(Task* task) {
+  TaskQueue* queue = task_queue_->Lock();
+  queue->push_back(task);
+  task_queue_->Unlock();
 }

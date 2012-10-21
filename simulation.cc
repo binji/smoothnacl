@@ -130,10 +130,12 @@ void Simulation::DrawFilledCircle(double x, double y, double radius,
   }
 }
 
-void Simulation::inita2D(double radius) {
+void Simulation::Splat() {
   double mx, my;
   int width = aa_.size().width();
   int height = aa_.size().height();
+
+  double radius = kernel_.config().ra;
 
   mx = 2*radius; if (mx>width) mx=width;
   my = 2*radius; if (my>height) my=height;

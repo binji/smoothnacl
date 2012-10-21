@@ -26,7 +26,7 @@ class Simulation {
   void Step();
   void Clear(double color);
   void DrawFilledCircle(double x, double y, double radius, double color);
-  void inita2D(double radius);
+  void Splat();
 
  private:
   pp::Size size_;

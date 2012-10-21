@@ -10,13 +10,11 @@
 #include "ppapi/utility/completion_callback_factory.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
+#include "task_queue.h"
 
 
 class SmoothlifeThread;
 class SmoothlifeView;
-class Task;
-
-typedef std::deque<Task*> TaskQueue;
 
 
 class SmoothlifeInstance : public pp::Instance {
@@ -29,6 +27,8 @@ class SmoothlifeInstance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
+  void EnqueueTask(Task* task);
+
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   SmoothlifeView* view_;
   bool is_initial_view_change_;
