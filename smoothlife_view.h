@@ -2,11 +2,12 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef EXAMPLES_PONG_VIEW_H_
-#define EXAMPLES_PONG_VIEW_H_
+#ifndef EXAMPLES_SMOOTHLIFE_VIEW_H_
+#define EXAMPLES_SMOOTHLIFE_VIEW_H_
 
 #include "ppapi/cpp/rect.h"
 #include "ppapi/utility/completion_callback_factory.h"
+#include "fft_allocation.h"
 
 namespace pp {
 class Graphics2D;
@@ -16,10 +17,10 @@ class Size;
 class View;
 }  // namespace pp
 
-class PongView {
+class SmoothlifeView {
  public:
-  PongView();
-  ~PongView();
+  SmoothlifeView();
+  ~SmoothlifeView();
 
   bool DidChangeView(pp::Instance* instance, const pp::View& view,
                      bool first_view_change);
@@ -33,9 +34,9 @@ class PongView {
   void DrawRect(const pp::Rect& rect, uint32_t color);
   void PaintRectToGraphics2D(const pp::Rect& rect);
   static void* SmoothlifeThread(void* param);
-  void DrawBuffer(double* a);
+  void DrawBuffer(const FftAllocation<double>& a);
 
-  pp::CompletionCallbackFactory<PongView> factory_;
+  pp::CompletionCallbackFactory<SmoothlifeView> factory_;
   pp::Graphics2D* graphics_2d_;
   pp::ImageData* pixel_buffer_;
   pthread_t thread_;
@@ -44,4 +45,4 @@ class PongView {
   bool quit_;
 };
 
-#endif  // EXAMPLES_PONG_VIEW_H_
+#endif  // EXAMPLES_SMOOTHLIFE_VIEW_H_

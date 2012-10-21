@@ -11,8 +11,8 @@
 #include "ppapi/cpp/rect.h"
 #include "ppapi/cpp/var.h"
 
-#include "pong_instance.h"
-#include "pong_view.h"
+#include "smoothlife_instance.h"
+#include "smoothlife_view.h"
 
 namespace {
 
@@ -20,7 +20,7 @@ const int kUpdateInterval = 17;
 
 }  // namespace
 
-PongInstance::PongInstance(PP_Instance instance)
+SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
     : pp::Instance(instance),
       factory_(this),
       view_(NULL),
@@ -29,16 +29,16 @@ PongInstance::PongInstance(PP_Instance instance)
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
 
-PongInstance::~PongInstance() {
+SmoothlifeInstance::~SmoothlifeInstance() {
   delete view_;
 }
 
-bool PongInstance::Init(uint32_t argc, const char* argn[], const char* argv[]) {
-  view_ = new PongView();
+bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[], const char* argv[]) {
+  view_ = new SmoothlifeView();
   return true;
 }
 
-void PongInstance::DidChangeView(const pp::View& view) {
+void SmoothlifeInstance::DidChangeView(const pp::View& view) {
   if (!view_->DidChangeView(this, view, is_initial_view_change_)) {
     PostMessage(pp::Var(
         "ERROR DidChangeView failed. Could not bind graphics?"));
@@ -51,7 +51,7 @@ void PongInstance::DidChangeView(const pp::View& view) {
   }
 }
 
-bool PongInstance::HandleInputEvent(const pp::InputEvent& event) {
+bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
   if (event.GetType() == PP_INPUTEVENT_TYPE_MOUSEUP ||
       event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN) {
     // By notifying the browser mouse clicks are handled, the application window
@@ -65,18 +65,18 @@ bool PongInstance::HandleInputEvent(const pp::InputEvent& event) {
   return false;
 }
 
-void PongInstance::HandleMessage(const pp::Var& var_message) {
+void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string())
     return;
 }
 
-void PongInstance::ScheduleUpdate() {
+void SmoothlifeInstance::ScheduleUpdate() {
   pp::Module::Get()->core()->CallOnMainThread(
       kUpdateInterval,
-      factory_.NewCallback(&PongInstance::UpdateCallback));
+      factory_.NewCallback(&SmoothlifeInstance::UpdateCallback));
 }
 
-void PongInstance::UpdateCallback(int32_t result) {
+void SmoothlifeInstance::UpdateCallback(int32_t result) {
   // This is the game loop; UpdateCallback schedules another call to itself to
   // occur kUpdateInterval milliseconds later.
   ScheduleUpdate();

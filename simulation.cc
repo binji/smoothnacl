@@ -1,0 +1,144 @@
+#include "simulation.h"
+#include <algorithm>
+#include <assert.h>
+#include <fftw3.h>
+#include <math.h>
+
+namespace {
+
+void MultiplyComplex(const FftAllocation<fftw_complex>& in1,
+                     const FftAllocation<fftw_complex>& in2,
+                     FftAllocation<fftw_complex>* out,
+                     double scale) {
+  int count = in1.count();
+  assert(count == in2.count());
+  assert(count == out->count());
+
+  for (int i = 0; i < count; ++i) {
+    const fftw_complex& inv1 = in1[i];
+    const fftw_complex& inv2 = in2[i];
+    fftw_complex& outv = (*out)[i];
+    outv[0] = scale * (inv1[0] * inv2[0] - inv1[1] * inv2[1]);
+    outv[1] = scale * (inv1[0] * inv2[1] + inv1[1] * inv2[0]);
+  }
+}
+
+void Scale(FftAllocation<double>* inout, double scale) {
+  int count = inout->count();
+  for (int i = 0; i < count; ++i) {
+    (*inout)[i] *= scale;
+  }
+}
+
+void initan(FftAllocation<double>* buf) {
+  int width = buf->size().width();
+  int height = buf->size().height();
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      (*buf)[y*width+x] = (double)x/width;
+    }
+  }
+}
+
+
+void initam(FftAllocation<double>* buf) {
+  int width = buf->size().width();
+  int height = buf->size().height();
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      (*buf)[y*width+x] = (double)y/height;
+    }
+  }
+}
+
+double RND(double x) {
+  return x * (double)rand()/((double)RAND_MAX + 1);
+}
+
+}  // namespace
+
+Simulation::Simulation(const pp::Size& size,
+           const KernelConfig& kernel_config,
+           const SmootherConfig& smoother_config)
+  : size_(size),
+    kernel_(size, kernel_config),
+    smoother_(size, smoother_config),
+    aa_(size),
+    an_(size),
+    am_(size),
+    aaf_(size, ReduceSizeForComplex()),
+    anf_(size, ReduceSizeForComplex()),
+    amf_(size, ReduceSizeForComplex()) {
+  aa_plan_ = fftw_plan_dft_r2c_2d(size.width(), size.height(),
+                                  aa_.data(), aaf_.data(), FFTW_ESTIMATE);
+  anf_plan_ = fftw_plan_dft_c2r_2d(size.width(), size.height(),
+                                   anf_.data(), an_.data(), FFTW_ESTIMATE);
+  amf_plan_ = fftw_plan_dft_c2r_2d(size.width(), size.height(),
+                                   amf_.data(), am_.data(), FFTW_ESTIMATE);
+}
+
+Simulation::~Simulation() {
+  fftw_destroy_plan(amf_plan_);
+  fftw_destroy_plan(anf_plan_);
+  fftw_destroy_plan(aa_plan_);
+}
+
+void Simulation::SetKernel(const KernelConfig& config) {
+  kernel_.SetConfig(config);
+}
+
+void Simulation::SetSmoother(const SmootherConfig& config) {
+  smoother_.SetConfig(config);
+}
+
+void Simulation::Step() {
+  int real_count = size_.width() * size_.height();
+  fftw_execute(aa_plan_);
+  MultiplyComplex(aaf_, kernel_.GetKRF(), &anf_, 1.0 / kernel_.GetKflr());
+  MultiplyComplex(aaf_, kernel_.GetKDF(), &amf_, 1.0 / kernel_.GetKfld());
+  fftw_execute(anf_plan_);
+  fftw_execute(amf_plan_);
+  Scale(&an_, 1.0 / real_count);
+  Scale(&am_, 1.0 / real_count);
+  smoother_.Apply(an_, am_, &aa_);
+}
+
+void Simulation::Clear(double color) {
+  std::fill(aa_.begin(), aa_.end(), color);
+}
+
+void Simulation::DrawFilledCircle(double x, double y, double radius,
+                                  double color) {
+  int width = aa_.size().width();
+  int height = aa_.size().height();
+  int left = std::max(0, static_cast<int>(x - radius));
+  int right = std::min(width, static_cast<int>(x + radius + 1));
+  int top = std::max(0, static_cast<int>(y - radius));
+  int bottom = std::min(height, static_cast<int>(y + radius + 1));
+
+  for (int j = top; j < bottom; ++j) {
+    for (int i = left; i < right; ++i) {
+      double dx = x - i;
+      double dy = y - j;
+      double length = sqrt(dx * dx + dy * dy);
+      if (length < radius)
+        aa_[j * width + i] = color;
+    }
+  }
+}
+
+void Simulation::inita2D(double radius) {
+  double mx, my;
+  int width = aa_.size().width();
+  int height = aa_.size().height();
+
+  mx = 2*radius; if (mx>width) mx=width;
+  my = 2*radius; if (my>height) my=height;
+
+  for (int t=0; t<=(int)(width*height/(mx*my)); t++) {
+    double x = RND(width);
+    double y = RND(height);
+    double r = radius * (RND(0.5) + 0.5);
+    DrawFilledCircle(x, y, r, 1.0);
+  }
+}

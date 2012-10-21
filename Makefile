@@ -140,7 +140,7 @@ endif
 #
 # Per target object lists
 #
-SMOOTHLIFE_OBJS:=pong_instance pong_view pong_module
+SMOOTHLIFE_OBJS:=smoothlife_instance smoothlife_view smoothlife_module kernel functions smoother simulation
 
 # $1 toolchain, $2 config, $3 arch, $4 object
 define CC_RULE
