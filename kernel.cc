@@ -5,9 +5,7 @@
 
 namespace {
 
-void FFT(const pp::Size& size,
-         FftAllocation<double>& in,
-         FftAllocation<fftw_complex>* out) {
+void FFT(const pp::Size& size, AlignedReals& in, AlignedComplexes* out) {
   fftw_plan plan = fftw_plan_dft_r2c_2d(
       size.width(), size.height(), in.data(), out->data(), FFTW_ESTIMATE);
   fftw_execute(plan);
@@ -33,44 +31,7 @@ void Kernel::SetConfig(const KernelConfig& config) {
   dirty_ = true;
 }
 
-const FftAllocation<double>& Kernel::GetKR() const {
-  if (dirty_)
-    MakeKernel();
-  return kr_;
-}
-
-const FftAllocation<double>& Kernel::GetKD() const {
-  if (dirty_)
-    MakeKernel();
-  return kd_;
-}
-
-
-const FftAllocation<fftw_complex>& Kernel::GetKRF() const {
-  if (dirty_)
-    MakeKernel();
-  return krf_;
-}
-
-const FftAllocation<fftw_complex>& Kernel::GetKDF() const {
-  if (dirty_)
-    MakeKernel();
-  return kdf_;
-}
-
-double Kernel::GetKflr() const {
-  if (dirty_)
-    MakeKernel();
-  return kflr_;
-}
-
-double Kernel::GetKfld() const {
-  if (dirty_)
-    MakeKernel();
-  return kfld_;
-}
-
-void Kernel::MakeKernel() const {
+void Kernel::MakeKernel() {
   double ri = config_.ra/config_.rr;
   double bb = config_.ra/config_.rb;
 

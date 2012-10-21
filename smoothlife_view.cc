@@ -160,86 +160,12 @@ void SmoothlifeView::UnlockPixels() {
   pthread_mutex_unlock(&pixel_buffer_mutex_);
 }
 
-//0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
-#if 0
-const int mode = 0;
-const double ra = 12.0;
-const double rr = 3.0;
-const double rb = 12.0;
-const double dt = 0.100;
-const double b1 = 0.278;
-const double b2 = 0.365;
-const double d1 = 0.267;
-const double d2 = 0.445;
-const int sigmode = 4;
-const int sigtype = 4;
-const int mixtype = 4;
-const double sn = 0.028;
-const double sm = 0.147;
-#elif 1
-//1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
-//1 21.8 3.0 21.8 0.157 0.192 0.200 0.355 0.600 4 4 4 0.025 0.490
-//1 21.8 3.0 21.8 0.157 0.232 0.337 0.599 0.699 4 4 4 0.025 0.290
-const int mode = 1;
-double ra = 21.8;
-double rr = 3.0;
-double rb = 21.8;
-double dt = 0.157;
-double b1 = 0.192;
-double b2 = 0.200;
-double d1 = 0.355;
-double d2 = 0.600;
-int sigmode = 4;
-int sigtype = 4;
-int mixtype = 4;
-double sn = 0.025;
-double sm = 0.490;
-#else
-//2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
-//2 12.0 3.0 12.0 0.415 0.269 0.350 0.513 0.756 4 4 4 0.028 0.147
-const int mode = 2;
-const double ra = 12.0;
-const double rr = 3.0;
-const double rb = 12.0;
-const double dt = 0.115;
-const double b1 = 0.269;
-const double b2 = 0.340;
-const double d1 = 0.523;
-const double d2 = 0.746;
-const int sigmode = 4;
-const int sigtype = 4;
-const int mixtype = 4;
-const double sn = 0.028;
-const double sm = 0.147;
-#endif
-
-
-#if 0
-double RND(double x) {
-  return x * (double)rand()/((double)RAND_MAX + 1);
-}
-
-void inita2D(double* a) {
-  double mx, my;
-
-  mx = 2*ra; if (mx>NX) mx = NX;
-  my = 2*ra; if (my>NY) my = NY;
-
-  for (int t = 0; t<= (int)(NX*NY/(mx*my)); t++) {
-//  for (int t = 0; t<=15; t++) {
-    splat2D(a);
-  }
-}
-
-#endif
-
-void SmoothlifeView::DrawBuffer(const FftAllocation<double>& a) {
+void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
   ScopedPixelLock lock(this);
   uint32_t* pixels = lock.pixels();
   if (!pixels)
     return;
 
-#if 1
   int image_width = GetSize().width();
   int image_height = GetSize().height();
   int buffer_width = a.size().width();
@@ -256,19 +182,6 @@ void SmoothlifeView::DrawBuffer(const FftAllocation<double>& a) {
       pixels[y * image_width + x] = color;
     }
   }
-#else
-  int image_width = GetSize().width();
-  int image_height = GetSize().height();
-  for (int y = 0; y < image_height; ++y) {
-    for (int x = 0; x < image_width; ++x) {
-      // Cheesy scaling.
-      double dv = a[y * image_width + x];
-      uint8_t v = 255 * dv; //255 * (1 - dv);
-      uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
-      pixels[y * image_width + x] = color;
-    }
-  }
-#endif
 }
 
 
@@ -307,18 +220,24 @@ unsigned long long rdtsc(void) {
 void* SmoothlifeView::SmoothlifeThread(void* param) {
   SmoothlifeView* self = static_cast<SmoothlifeView*>(param);
 
+  //0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
+  //1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
+  //1 21.8 3.0 21.8 0.157 0.192 0.200 0.355 0.600 4 4 4 0.025 0.490
+  //1 21.8 3.0 21.8 0.157 0.232 0.337 0.599 0.699 4 4 4 0.025 0.290
+  //2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
+  //2 12.0 3.0 12.0 0.415 0.269 0.350 0.513 0.756 4 4 4 0.028 0.147
   pp::Size sim_size(512, 512);
   KernelConfig kernel_config;
   kernel_config.ra = 12.0;
   kernel_config.rr = 3.0;
   kernel_config.rb = 12.0;
   SmootherConfig smoother_config;
-  smoother_config.timestep.type = TIMESTEP_DISCRETE;
-  smoother_config.timestep.dt = 0.100;
-  smoother_config.b1 = 0.278;
-  smoother_config.b2 = 0.365;
-  smoother_config.d1 = 0.267;
-  smoother_config.d2 = 0.445;
+  smoother_config.timestep.type = TIMESTEP_SMOOTH2;
+  smoother_config.timestep.dt = 0.115;
+  smoother_config.b1 = 0.269;
+  smoother_config.b2 = 0.340;
+  smoother_config.d1 = 0.523;
+  smoother_config.d2 = 0.746;
   smoother_config.mode = SIGMOID_MODE_4;
   smoother_config.sigmoid = SIGMOID_SMOOTH;
   smoother_config.mix = SIGMOID_SMOOTH;
@@ -326,10 +245,6 @@ void* SmoothlifeView::SmoothlifeThread(void* param) {
   smoother_config.sm = 0.147;
   Simulation simulation(sim_size, kernel_config, smoother_config);
   simulation.Clear(0);
-  pp::Size size = self->GetSize();
-//  int w = size.width();
-//  int h = size.height();
-//  simulation.DrawFilledCircle(w / 2, h / 2, std::min(w, h) / 3, 1.0);
   simulation.inita2D(kernel_config.ra);
 
   while (!self->quit_) {

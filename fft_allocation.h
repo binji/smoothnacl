@@ -46,4 +46,7 @@ class FftAllocation {
   size_t count_;
 };
 
+typedef FftAllocation<double> AlignedReals;
+typedef FftAllocation<fftw_complex> AlignedComplexes;
+
 #endif  // FFT_ALLOCATION_H_

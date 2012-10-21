@@ -17,7 +17,7 @@ class Simulation {
   void SetSmoother(const SmootherConfig& config);
   const Kernel& kernel() const { return kernel_; }
   const Smoother& smoother() const { return smoother_; }
-  const FftAllocation<double>& buffer() const { return aa_; }
+  const AlignedReals& buffer() const { return aa_; }
 
   void Step();
   void Clear(double color);
@@ -28,12 +28,12 @@ class Simulation {
   pp::Size size_;
   Kernel kernel_;
   Smoother smoother_;
-  FftAllocation<double> aa_;
-  FftAllocation<double> an_;
-  FftAllocation<double> am_;
-  FftAllocation<fftw_complex> aaf_;
-  FftAllocation<fftw_complex> anf_;
-  FftAllocation<fftw_complex> amf_;
+  AlignedReals aa_;
+  AlignedReals an_;
+  AlignedReals am_;
+  AlignedComplexes aaf_;
+  AlignedComplexes anf_;
+  AlignedComplexes amf_;
   fftw_plan aa_plan_;
   fftw_plan anf_plan_;
   fftw_plan amf_plan_;

@@ -51,12 +51,9 @@ void Smoother::SetConfig(const SmootherConfig& config) {
   dirty_ = true;
 }
 
-void Smoother::Apply(const FftAllocation<double>& buf1,
-                     const FftAllocation<double>& buf2,
-                     FftAllocation<double>* out) const {
-  if (dirty_)
-    MakeLookup();
-
+void Smoother::Apply(const AlignedReals& buf1, const AlignedReals& buf2,
+                     AlignedReals* out) const {
+  assert(!dirty_);
   switch (config_.timestep.type) {
     default:
     case TIMESTEP_DISCRETE:
@@ -77,7 +74,7 @@ void Smoother::Apply(const FftAllocation<double>& buf1,
   }
 }
 
-void Smoother::MakeLookup() const {
+void Smoother::MakeLookup() {
   for (int i = 0; i < kLookupSize; ++i) {
     for (int j = 0; j < kLookupSize; ++j) {
       double n = static_cast<double>(i)/kLookupSize;
@@ -138,7 +135,7 @@ void Smoother::Apply_Discrete(const double* an, const double* am,
 }
 
 void Smoother::Apply_Smooth1(const double* an, const double* am,
-                              double* na) const {
+                             double* na) const {
   int count = size_.width() * size_.height();
   for (int i = 0; i < count; ++i) {
     double f = Lookup(an[i], am[i]);
@@ -147,7 +144,7 @@ void Smoother::Apply_Smooth1(const double* an, const double* am,
 }
 
 void Smoother::Apply_Smooth2(const double* an, const double* am,
-                              double* na) const {
+                             double* na) const {
   int count = size_.width() * size_.height();
   for (int i = 0; i < count; ++i) {
     double f = Lookup(an[i], am[i]);
@@ -156,7 +153,7 @@ void Smoother::Apply_Smooth2(const double* an, const double* am,
 }
 
 void Smoother::Apply_Smooth3(const double* an, const double* am,
-                              double* na) const {
+                             double* na) const {
   int count = size_.width() * size_.height();
   for (int i = 0; i < count; ++i) {
     double f = Lookup(an[i], am[i]);
@@ -165,7 +162,7 @@ void Smoother::Apply_Smooth3(const double* an, const double* am,
 }
 
 void Smoother::Apply_Smooth4(const double* an, const double* am,
-                              double* na) const {
+                             double* na) const {
   int count = size_.width() * size_.height();
   for (int i = 0; i < count; ++i) {
     double f = Lookup(an[i], am[i]);

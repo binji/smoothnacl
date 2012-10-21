@@ -6,9 +6,9 @@
 
 namespace {
 
-void MultiplyComplex(const FftAllocation<fftw_complex>& in1,
-                     const FftAllocation<fftw_complex>& in2,
-                     FftAllocation<fftw_complex>* out,
+void MultiplyComplex(const AlignedComplexes& in1,
+                     const AlignedComplexes& in2,
+                     AlignedComplexes* out,
                      double scale) {
   int count = in1.count();
   assert(count == in2.count());
@@ -23,14 +23,14 @@ void MultiplyComplex(const FftAllocation<fftw_complex>& in1,
   }
 }
 
-void Scale(FftAllocation<double>* inout, double scale) {
+void Scale(AlignedReals* inout, double scale) {
   int count = inout->count();
   for (int i = 0; i < count; ++i) {
     (*inout)[i] *= scale;
   }
 }
 
-void initan(FftAllocation<double>* buf) {
+void initan(AlignedReals* buf) {
   int width = buf->size().width();
   int height = buf->size().height();
   for (int y = 0; y < height; y++) {
@@ -41,7 +41,7 @@ void initan(FftAllocation<double>* buf) {
 }
 
 
-void initam(FftAllocation<double>* buf) {
+void initam(AlignedReals* buf) {
   int width = buf->size().width();
   int height = buf->size().height();
   for (int y = 0; y < height; y++) {
@@ -75,6 +75,9 @@ Simulation::Simulation(const pp::Size& size,
                                    anf_.data(), an_.data(), FFTW_ESTIMATE);
   amf_plan_ = fftw_plan_dft_c2r_2d(size.width(), size.height(),
                                    amf_.data(), am_.data(), FFTW_ESTIMATE);
+
+  kernel_.MakeKernel();
+  smoother_.MakeLookup();
 }
 
 Simulation::~Simulation() {
@@ -85,17 +88,19 @@ Simulation::~Simulation() {
 
 void Simulation::SetKernel(const KernelConfig& config) {
   kernel_.SetConfig(config);
+  kernel_.MakeKernel();
 }
 
 void Simulation::SetSmoother(const SmootherConfig& config) {
   smoother_.SetConfig(config);
+  smoother_.MakeLookup();
 }
 
 void Simulation::Step() {
   int real_count = size_.width() * size_.height();
   fftw_execute(aa_plan_);
-  MultiplyComplex(aaf_, kernel_.GetKRF(), &anf_, 1.0 / kernel_.GetKflr());
-  MultiplyComplex(aaf_, kernel_.GetKDF(), &amf_, 1.0 / kernel_.GetKfld());
+  MultiplyComplex(aaf_, kernel_.krf(), &anf_, 1.0 / kernel_.kflr());
+  MultiplyComplex(aaf_, kernel_.kdf(), &amf_, 1.0 / kernel_.kfld());
   fftw_execute(anf_plan_);
   fftw_execute(amf_plan_);
   Scale(&an_, 1.0 / real_count);
