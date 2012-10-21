@@ -8,6 +8,7 @@
 #include "ppapi/cpp/rect.h"
 #include "ppapi/utility/completion_callback_factory.h"
 #include "fft_allocation.h"
+#include "locked_object.h"
 
 namespace pp {
 class Graphics2D;
@@ -19,7 +20,7 @@ class View;
 
 class SmoothlifeView {
  public:
-  SmoothlifeView();
+  SmoothlifeView(LockedObject<AlignedReals>* buffer);
   ~SmoothlifeView();
 
   bool DidChangeView(pp::Instance* instance, const pp::View& view,
@@ -33,15 +34,12 @@ class SmoothlifeView {
   void DrawCallback(int32_t result);
   void DrawRect(const pp::Rect& rect, uint32_t color);
   void PaintRectToGraphics2D(const pp::Rect& rect);
-  static void* SmoothlifeThread(void* param);
   void DrawBuffer(const FftAllocation<double>& a);
 
   pp::CompletionCallbackFactory<SmoothlifeView> factory_;
   pp::Graphics2D* graphics_2d_;
   pp::ImageData* pixel_buffer_;
-  pthread_t thread_;
-  int thread_create_result_;
-  pthread_mutex_t pixel_buffer_mutex_;
+  LockedObject<AlignedReals>* locked_buffer_;  // Weak.
   bool quit_;
 };
 

@@ -5,9 +5,12 @@
 #ifndef EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
 #define EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
 
-#include <map>
 #include "ppapi/cpp/instance.h"
 #include "ppapi/utility/completion_callback_factory.h"
+#include "fft_allocation.h"
+#include "kernel.h"
+#include "locked_object.h"
+#include "smoother.h"
 
 class SmoothlifeView;
 
@@ -21,15 +24,20 @@ class SmoothlifeInstance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
-  void ScheduleUpdate();
-  void UpdateCallback(int32_t result);
-
-  void ResetScore();
-  void UpdateScoreDisplay();
+  static void* SmoothlifeThreadThunk(void* param);
+  void SmoothlifeThread();
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   SmoothlifeView* view_;
   bool is_initial_view_change_;
+  pthread_t thread_;
+  int thread_create_result_;
+  bool quit_;
+
+  LockedObject<AlignedReals> locked_buffer_;
+  pp::Size sim_size_;
+  KernelConfig kernel_config_;
+  SmootherConfig smoother_config_;
 
   // Disallow copy constructor and assignment operator.
   SmoothlifeInstance(const SmoothlifeInstance&);

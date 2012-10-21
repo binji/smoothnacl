@@ -58,8 +58,8 @@ double RND(double x) {
 }  // namespace
 
 Simulation::Simulation(const pp::Size& size,
-           const KernelConfig& kernel_config,
-           const SmootherConfig& smoother_config)
+                       const KernelConfig& kernel_config,
+                       const SmootherConfig& smoother_config)
   : size_(size),
     kernel_(size, kernel_config),
     smoother_(size, smoother_config),
@@ -69,11 +69,11 @@ Simulation::Simulation(const pp::Size& size,
     aaf_(size, ReduceSizeForComplex()),
     anf_(size, ReduceSizeForComplex()),
     amf_(size, ReduceSizeForComplex()) {
-  aa_plan_ = fftw_plan_dft_r2c_2d(size.width(), size.height(),
+  aa_plan_ = fftw_plan_dft_r2c_2d(size_.width(), size_.height(),
                                   aa_.data(), aaf_.data(), FFTW_ESTIMATE);
-  anf_plan_ = fftw_plan_dft_c2r_2d(size.width(), size.height(),
+  anf_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
                                    anf_.data(), an_.data(), FFTW_ESTIMATE);
-  amf_plan_ = fftw_plan_dft_c2r_2d(size.width(), size.height(),
+  amf_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
                                    amf_.data(), am_.data(), FFTW_ESTIMATE);
 
   kernel_.MakeKernel();

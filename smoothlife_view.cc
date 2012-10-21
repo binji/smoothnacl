@@ -5,7 +5,6 @@
 #include "smoothlife_view.h"
 
 #include <math.h>
-#include <pthread.h>
 #include <stdlib.h>
 #include <string.h>
 #include "ppapi/cpp/completion_callback.h"
@@ -19,73 +18,14 @@
 #include "simulation.h"
 #include "smoother.h"
 
-namespace {
-
-const uint32_t kBlack = 0xff000000;
-const uint32_t kWhite = 0xffffffff;
-
-pp::Rect ClipRect(const pp::Rect& rect, const pp::Rect& clip) {
-  return clip.Intersect(rect);
-}
-
-class ScopedMutexLock {
- public:
-  explicit ScopedMutexLock(pthread_mutex_t* mutex) : mutex_(mutex) {
-    if (pthread_mutex_lock(mutex_) != 0) {
-      mutex_ = NULL;
-    }
-  }
-  ~ScopedMutexLock() {
-    if (mutex_)
-      pthread_mutex_unlock(mutex_);
-  }
-  bool is_valid() const {
-    return mutex_ != NULL;
-  }
- private:
-  pthread_mutex_t* mutex_;  // Weak reference.
-};
-
-// A small helper RAII class used to acquire and release the pixel lock.
-class ScopedPixelLock {
- public:
-  explicit ScopedPixelLock(SmoothlifeView* image_owner)
-      : image_owner_(image_owner),
-        pixels_(image_owner->LockPixels()) {}
-
-  ~ScopedPixelLock() {
-    pixels_ = NULL;
-    image_owner_->UnlockPixels();
-  }
-
-  uint32_t* pixels() const {
-    return pixels_;
-  }
-
- private:
-  SmoothlifeView* image_owner_;  // Weak reference.
-  uint32_t* pixels_;  // Weak reference.
-
-  ScopedPixelLock();  // Not implemented, do not use.
-};
-
-}  // namespace
-
-SmoothlifeView::SmoothlifeView()
+SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
     : factory_(this),
       graphics_2d_(NULL),
       pixel_buffer_(NULL),
-      quit_(false) {
-  pthread_mutex_init(&pixel_buffer_mutex_, NULL);
-  thread_create_result_ = pthread_create(&thread_, NULL, &SmoothlifeThread,
-                                         this);
+      locked_buffer_(buffer) {
 }
 
 SmoothlifeView::~SmoothlifeView() {
-  quit_ = true;
-  if (thread_create_result_ == 0)
-    pthread_join(thread_, NULL);
-  pthread_mutex_destroy(&pixel_buffer_mutex_);
   delete graphics_2d_;
   delete pixel_buffer_;
 }
@@ -128,7 +68,10 @@ pp::Size SmoothlifeView::GetSize() const {
 void SmoothlifeView::DrawCallback(int32_t result) {
   assert(graphics_2d_);
   assert(pixel_buffer_);
-  ScopedMutexLock lock(&pixel_buffer_mutex_);
+
+  AlignedReals* data = locked_buffer_->Lock();
+  DrawBuffer(*data);
+  locked_buffer_->Unlock();
 
   PaintRectToGraphics2D(pp::Rect(GetSize()));
 
@@ -144,25 +87,8 @@ void SmoothlifeView::PaintRectToGraphics2D(const pp::Rect& rect) {
   graphics_2d_->PaintImageData(*pixel_buffer_, top_left, rect);
 }
 
-uint32_t* SmoothlifeView::LockPixels() {
-  void* pixels = NULL;
-  // Do not use a ScopedMutexLock here, since the lock needs to be held until
-  // the matching UnlockPixels() call.
-  if (pthread_mutex_lock(&pixel_buffer_mutex_) == 0) {
-    if (pixel_buffer_ != NULL && !pixel_buffer_->is_null()) {
-      pixels = pixel_buffer_->data();
-    }
-  }
-  return reinterpret_cast<uint32_t*>(pixels);
-}
-
-void SmoothlifeView::UnlockPixels() {
-  pthread_mutex_unlock(&pixel_buffer_mutex_);
-}
-
 void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
-  ScopedPixelLock lock(this);
-  uint32_t* pixels = lock.pixels();
+  uint32_t* pixels = static_cast<uint32_t*>(pixel_buffer_->data());
   if (!pixels)
     return;
 
@@ -217,40 +143,3 @@ unsigned long long rdtsc(void) {
   }
 #endif
 
-void* SmoothlifeView::SmoothlifeThread(void* param) {
-  SmoothlifeView* self = static_cast<SmoothlifeView*>(param);
-
-  //0 12.0 3.0 12.0 0.100 0.278 0.365 0.267 0.445 4 4 4 0.028 0.147
-  //1 31.8 3.0 31.8 0.157 0.092 0.098 0.256 0.607 4 4 4 0.015 0.340
-  //1 21.8 3.0 21.8 0.157 0.192 0.200 0.355 0.600 4 4 4 0.025 0.490
-  //1 21.8 3.0 21.8 0.157 0.232 0.337 0.599 0.699 4 4 4 0.025 0.290
-  //2 12.0 3.0 12.0 0.115 0.269 0.340 0.523 0.746 4 4 4 0.028 0.147
-  //2 12.0 3.0 12.0 0.415 0.269 0.350 0.513 0.756 4 4 4 0.028 0.147
-  pp::Size sim_size(512, 512);
-  KernelConfig kernel_config;
-  kernel_config.ra = 12.0;
-  kernel_config.rr = 3.0;
-  kernel_config.rb = 12.0;
-  SmootherConfig smoother_config;
-  smoother_config.timestep.type = TIMESTEP_SMOOTH2;
-  smoother_config.timestep.dt = 0.115;
-  smoother_config.b1 = 0.269;
-  smoother_config.b2 = 0.340;
-  smoother_config.d1 = 0.523;
-  smoother_config.d2 = 0.746;
-  smoother_config.mode = SIGMOID_MODE_4;
-  smoother_config.sigmoid = SIGMOID_SMOOTH;
-  smoother_config.mix = SIGMOID_SMOOTH;
-  smoother_config.sn = 0.028;
-  smoother_config.sm = 0.147;
-  Simulation simulation(sim_size, kernel_config, smoother_config);
-  simulation.Clear(0);
-  simulation.inita2D(kernel_config.ra);
-
-  while (!self->quit_) {
-    self->DrawBuffer(simulation.buffer());
-    simulation.Step();
-  }
-
-  return NULL;
-}
