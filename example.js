@@ -73,4 +73,14 @@ function attachListeners() {
     rangeEl.dispatchEvent(evt);
   }
 
+  document.getElementById('clear').addEventListener('click', onClearClicked);
+  document.getElementById('splat').addEventListener('click', onSplatClicked);
+}
+
+function onClearClicked(e) {
+  common.naclModule.postMessage('Clear:0');
+}
+
+function onSplatClicked(e) {
+  common.naclModule.postMessage('Splat');
 }
