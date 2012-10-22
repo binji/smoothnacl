@@ -2,9 +2,19 @@ var kernelValues;
 var kernelDirty = false;
 var smootherValues;
 var smootherDirty = false;
+var custom = 1;
+var presets = [
+  ['preset1', [[12.0, 3.0, 12.0], [2, 0.115, 0.269, 0.523, 0.340, 0.746, 3, 4, 4, 0.028, 0.147]]],
+  ['preset2', [[12.0, 3.0, 12.0], [0, 0.100, 0.278, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147]]],
+  ['preset3', [[31.8, 3.0, 31.8], [1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340]]],
+  ['preset4', [[21.8, 3.0, 21.8], [1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490]]],
+  ['preset5', [[21.8, 3.0, 21.8], [1, 0.157, 0.232, 0.599, 0.337, 0.699, 3, 4, 4, 0.025, 0.290]]]
+];
 
 function moduleDidLoad() {
   window.setInterval(updateGroups, 200);
+  initPresetSelect();
+  onPresetChanged(null);
 }
 
 function handleMessage() {
@@ -58,6 +68,12 @@ function updateValue(valueEl, id, group) {
   }
 }
 
+function sendChangeEvent(el) {
+  var evt = document.createEvent('Event');
+  evt.initEvent('change', true, true);
+  el.dispatchEvent(evt);
+}
+
 function attachListeners() {
   var rangeEls = document.querySelectorAll('input[type=range]');
   for (var i = 0; i < rangeEls.length; ++i) {
@@ -66,15 +82,11 @@ function attachListeners() {
     var id = rangeEl.parentElement.parentElement.id;
     var group = rangeEl.parentElement.parentElement.className;
     rangeEl.addEventListener('change', updateValue(valueEl, id, group));
-
-    // Initialize the value.
-    var evt = document.createEvent('Event');
-    evt.initEvent('change', true, true);
-    rangeEl.dispatchEvent(evt);
   }
 
   document.getElementById('clear').addEventListener('click', onClearClicked);
   document.getElementById('splat').addEventListener('click', onSplatClicked);
+  document.getElementById('presets').addEventListener('change', onPresetChanged);
 }
 
 function onClearClicked(e) {
@@ -83,4 +95,35 @@ function onClearClicked(e) {
 
 function onSplatClicked(e) {
   common.naclModule.postMessage('Splat');
+}
+
+function initPresetSelect() {
+  var selectEl = document.getElementById('presets');
+  for (var i = 0; i < presets.length; ++i) {
+    var optionEl = document.createElement('option');
+    var presetName = presets[i][0];
+    optionEl.setAttribute('value', i);
+    var textNode = document.createTextNode(presetName);
+    optionEl.appendChild(textNode);
+    selectEl.appendChild(optionEl);
+  }
+}
+
+function onPresetChanged(e) {
+  var presetIndex = document.getElementById('presets').selectedIndex;
+  var preset = presets[presetIndex];
+
+  var kernelPreset = preset[1][0];
+  var kernelEls = document.querySelectorAll('tr.kernel input');
+  for (var i = 0; i < kernelEls.length; ++i) {
+    kernelEls[i].value = kernelPreset[i];
+    sendChangeEvent(kernelEls[i]);
+  }
+
+  var smootherPreset = preset[1][1];
+  var smootherEls = document.querySelectorAll('tr.smooth input');
+  for (var i = 0; i < smootherEls.length; ++i) {
+    smootherEls[i].value = smootherPreset[i];
+    sendChangeEvent(smootherEls[i]);
+  }
 }
