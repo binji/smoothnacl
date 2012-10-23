@@ -48,4 +48,6 @@ vec3 color (float f) {
 
 void main() {
   gl_FragColor.rgb = color (texture2D (tex0, v_texcoord0.xy).r);
+  // Pepper GL requires Alpha to be set for RGBA render targets
+  gl_FragColor.a = 1.0;
 }

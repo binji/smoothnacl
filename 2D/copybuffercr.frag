@@ -18,4 +18,6 @@ void main() {
   } else {
     gl_FragColor.r = texture2D(tex0, v_texcoord0.xy).g;
   }
+  // Pepper GL requires Alpha to be set for RGBA render targets
+  gl_FragColor.a = 1.0;
 }
