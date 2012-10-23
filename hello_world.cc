@@ -127,8 +127,8 @@ void InitGL() {
     PP_GRAPHICS3DATTRIB_ALPHA_SIZE, 8,
     PP_GRAPHICS3DATTRIB_SAMPLES, 0,
     PP_GRAPHICS3DATTRIB_SAMPLE_BUFFERS, 0,
-    PP_GRAPHICS3DATTRIB_WIDTH, 640,
-    PP_GRAPHICS3DATTRIB_HEIGHT, 480,
+    PP_GRAPHICS3DATTRIB_WIDTH, 512,
+    PP_GRAPHICS3DATTRIB_HEIGHT, 512,
     PP_GRAPHICS3DATTRIB_NONE
   };
 
@@ -141,7 +141,7 @@ void InitGL() {
   }
   glSetCurrentContextPPAPI(g_context);
 
-  glViewport(0, 0, 640, 480);
+  glViewport(0, 0, 512, 512);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
 
@@ -180,7 +180,7 @@ void Render() {
   }
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
-#if 1
+#if 0
 #if 1
   makesnm(g_snm_prog, AN, AM, AA);
   drawa(g_draw_prog, AA);

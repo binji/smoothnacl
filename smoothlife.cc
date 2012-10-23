@@ -9,15 +9,15 @@
 
 const double PI = 6.28318530718;
 #if 1
-const float mode = 0;
 const float ra = 12.f;
 const float rr = 3.f;
 const float rb = 12.f;
-const float dt = 0.100f;
-const float b1 = 0.278f;
-const float b2 = 0.365f;
-const float d1 = 0.267f;
-const float d2 = 0.445f;
+const float mode = 2;
+const float dt = 0.115f;
+const float b1 = 0.269f;
+const float d1 = 0.523f;
+const float b2 = 0.340f;
+const float d2 = 0.746f;
 const float sigmode = 4;
 const float sigtype = 4;
 const float mixtype = 4;
@@ -40,7 +40,7 @@ const float mixtype = 4;
 const float sn = 0.015;
 const float sm = 0.340;
 #endif
-const float colscheme = 5;
+const float colscheme = 2;
 const float phase = 0;
 const int BMAX = 16;
 
@@ -304,6 +304,8 @@ void snm(GLuint prog, int an, int am, int na) {
   glEnableVertexAttribArray(loc_position);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glUseProgram(0);
+  // Reset framebuffer target to default;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 
@@ -349,7 +351,7 @@ void drawa(GLuint prog, int a) {
   GLfloat mat[16];
   glUseProgram(prog);
   identity_matrix(&mat[0]);
-  glhOrtho(&mat[0], 0, 1, 0, 1, -1, 1);
+  glhOrtho(&mat[0], 0, 1, 1, 0, -1, 1);
   glUniformMatrix4fv(glGetUniformLocation(prog, "u_mat"), 1, GL_FALSE, &mat[0]);
   glViewport(0, 0, SX, SY);
 
@@ -357,6 +359,35 @@ void drawa(GLuint prog, int a) {
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, tr[a]);
+
+  glUniform1i(glGetUniformLocation(prog, "tex0"), 0);
+  glUniform1f(glGetUniformLocation(prog, "colscheme"), (float)colscheme);
+  glUniform1f(glGetUniformLocation(prog, "phase"), (float)phase);
+
+  GLuint loc_texcoord0 = glGetAttribLocation(prog, "a_texcoord0");
+  GLuint loc_position = glGetAttribLocation(prog, "a_position");
+  glBindBuffer(GL_ARRAY_BUFFER, g_quad_vbo);
+  glVertexAttribPointer(loc_texcoord0, 2, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, tex));
+  glVertexAttribPointer(loc_position, 3, GL_FLOAT, GL_FALSE, sizeof(SnmVertex), (void*)offsetof(SnmVertex, loc));
+  glEnableVertexAttribArray(loc_texcoord0);
+  glEnableVertexAttribArray(loc_position);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+  glUseProgram(0);
+}
+
+// Like drawa, but renders from a Fourier buffer.
+void drawf(GLuint prog, int a) {
+  GLfloat mat[16];
+  glUseProgram(prog);
+  identity_matrix(&mat[0]);
+  glhOrtho(&mat[0], 0, 1, 1, 0, -1, 1);
+  glUniformMatrix4fv(glGetUniformLocation(prog, "u_mat"), 1, GL_FALSE, &mat[0]);
+  glViewport(0, 0, SX, SY);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, tb[a]);
 
   glUniform1i(glGetUniformLocation(prog, "tex0"), 0);
   glUniform1f(glGetUniformLocation(prog, "colscheme"), (float)colscheme);
@@ -746,6 +777,8 @@ void fft(GLuint rcprog, GLuint crprog, GLuint fftprog, int vo, int na, int si) {
 
     copybuffercr(crprog, fftcur, na);
   }
+  // Reset framebuffer target to default;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void kernelmul(GLuint prog, int vo, int ke, int na, double sc) {
@@ -781,6 +814,8 @@ void kernelmul(GLuint prog, int vo, int ke, int na, double sc) {
   glEnableVertexAttribArray(loc_position);
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
   glUseProgram(0);
+  // Reset framebuffer target to default;
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 double RND(double x) {
@@ -803,10 +838,6 @@ void splat2D (float *buf) {
       if (l<u) {
         int px = ix;
         int py = iy;
-        while (px<  0) px+=NX;
-        while (px>=NX) px-=NX;
-        while (py<  0) py+=NY;
-        while (py>=NY) py-=NY;
         if (px>=0 && px<NX && py>=0 && py<NY) {
           *(buf + NX*py + px) = 1.0;
         }
@@ -830,3 +861,38 @@ void inita2D (int a) {
 
   free (buf);
 }
+
+void testfuncs(GLuint rcprog, GLuint crprog, GLuint fftprog, GLuint drawprog) {
+  // Tests real -> complex and fft transforms to verify the tranform+inverse
+  // more or less act as identity functions (FFT looks like it accumulates one
+  // pixel value of error (1/255) over the entire image).
+  unsigned long diff = 0;
+  GLubyte buffer[NX*NY*4];
+  GLubyte buffer2[NX*NY*4];
+
+  initam(AM);
+  drawa(drawprog, AM);
+  glReadPixels(0, 0, NX, NY, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+  copybufferrc(rcprog, AM, FFT0);
+  copybuffercr(crprog, FFT0, AM);
+  drawa(drawprog, AM);
+  glReadPixels(0, 0, NX, NY, GL_RGBA, GL_UNSIGNED_BYTE, buffer2);
+  for (int i = 0; i < NX * NY * 4; i++) {
+    diff += abs(buffer[i] - buffer2[i]);
+  }
+  fprintf(stderr, "diff after rc -> cr: %lu\n", diff);
+
+  initam(AM);
+  drawa(drawprog, AM);
+  glReadPixels(0, 0, NX, NY, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+  fft(rcprog, crprog, fftprog, AM, AF, -1);
+  fft(rcprog, crprog, fftprog, AF, AM, 1);
+  drawa(drawprog, AM);
+  glReadPixels(0, 0, NX, NY, GL_RGBA, GL_UNSIGNED_BYTE, buffer2);
+  for (int i = 0; i < NX * NY * 4; i++) {
+    diff += abs(buffer[i] - buffer2[i]);
+  }
+  fprintf(stderr, "diff after fft -> fft': %lu\n", diff);
+}
+
+
