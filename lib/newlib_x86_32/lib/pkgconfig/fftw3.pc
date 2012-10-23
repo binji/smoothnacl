@@ -1,4 +1,4 @@
-prefix=/home/binji/dev/smoothnacl/lib/newlib_32
+prefix=/home/binji/dev/smoothnacl/newlib_32
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
