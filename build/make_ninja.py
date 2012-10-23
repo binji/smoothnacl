@@ -133,7 +133,8 @@ def Data(w):
 
 def Package(w):
   w.newline()
-  w.rule('zip', command='zip $out $in', description='ZIP $out')
+  w.rule('zip', command='$zip -C out/package $out $in', description='ZIP $out')
+  w.variable('zip', 'script/zip.py')
   dest = Repath(['out', 'package'], PACKAGE_FILES)
   for inf, outf in zip(dest, PACKAGE_FILES):
     w.build(inf, 'cp', outf)
