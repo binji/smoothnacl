@@ -18,6 +18,12 @@ def Prefix(prefix, items):
 def SourceToObj(source, bits):
   return os.path.join('out', '%s.%s.o' % (os.path.splitext(source)[0], bits))
 
+def Repath(prefix, path):
+  if type(prefix) is list:
+    args = prefix + [path]
+    return os.path.join(*args)
+  else:
+    return os.path.join(prefix, path)
 
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = PrefixPath('src', [
@@ -37,14 +43,22 @@ DATA_FILES = PrefixPath('data', [
   'example.js',
 ])
 
+PACKAGE_FILES = DATA_FILES + PrefixPath('data', [
+  'icon16.png',
+  'icon64.png',
+  'icon128.png',
+  'background.js',
+  'manifest.json',
+])
+
 
 def main():
   parser = optparse.OptionParser()
   options, args = parser.parse_args()
 
   out_filename = os.path.join(os.path.dirname(__file__), '../build.ninja')
-  f = cStringIO.StringIO()
-  w = ninja_syntax.Writer(f)
+  s = cStringIO.StringIO()
+  w = ninja_syntax.Writer(s)
 
   w.rule('configure', command = MAKE_NINJA, generator=1)
   w.build('build.ninja', 'configure', implicit=[MAKE_NINJA])
@@ -54,9 +68,12 @@ def main():
 
   Code(w)
   Data(w)
+  Package(w)
+  w.default('out/smoothlife.nmf')
 
   # Don't write build.ninja until everything succeeds
-  open(out_filename, 'w').write(f.getvalue())
+  with open(out_filename, 'w') as f:
+    f.write(s.getvalue())
 
 
 def Code(w):
@@ -104,8 +121,19 @@ def Code(w):
 def Data(w):
   w.newline()
   w.rule('cp', command='cp $in $out', description='CP $out')
-  for data in DATA_FILES:
-    w.build(os.path.join('out', os.path.basename(data)), 'cp', data)
+  dest = [Repath('out', f) for f in DATA_FILES]
+  for inf, outf in zip(dest, DATA_FILES):
+    w.build(inf, 'cp', outf)
+
+
+def Package(w):
+  w.newline()
+  w.rule('zip', command='zip $out $in', description='ZIP $out')
+  dest = [Repath(['out', 'package'], f) for f in PACKAGE_FILES]
+  for inf, outf in zip(dest, PACKAGE_FILES):
+    w.build(inf, 'cp', outf)
+  w.build(os.path.join('out', 'smoothlife.zip'), 'zip', dest)
+  w.build('package', 'phony', 'out/smoothlife.zip')
 
 
 if __name__ == '__main__':

@@ -20,4 +20,7 @@ kill:
 run: httpd.pid all
 	${CHROME_PATH} ${NEXE_ARGS} http://localhost:5103
 
-.PHONY: all kill
+package:
+	@ninja package
+
+.PHONY: all clean kill run package
