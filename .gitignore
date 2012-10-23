@@ -4,3 +4,4 @@ out/
 build.ninja
 .ninja_log
 httpd.pid
+*.pyc

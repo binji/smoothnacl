@@ -18,12 +18,17 @@ def Prefix(prefix, items):
 def SourceToObj(source, bits):
   return os.path.join('out', '%s.%s.o' % (os.path.splitext(source)[0], bits))
 
-def Repath(prefix, path):
-  if type(prefix) is list:
-    args = prefix + [path]
-    return os.path.join(*args)
-  else:
-    return os.path.join(prefix, path)
+def Repath(prefix, seq):
+  result = []
+  for path in seq:
+    path = os.path.basename(path)
+    if type(prefix) is list:
+      args = prefix + [path]
+      result.append(os.path.join(*args))
+    else:
+      result.append(os.path.join(prefix, path))
+  return result
+
 
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = PrefixPath('src', [
@@ -69,7 +74,7 @@ def main():
   Code(w)
   Data(w)
   Package(w)
-  w.default('out/smoothlife.nmf')
+  w.default('out/smoothlife.nmf ' + ' '.join(Repath('out', DATA_FILES)))
 
   # Don't write build.ninja until everything succeeds
   with open(out_filename, 'w') as f:
@@ -121,7 +126,7 @@ def Code(w):
 def Data(w):
   w.newline()
   w.rule('cp', command='cp $in $out', description='CP $out')
-  dest = [Repath('out', f) for f in DATA_FILES]
+  dest = Repath('out', DATA_FILES)
   for inf, outf in zip(dest, DATA_FILES):
     w.build(inf, 'cp', outf)
 
@@ -129,7 +134,7 @@ def Data(w):
 def Package(w):
   w.newline()
   w.rule('zip', command='zip $out $in', description='ZIP $out')
-  dest = [Repath(['out', 'package'], f) for f in PACKAGE_FILES]
+  dest = Repath(['out', 'package'], PACKAGE_FILES)
   for inf, outf in zip(dest, PACKAGE_FILES):
     w.build(inf, 'cp', outf)
   w.build(os.path.join('out', 'smoothlife.zip'), 'zip', dest)

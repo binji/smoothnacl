@@ -5,20 +5,13 @@ all: build.ninja
 	@ninja
 
 build.ninja:
-	@./build/make_ninja.py
+	@build/make_ninja.py
 
 clean:
 	rm -rf out
 
-httpd.pid:
-	mkdir out
-	./httpd.py out 2>&1 > /dev/null &
-
-kill:
-	kill `cat httpd.pid` && rm httpd.pid
-
-run: httpd.pid all
-	${CHROME_PATH} ${NEXE_ARGS} http://localhost:5103
+run: all
+	script/run.py out ${CHROME_PATH} ${NEXE_ARGS}
 
 package:
 	@ninja package
