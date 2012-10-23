@@ -1,9 +1,9 @@
 #include "functions.h"
 #include <math.h>
 
-#ifndef M_PI
-#define M_PI 3.14159265359
-#endif
+namespace {
+  const double kPi = 3.14159265358979323846;
+}
 
 double func_hard(double x, double a) {
   if (x>=a) return 1.0; else return 0.0;
@@ -27,7 +27,7 @@ double func_hermite(double x, double a, double ea) {
 double func_sin(double x, double a, double ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
-  else return sin(M_PI*(x-a)/ea)*0.5+0.5;
+  else return sin(kPi*(x-a)/ea)*0.5+0.5;
 }
 
 double func_smooth(double x, double a, double ea) {
