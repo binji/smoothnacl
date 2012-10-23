@@ -1,6 +1,10 @@
 #include "functions.h"
 #include <math.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265359
+#endif
+
 double func_hard(double x, double a) {
   if (x>=a) return 1.0; else return 0.0;
 }
