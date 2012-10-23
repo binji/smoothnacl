@@ -48,14 +48,19 @@ DATA_FILES = PrefixPath('data', [
   'example.js',
 ])
 
-PACKAGE_FILES = DATA_FILES + PrefixPath('data', [
+BUILT_FILES = PrefixPath('out', [
+  'smoothlife.nmf',
+  'smoothlife_32.nexe',
+  'smoothlife_64.nexe',
+])
+
+PACKAGE_FILES = DATA_FILES + BUILT_FILES + PrefixPath('data', [
   'icon16.png',
   'icon64.png',
   'icon128.png',
   'background.js',
   'manifest.json',
 ])
-
 
 def main():
   parser = optparse.OptionParser()
@@ -68,7 +73,7 @@ def main():
   w.rule('configure', command = MAKE_NINJA, generator=1)
   w.build('build.ninja', 'configure', implicit=[MAKE_NINJA])
 
-  w.variable('nacl_sdk_usr', 'nacl_sdk/pepper_23')
+  w.variable('nacl_sdk_usr', 'nacl_sdk/pepper_22')
   w.variable('toolchain_dir', '$nacl_sdk_usr/toolchain/linux_x86_newlib')
 
   Code(w)
