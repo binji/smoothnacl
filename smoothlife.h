@@ -23,8 +23,8 @@ static const int NX = 512;
 static const int NY = 512;
 static const int NZ = 1;
 
-static const int SX = 640;
-static const int SY = 480;
+static const int SX = 512;
+static const int SY = 512;
 
 static const int BX = 9;
 static const int BY = 9;
@@ -38,6 +38,8 @@ GLuint MakeProgram(const char* vertex_shader, const char* frag_shader);
 void snm(GLuint prog, int an, int am, int na);
 void makesnm(GLuint prog, int an, int am, int asnm);
 void drawa(GLuint prog, int a);
+// Like drawa, but renders from a Fourier buffer.
+void drawf(GLuint prog, int a);
 void fft_planx();
 void fft_plany();
 void makekernel(int kr, int kd);
@@ -45,5 +47,7 @@ void fft(GLuint rcprog, GLuint crprog, GLuint fftprog, int vo, int na, int si);
 void kernelmul(GLuint prog, int vo, int ke, int na, double sc);
 void splat2D(float *buf);
 void inita2D(int a);
+
+void testfuncs(GLuint rcprog, GLuint crprog, GLuint fftprog, GLuint drawprog);
 
 #endif  // SMOOTHLIFE_H_

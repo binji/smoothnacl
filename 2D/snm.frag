@@ -128,4 +128,6 @@ void main() {
   }
 
   gl_FragColor.r = clamp (f, 0.0, 1.0);
+  // Pepper GL requires Alpha to be set for RGBA render targets
+  gl_FragColor.a = 1.0;
 }

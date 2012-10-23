@@ -38,8 +38,10 @@ void main() {
     p = texture2D(tex1, vec2(v_texcoord1.y, 0)).rgba;
     a = texture2D(tex0, vec2(v.x, p.r)).rg;
     b = texture2D(tex0, vec2(v.x, p.g)).rg;
-    //gl_FragColor.rg = (a + cmul (p.ba,b))*(1.0/sqrt(2.0));
-    gl_FragColor.r = (a.r + p.b*b.r - p.a*b.g)*(1.0/sqrt(2.0));
-    gl_FragColor.g = (a.g + p.b*b.g + p.a*b.r)*(1.0/sqrt(2.0));
+    gl_FragColor.rg = (a + cmul (p.ba,b))*(1.0/sqrt(2.0));
+    //gl_FragColor.r = (a.r + p.b*b.r - p.a*b.g)*(1.0/sqrt(2.0));
+    //gl_FragColor.g = (a.g + p.b*b.g + p.a*b.r)*(1.0/sqrt(2.0));
   }
+  // Pepper GL requires Alpha to be set for RGBA render targets
+  gl_FragColor.a = 1.0;
 }
