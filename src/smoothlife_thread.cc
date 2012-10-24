@@ -50,6 +50,10 @@ void SmoothlifeThread::MainLoop() {
   simulation_->Splat();
 
   while (!quit_) {
+    int* frames = context_.frames_drawn->Lock();
+    (*frames)++;
+    context_.frames_drawn->Unlock();
+
     CopyBuffer();
     ProcessQueue();
     simulation_->Step();

@@ -17,7 +17,8 @@ function moduleDidLoad() {
   onPresetChanged(null);
 }
 
-function handleMessage() {
+function handleMessage(msg) {
+  document.getElementById('fps').textContent = msg.data;
 }
 
 function getValues(x) {

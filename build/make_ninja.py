@@ -48,14 +48,19 @@ DATA_FILES = PrefixPath('data', [
   'example.js',
 ])
 
-PACKAGE_FILES = DATA_FILES + PrefixPath('data', [
+BUILT_FILES = PrefixPath('out', [
+  'smoothlife.nmf',
+  'smoothlife_32.nexe',
+  'smoothlife_64.nexe',
+])
+
+PACKAGE_FILES = DATA_FILES + BUILT_FILES + PrefixPath('data', [
   'icon16.png',
   'icon64.png',
   'icon128.png',
   'background.js',
   'manifest.json',
 ])
-
 
 def main():
   parser = optparse.OptionParser()
