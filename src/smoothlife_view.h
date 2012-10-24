@@ -23,8 +23,7 @@ class SmoothlifeView {
   SmoothlifeView(LockedObject<AlignedReals>* buffer);
   ~SmoothlifeView();
 
-  bool DidChangeView(pp::Instance* instance, const pp::View& view,
-                     bool first_view_change);
+  bool DidChangeView(pp::Instance* instance, const pp::View& view);
   pp::Size GetSize() const;
   void StartDrawLoop();
   uint32_t* LockPixels();
@@ -40,7 +39,7 @@ class SmoothlifeView {
   pp::Graphics2D* graphics_2d_;
   pp::ImageData* pixel_buffer_;
   LockedObject<AlignedReals>* locked_buffer_;  // Weak.
-  bool quit_;
+  bool draw_loop_running_;
 };
 
 #endif  // EXAMPLES_SMOOTHLIFE_VIEW_H_

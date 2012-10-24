@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "ppapi/cpp/fullscreen.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/utility/completion_callback_factory.h"
 #include "fft_allocation.h"
@@ -42,11 +43,11 @@ class SmoothlifeInstance : public pp::Instance {
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   SmoothlifeView* view_;
-  bool is_initial_view_change_;
   SmoothlifeThread* thread_;
   LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
   MessageMap message_map_;
+  pp::Fullscreen fullscreen_;
 
   // Disallow copy constructor and assignment operator.
   SmoothlifeInstance(const SmoothlifeInstance&);

@@ -21,10 +21,10 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
     : pp::Instance(instance),
       factory_(this),
       view_(NULL),
-      is_initial_view_change_(true),
       thread_(NULL),
       locked_buffer_(NULL),
-      task_queue_(NULL) {
+      task_queue_(NULL),
+      fullscreen_(this) {
   // Request to receive input events.
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
@@ -79,13 +79,11 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
-  if (!view_->DidChangeView(this, view, is_initial_view_change_)) {
+  if (!view_->DidChangeView(this, view)) {
     PostMessage(pp::Var(
         "ERROR DidChangeView failed. Could not bind graphics?"));
     return;
   }
-
-  is_initial_view_change_ = false;
 }
 
 bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
@@ -99,17 +97,30 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT)
         left_down_ = event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN;
 
-      if (left_down_)
+      if (left_down_) {
+        // TODO(binji): Convert mouse position to buffer coordinates.
         EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskDrawFilledCircle,
                                      mouse_event.GetPosition().x(),
                                      mouse_event.GetPosition().y(),
                                      10,
                                      1.0));
+      }
       return true;
     }
     case PP_INPUTEVENT_TYPE_KEYUP:
-    case PP_INPUTEVENT_TYPE_KEYDOWN:
       return true;
+    case PP_INPUTEVENT_TYPE_KEYDOWN: {
+      const uint32_t kKeyEnter = 0x0D;
+      pp::KeyboardInputEvent key_event(event);
+      if (key_event.GetKeyCode() == kKeyEnter) {
+        if (!fullscreen_.IsFullscreen()) {
+          fullscreen_.SetFullscreen(true);
+        } else {
+          fullscreen_.SetFullscreen(false);
+        }
+      }
+      return true;
+    }
     default:
     case PP_INPUTEVENT_TYPE_UNDEFINED:
     case PP_INPUTEVENT_TYPE_MOUSEENTER:

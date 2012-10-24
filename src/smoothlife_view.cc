@@ -22,7 +22,8 @@ SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
     : factory_(this),
       graphics_2d_(NULL),
       pixel_buffer_(NULL),
-      locked_buffer_(buffer) {
+      locked_buffer_(buffer),
+      draw_loop_running_(false) {
 }
 
 SmoothlifeView::~SmoothlifeView() {
@@ -31,12 +32,13 @@ SmoothlifeView::~SmoothlifeView() {
 }
 
 bool SmoothlifeView::DidChangeView(pp::Instance* instance,
-                             const pp::View& view,
-                             bool first_view_change) {
+                             const pp::View& view) {
   pp::Size old_size = GetSize();
   pp::Size new_size = view.GetRect().size();
   if (old_size == new_size)
     return true;
+
+  printf("Size: %d x %d\n", new_size.width(), new_size.height());
 
   delete graphics_2d_;
   graphics_2d_ = new pp::Graphics2D(instance, new_size,
@@ -55,8 +57,10 @@ bool SmoothlifeView::DidChangeView(pp::Instance* instance,
                                     new_size,
                                     true);  // init_to_zero
 
-  if (first_view_change)
+  if (!draw_loop_running_) {
     DrawCallback(0);  // Start the draw loop.
+    draw_loop_running_ = true;
+  }
 
   return true;
 }
@@ -66,7 +70,10 @@ pp::Size SmoothlifeView::GetSize() const {
 }
 
 void SmoothlifeView::DrawCallback(int32_t result) {
-  assert(graphics_2d_);
+  if (!graphics_2d_) {
+    draw_loop_running_ = false;
+    return;
+  }
   assert(pixel_buffer_);
 
   AlignedReals* data = locked_buffer_->Lock();
@@ -97,16 +104,26 @@ void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
   int buffer_width = a.size().width();
   int buffer_height = a.size().height();
 
-  for (int y = 0; y < image_height; ++y) {
-    int buffer_y = buffer_height * y / image_height;
-    for (int x = 0; x < image_width; ++x) {
-      // Cheesy scaling.
-      int buffer_x = buffer_width * x / image_width;
-      double dv = a[buffer_y * buffer_width + buffer_x];
+  // Keep the aspect ratio.
+  double min_scale = std::max(
+      static_cast<double>(buffer_width) / image_width,
+      static_cast<double>(buffer_height) / image_height);
+  int x_offset = (image_width - buffer_width / min_scale) / 2;
+  int y_offset = (image_height - buffer_height / min_scale) / 2;
+
+  double buffer_x = 0;
+  double buffer_y = 0;
+
+  for (int y = y_offset; y < image_height - y_offset; ++y) {
+    buffer_x = 0;
+    for (int x = x_offset; x < image_width - x_offset; ++x) {
+      double dv = a[(int)buffer_y * buffer_width + (int)buffer_x];
       uint8_t v = 255 * dv; //255 * (1 - dv);
       uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
       pixels[y * image_width + x] = color;
+      buffer_x += min_scale;
     }
+    buffer_y += min_scale;
   }
 }
 

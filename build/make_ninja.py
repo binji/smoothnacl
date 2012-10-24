@@ -93,7 +93,7 @@ def Code(w):
 
   libs = Prefix('-l', '''pthread ppapi_cpp ppapi fftw3''')
 
-  flags = '-g -std=c++0x -O2'
+  flags = '-g -std=c++0x -O2 -msse2'
 
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
     includes = '-Ilib/newlib_x86_{bits}/include'.format(**vars())
