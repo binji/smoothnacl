@@ -6,6 +6,9 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <ppapi/c/pp_time.h>
+#include <ppapi/cpp/core.h>
+#include <ppapi/cpp/module.h>
 #include "ppapi/cpp/input_event.h"
 #include "ppapi/cpp/var.h"
 
@@ -17,14 +20,28 @@
 #include "smoothlife_view.h"
 #include "task.h"
 
+namespace {
+
+const int kUpdateInterval = 1000;
+
+double GetTimeTicks() {
+  return pp::Module::Get()->core()->GetTimeTicks();
+}
+
+}  // namespace
+
+
 SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
     : pp::Instance(instance),
       factory_(this),
       view_(NULL),
-      is_initial_view_change_(true),
       thread_(NULL),
+      sim_size_(512, 512),
       locked_buffer_(NULL),
-      task_queue_(NULL) {
+      task_queue_(NULL),
+      frames_drawn_(NULL),
+      fullscreen_(this),
+      is_initial_view_change_(true) {
   // Request to receive input events.
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
@@ -48,7 +65,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   message_map_.insert(MessageMap::value_type(
         "Splat", &SmoothlifeInstance::MessageSplat));
   SimulationConfig config;
-  config.size = pp::Size(512, 512);
+  config.size = sim_size_;
   config.kernel_config.ra = 12.0;
   config.kernel_config.rr = 3.0;
   config.kernel_config.rb = 12.0;
@@ -67,11 +84,13 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   AlignedReals* buffer = new AlignedReals(config.size);
   locked_buffer_ = new LockedObject<AlignedReals>(buffer);
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
+  frames_drawn_ = new LockedObject<int>(new int(0));
 
   ThreadContext context;
   context.config = config;
   context.buffer = locked_buffer_;
   context.queue = task_queue_;
+  context.frames_drawn = frames_drawn_;
   thread_ = new SmoothlifeThread(context);
   view_ = new SmoothlifeView(locked_buffer_);
 
@@ -79,10 +98,14 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
-  if (!view_->DidChangeView(this, view, is_initial_view_change_)) {
+  if (!view_->DidChangeView(this, view)) {
     PostMessage(pp::Var(
         "ERROR DidChangeView failed. Could not bind graphics?"));
     return;
+  }
+
+  if (is_initial_view_change_) {
+    ScheduleUpdate();
   }
 
   is_initial_view_change_ = false;
@@ -99,17 +122,32 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT)
         left_down_ = event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN;
 
-      if (left_down_)
+      if (left_down_) {
+        pp::Point sim_point =
+            view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
+        // TODO(binji): Convert mouse position to buffer coordinates.
         EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskDrawFilledCircle,
-                                     mouse_event.GetPosition().x(),
-                                     mouse_event.GetPosition().y(),
+                                     sim_point.x(),
+                                     sim_point.y(),
                                      10,
                                      1.0));
+      }
       return true;
     }
     case PP_INPUTEVENT_TYPE_KEYUP:
-    case PP_INPUTEVENT_TYPE_KEYDOWN:
       return true;
+    case PP_INPUTEVENT_TYPE_KEYDOWN: {
+      const uint32_t kKeyEnter = 0x0D;
+      pp::KeyboardInputEvent key_event(event);
+      if (key_event.GetKeyCode() == kKeyEnter) {
+        if (!fullscreen_.IsFullscreen()) {
+          fullscreen_.SetFullscreen(true);
+        } else {
+          fullscreen_.SetFullscreen(false);
+        }
+      }
+      return true;
+    }
     default:
     case PP_INPUTEVENT_TYPE_UNDEFINED:
     case PP_INPUTEVENT_TYPE_MOUSEENTER:
@@ -203,4 +241,35 @@ void SmoothlifeInstance::EnqueueTask(Task* task) {
   TaskQueue* queue = task_queue_->Lock();
   queue->push_back(task);
   task_queue_->Unlock();
+}
+
+void SmoothlifeInstance::ScheduleUpdate() {
+  pp::Module::Get()->core()->CallOnMainThread(
+      kUpdateInterval,
+      factory_.NewCallback(&SmoothlifeInstance::UpdateCallback));
+}
+
+void SmoothlifeInstance::UpdateCallback(int32_t result) {
+  // This is the game loop; UpdateCallback schedules another call to itself to
+  // occur kUpdateInterval milliseconds later.
+  ScheduleUpdate();
+  static PP_TimeTicks last_time = 0;
+  if (last_time) {
+    PP_TimeTicks this_time = GetTimeTicks();
+    int num_frames;
+    int* frames = frames_drawn_->Lock();
+    num_frames = *frames;
+    *frames = 0;
+    frames_drawn_->Unlock();
+
+    float fps = num_frames / (this_time - last_time);
+    char buffer[20];
+    sprintf(&buffer[0], "FPS: %.3f", fps);
+    printf("FPS: %.3f\n", fps);
+    PostMessage(pp::Var(buffer));
+
+    last_time = this_time;
+  } else {
+    last_time = GetTimeTicks();
+  }
 }

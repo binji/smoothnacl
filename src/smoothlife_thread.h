@@ -11,6 +11,7 @@ struct ThreadContext {
   SimulationConfig config;
   LockedObject<TaskQueue>* queue;  // Weak.
   LockedObject<AlignedReals>* buffer;  // Weak.
+  LockedObject<int>* frames_drawn;  // Weak.
 };
 
 class SmoothlifeThread {

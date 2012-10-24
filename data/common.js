@@ -15,23 +15,17 @@ var common = (function () {
    * named "listener".
    *
    * @param {string} name The name of the example.
-   * @param {string} tool The name of the toolchain, e.g. "glibc", "newlib" etc.
-   * @param {string} config The name of the configruation, "Debug" or "Release"
    * @param {number} width The width to create the plugin.
    * @param {number} height The height to create the plugin.
    */
-  function createNaClModule(name, tool, config, width, height) {
+  function createNaClModule(name, width, height) {
     var moduleEl = document.createElement('embed');
     moduleEl.setAttribute('name', 'nacl_module');
     moduleEl.setAttribute('id', 'nacl_module');
     moduleEl.setAttribute('width', width);
     moduleEl.setAttribute('height',height);
-    moduleEl.setAttribute('src', tool + '/' + config + '/' + name + '.nmf');
+    moduleEl.setAttribute('src', name + '.nmf');
     moduleEl.setAttribute('type', 'application/x-nacl');
-    if (tool == 'win' || tool == 'linux' || tool == 'mac') {
-      mimetype = 'application/x-ppapi-' + config.toLowerCase();
-      moduleEl.setAttribute('type', mimetype);
-    }
 
     // The <EMBED> element is wrapped inside a <DIV>, which has both a 'load'
     // and a 'message' event listener attached.  This wrapping method is used
@@ -152,25 +146,23 @@ var common = (function () {
    * document.querySelector, document.getElementById, etc.
    *
    * @param {string} name The name of the example.
-   * @param {string} tool The name of the toolchain, e.g. "glibc", "newlib" etc.
-   * @param {string} config The name of the configuration, e.g. "Release", etc.
    * @param {number} width The width to create the plugin.
    * @param {number} height The height to create the plugin.
    */
-  function domContentLoaded(name, tool, config, width, height) {
+  function domContentLoaded(name, width, height) {
     // If the page loads before the Native Client module loads, then set the
     // status message indicating that the module is still loading.  Otherwise,
     // do not change the status message.
     updateStatus('Page loaded.');
     if (common.naclModule == null) {
-      updateStatus('Creating embed: ' + tool)
+      updateStatus('Creating embed')
 
       // We use a non-zero sized embed to give Chrome space to place the bad
       // plug-in graphic, if there is a problem.
       width = typeof width !== 'undefined' ? width : 200;
       height = typeof height !== 'undefined' ? height : 200;
       attachDefaultListeners();
-      createNaClModule(name, tool, config, width, height);
+      createNaClModule(name, width, height);
     } else {
       // It's possible that the Native Client module onload event fired
       // before the page's onload event.  In this case, the status message
@@ -230,8 +222,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     if (loadFunction) {
-      loadFunction(body.dataset.name, body.dataset.tc, body.dataset.config,
-          body.dataset.width, body.dataset.height);
+      loadFunction(body.dataset.name, body.dataset.width, body.dataset.height);
     }
   }
 });
