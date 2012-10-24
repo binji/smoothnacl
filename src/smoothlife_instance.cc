@@ -259,8 +259,10 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
     *frames = 0;
     frames_drawn_->Unlock();
 
+    float fps = num_frames / (this_time - last_time);
     char buffer[20];
-    sprintf(&buffer[0], "FPS: %.3f", num_frames / (this_time - last_time));
+    sprintf(&buffer[0], "FPS: %.3f", fps);
+    printf("FPS: %.3f\n", fps);
     PostMessage(pp::Var(buffer));
 
     last_time = this_time;
