@@ -9,142 +9,185 @@ found in the LICENSE file.
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="-1">
   <title>Smoothlife</title>
-  <script type="text/javascript" src="common.js"></script>
-  <script type="text/javascript" src="example.js"></script>
+  <link rel="stylesheet" href="jquery-ui-1.9.0.custom.min.css">
+  <script type="text/javascript" src="jquery-1.8.2.min.js"></script>
+  <script type="text/javascript" src="jquery-ui-1.9.0.custom.min.js"></script>
+  <script type="text/javascript" src="main.js"></script>
   <style>
-    body { }
-    h1 {
-      text-align: center;
-    }
-    span, button {
+    body {
       font-family: "Courier New", monospace;
-      background: #eee;
-      border-radius: 2px;
-      padding: 3px;
-      font-size: 12px;
     }
-    #presetsDiv {
-      font-family: "Courier New", monospace;
-      font-size: 12px;
+    .ui-widget {
+      font-size: 0.8em;
     }
-    span.ar {
-      float: right;
-    }
-    table {
-      border-spacing: 4px;
-    }
-    #wrap {
-      margin: 0 auto;
+    #listener {
+      height: 512px;
       width: 512px;
     }
-    .relative {
-      position:relative;
+    .box {
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      box-shadow: 2px 0px 2px 0 #ccc;
+      margin: 10px;
+      padding: 6px;
     }
-    #knobs {
-      position:absolute;
-      top:0; left: 520px;
-      border-left: 2px solid #ccc;
-      padding-left: 4px;
+    .floatleft {
+      float: left;
     }
-    select {
+    .knobs {
+      width: 300px;
+    }
+    .knobs > div {
+      margin: 6px 0;
+      position: relative;
+    }
+    .knobs label {
       display: inline-block;
+      margin: 0 4px;
+      width: 25%;
+    }
+    .knobs span {
+      color: #03c;
+      display: inline-block;
+      font-size: 14px;
+      margin: 0 4px;
+      width: 15%;
+      text-align: right;
+    }
+    .knobs .ui-slider {
+      margin: 0 4px;
+      width: 50%;
+      position: absolute;
+      top: 25%;
+      right: 0;
+    }
+    #presets {
+      float: left;
+      text-align: center;
+      width: 100px;
+    }
+    #buttons {
+      clear: left;
+      margin: 0 auto;
+      width: 80%;
+    }
+    #fps {
+      font-size: 10px;
+      text-align: right;
     }
   </style>
 </head>
-<body data-name="smoothlife" data-width="512" data-height="512">
-  <div id="wrap">
-    <h1>Smoothlife</h1>
-    <div class="relative">
-      <!--<div style="width:512px;height:512px;background:#ccc"></div>-->
-      <div id="listener"></div>
-      <div id="knobs">
-        <table>
-          <tbody>
-            <tr class="kernel" id="ra">
-              <td><span class="ar">ra</span></td>
-              <td><input type="range" min="0" max="50" step="0.1" value="12.0"></td>
-              <td><span>12.0</span></td>
-            </tr>
-            <tr class="kernel" id="rr">
-              <td><span class="ar">rr</span></td>
-              <td><input type="range" min="0" max="50" step="0.1" value="3.0"></td>
-              <td><span>3.0</span></td>
-            </tr>
-            <tr class="kernel" id="rb">
-              <td><span class="ar">rb</span></td>
-              <td><input type="range" min="0" max="50" step="0.1" value="12.0"></td>
-              <td><span>12.0</span></td>
-            </tr>
-            <tr class="smooth" id="timestep">
-              <td><span class="ar">timestep</span></td>
-              <td><input type="range" min="0" max="3" step="1" value="2"></td>
-              <td><span>smooth2</span></td>
-            </tr>
-            <tr class="smooth" id="dt">
-              <td><span class="ar">dt</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.115"></td>
-              <td><span>0.115</span></td>
-            </tr>
-            <tr class="smooth" id="b1">
-              <td><span class="ar">b1</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.269"></td>
-              <td><span>0.269</span></td>
-            </tr>
-            <tr class="smooth" id="d1">
-              <td><span class="ar">d1</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.523"></td>
-              <td><span>0.523</span></td>
-            </tr>
-            <tr class="smooth" id="b2">
-              <td><span class="ar">b2</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.340"></td>
-              <td><span>0.340</span></td>
-            </tr>
-            <tr class="smooth" id="d2">
-              <td><span class="ar">d2</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.746"></td>
-              <td><span>0.746</span></td>
-            </tr>
-            <tr class="smooth" id="mode">
-              <td><span class="ar">sigmoid mode</span></td>
-              <td><input type="range" min="0" max="3" step="1" value="3"></td>
-              <td><span>mode 4</span></td>
-            </tr>
-            <tr class="smooth" id="sigmoid">
-              <td><span class="ar">sigmoid</span></td>
-              <td><input type="range" min="0" max="4" step="1" value="4"></td>
-              <td><span>smooth</span></td>
-            </tr>
-            <tr class="smooth" id="mix">
-              <td><span class="ar">mix</span></td>
-              <td><input type="range" min="0" max="4" step="1" value="4"></td>
-              <td><span>smooth</span></td>
-            </tr>
-            <tr class="smooth" id="sn">
-              <td><span class="ar">sn</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.028"></td>
-              <td><span>0.028</span></td>
-            </tr>
-            <tr class="smooth" id="sm">
-              <td><span class="ar">sm</span></td>
-              <td><input type="range" min="0" max="1" step="0.001" value="0.147"></td>
-              <td><span>0.147</span></td>
-            </tr>
-          </tbody>
-        </table>
-        <div>
-          <button id="clear">Clear</button>
-          <button id="splat">Splat</button>
-        </div>
-        <div id="presetsDiv">
-          Load:
-          <select id="presets">
-          </select>
-        </div>
-      </div>
+<body data-name="smoothlife">
+  <h1>Smoothlife</h1>
+  <ul id="presets" class="box">
+    <li><a href="#">preset1</a></li>
+    <li><a href="#">preset2</a></li>
+    <li><a href="#">preset3</a></li>
+  </ul>
+  <div class="floatleft">
+    <div id="listener" class="box">
+      <!--
+      <embed name="nacl_module" id="nacl_module" width="512" height="512"
+          src="smoothlife.nmf" type="application/x-nacl">
+          -->
     </div>
-    Status: <code id="statusField">NO-STATUS</code>
-    <span id="fps"></span>
+    <div id="buttons" class="box">
+      <input type="submit" id="clear" value="Clear">
+      <input type="submit" id="splat" value="Splat">
+      <span id="fps">FPS: 0.000</span>
+    </div>
   </div>
+  <div class="floatleft">
+    <div class="knobs box">
+      <div data-min="0" data-max="50" data-value="12.0" data-prec="1">ra</div>
+      <div data-min="0" data-max="10" data-value="3.0" data-prec="1">rr</div>
+      <div data-min="0" data-max="50" data-value="12.0" data-prec="1">rb</div>
+    </div>
+    <div class="knobs box">
+      <div data-min="0" data-max="1" data-value="0.115" data-prec="3">dt</div>
+      <div data-min="0" data-max="1" data-value="0.092" data-prec="3">b1</div>
+      <div data-min="0" data-max="1" data-value="0.098" data-prec="3">d1</div>
+      <div data-min="0" data-max="1" data-value="0.256" data-prec="3">b2</div>
+      <div data-min="0" data-max="1" data-value="0.607" data-prec="3">d2</div>
+    </div>
+  </div>
+  <!--
+  <div id="knobs">
+    <table>
+      <tbody>
+        <tr class="kernel" id="ra">
+          <td><span class="ar">ra</span></td>
+          <td><input type="range" min="0" max="50" step="0.1" value="12.0"></td>
+          <td><span>12.0</span></td>
+        </tr>
+        <tr class="kernel" id="rr">
+          <td><span class="ar">rr</span></td>
+          <td><input type="range" min="0" max="50" step="0.1" value="3.0"></td>
+          <td><span>3.0</span></td>
+        </tr>
+        <tr class="kernel" id="rb">
+          <td><span class="ar">rb</span></td>
+          <td><input type="range" min="0" max="50" step="0.1" value="12.0"></td>
+          <td><span>12.0</span></td>
+        </tr>
+        <tr class="smooth" id="timestep">
+          <td><span class="ar">timestep</span></td>
+          <td><input type="range" min="0" max="3" step="1" value="2"></td>
+          <td><span>smooth2</span></td>
+        </tr>
+        <tr class="smooth" id="dt">
+          <td><span class="ar">dt</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.115"></td>
+          <td><span>0.115</span></td>
+        </tr>
+        <tr class="smooth" id="b1">
+          <td><span class="ar">b1</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.269"></td>
+          <td><span>0.269</span></td>
+        </tr>
+        <tr class="smooth" id="d1">
+          <td><span class="ar">d1</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.523"></td>
+          <td><span>0.523</span></td>
+        </tr>
+        <tr class="smooth" id="b2">
+          <td><span class="ar">b2</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.340"></td>
+          <td><span>0.340</span></td>
+        </tr>
+        <tr class="smooth" id="d2">
+          <td><span class="ar">d2</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.746"></td>
+          <td><span>0.746</span></td>
+        </tr>
+        <tr class="smooth" id="mode">
+          <td><span class="ar">sigmoid mode</span></td>
+          <td><input type="range" min="0" max="3" step="1" value="3"></td>
+          <td><span>mode 4</span></td>
+        </tr>
+        <tr class="smooth" id="sigmoid">
+          <td><span class="ar">sigmoid</span></td>
+          <td><input type="range" min="0" max="4" step="1" value="4"></td>
+          <td><span>smooth</span></td>
+        </tr>
+        <tr class="smooth" id="mix">
+          <td><span class="ar">mix</span></td>
+          <td><input type="range" min="0" max="4" step="1" value="4"></td>
+          <td><span>smooth</span></td>
+        </tr>
+        <tr class="smooth" id="sn">
+          <td><span class="ar">sn</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.028"></td>
+          <td><span>0.028</span></td>
+        </tr>
+        <tr class="smooth" id="sm">
+          <td><span class="ar">sm</span></td>
+          <td><input type="range" min="0" max="1" step="0.001" value="0.147"></td>
+          <td><span>0.147</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  -->
 </body>
 </html>

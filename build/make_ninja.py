@@ -18,10 +18,19 @@ def Prefix(prefix, items):
 def SourceToObj(source, bits):
   return os.path.join('out', '%s.%s.o' % (os.path.splitext(source)[0], bits))
 
+def SplitPath(path):
+  result = []
+  while True:
+    head, tail = os.path.split(path)
+    if not head:
+      return [tail] + result
+    result[:0] = [tail]
+    path = head
+
 def Repath(prefix, seq):
   result = []
   for path in seq:
-    path = os.path.basename(path)
+    path = os.path.join(*SplitPath(path)[1:])
     if type(prefix) is list:
       args = prefix + [path]
       result.append(os.path.join(*args))
@@ -43,10 +52,26 @@ SOURCE_FILES = PrefixPath('src', [
 ])
 
 DATA_FILES = PrefixPath('data', [
+  'main.js',
   'index.html',
-  'common.js',
-  'example.js',
+  'jquery-1.8.2.min.js',
+  'jquery-ui-1.9.0.custom.min.css',
+  'jquery-ui-1.9.0.custom.min.js',
+  'images/ui-bg_flat_0_aaaaaa_40x100.png',
+  'images/ui-bg_flat_75_ffffff_40x100.png',
+  'images/ui-bg_glass_55_fbf9ee_1x400.png',
+  'images/ui-bg_glass_65_ffffff_1x400.png',
+  'images/ui-bg_glass_75_dadada_1x400.png',
+  'images/ui-bg_glass_75_e6e6e6_1x400.png',
+  'images/ui-bg_glass_95_fef1ec_1x400.png',
+  'images/ui-bg_highlight-soft_75_cccccc_1x100.png',
+  'images/ui-icons_222222_256x240.png',
+  'images/ui-icons_2e83ff_256x240.png',
+  'images/ui-icons_454545_256x240.png',
+  'images/ui-icons_888888_256x240.png',
+  'images/ui-icons_cd0a0a_256x240.png'
 ])
+
 
 BUILT_FILES = PrefixPath('out', [
   'smoothlife.nmf',

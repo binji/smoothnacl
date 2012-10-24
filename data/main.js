@@ -11,14 +11,7 @@ var presets = [
   ['preset5', [[21.8, 3.0, 21.8], [1, 0.157, 0.232, 0.599, 0.337, 0.699, 3, 4, 4, 0.025, 0.290]]]
 ];
 
-function moduleDidLoad() {
-  window.setInterval(updateGroups, 200);
-  initPresetSelect();
-  onPresetChanged(null);
-}
-
 function handleMessage(msg) {
-  document.getElementById('fps').textContent = msg.data;
 }
 
 function getValues(x) {
@@ -75,29 +68,6 @@ function sendChangeEvent(el) {
   el.dispatchEvent(evt);
 }
 
-function attachListeners() {
-  var rangeEls = document.querySelectorAll('input[type=range]');
-  for (var i = 0; i < rangeEls.length; ++i) {
-    var rangeEl = rangeEls[i];
-    var valueEl = rangeEl.parentElement.nextElementSibling.children[0];
-    var id = rangeEl.parentElement.parentElement.id;
-    var group = rangeEl.parentElement.parentElement.className;
-    rangeEl.addEventListener('change', updateValue(valueEl, id, group));
-  }
-
-  document.getElementById('clear').addEventListener('click', onClearClicked);
-  document.getElementById('splat').addEventListener('click', onSplatClicked);
-  document.getElementById('presets').addEventListener('change', onPresetChanged);
-}
-
-function onClearClicked(e) {
-  common.naclModule.postMessage('Clear:0');
-}
-
-function onSplatClicked(e) {
-  common.naclModule.postMessage('Splat');
-}
-
 function initPresetSelect() {
   var selectEl = document.getElementById('presets');
   for (var i = 0; i < presets.length; ++i) {
@@ -128,3 +98,58 @@ function onPresetChanged(e) {
     sendChangeEvent(smootherEls[i]);
   }
 }
+
+function attachListeners() {
+  var rangeEls = document.querySelectorAll('input[type=range]');
+  for (var i = 0; i < rangeEls.length; ++i) {
+    var rangeEl = rangeEls[i];
+    var valueEl = rangeEl.parentElement.nextElementSibling.children[0];
+    var id = rangeEl.parentElement.parentElement.id;
+    var group = rangeEl.parentElement.parentElement.className;
+    rangeEl.addEventListener('change', updateValue(valueEl, id, group));
+  }
+}
+
+$(document).ready(function (){
+  //window.setInterval(updateGroups, 200);
+  //initPresetSelect();
+  //onPresetChanged(null);
+
+  // jQuery events don't work with embed elements.
+  $('#listener').get(0).addEventListener('message', function (e) {
+    $('#fps').text(e.data);
+  }, true);
+  $('#listener').resizable().resize(function (e, ui) {
+    var el = $(this);
+    $('#nacl_module').width(el.width()).height(el.height());
+  });
+  $('#clear').button().click(function (e) {
+    $('#nacl_module').get(0).postMessage('Clear:0');
+  });
+  $('#splat').button().click(function (e) {
+    $('#nacl_module').get(0).postMessage('Splat');
+  });
+  $('#presets').menu({
+    select: function (e, ui) {
+      alert(ui.item.children('a:first').text());
+    }
+  });
+  $('.knobs div').each(function () {
+    var el = $(this);
+    var name = el.text();
+    var prec = el.data('prec');
+    var mult = Math.pow(10, prec);
+    el.empty();
+    el.append('<label>' + name + '</label>');
+    el.append('<span>' + el.data('value') + '</span>');
+    el.append($('<div/>').slider({
+      value: el.data('value') * mult,
+      min: el.data('min') * mult,
+      max: el.data('max') * mult,
+      range: 'min',
+      slide: function (e, ui) {
+        el.children('span').text((ui.value / mult).toFixed(prec));
+      }
+    }));
+  });
+});
