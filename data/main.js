@@ -99,30 +99,43 @@ function onPresetChanged(e) {
   }
 }
 
-function attachListeners() {
-  var rangeEls = document.querySelectorAll('input[type=range]');
-  for (var i = 0; i < rangeEls.length; ++i) {
-    var rangeEl = rangeEls[i];
-    var valueEl = rangeEl.parentElement.nextElementSibling.children[0];
-    var id = rangeEl.parentElement.parentElement.id;
-    var group = rangeEl.parentElement.parentElement.className;
-    rangeEl.addEventListener('change', updateValue(valueEl, id, group));
-  }
-}
-
 $(document).ready(function (){
   //window.setInterval(updateGroups, 200);
   //initPresetSelect();
   //onPresetChanged(null);
 
+  $('body').layout({
+    slidable: false,
+    center__onresize: function (name, el) {
+      $('#nacl_module').attr('width', el.width()).attr('height', el.height());
+    },
+    north__closable: false,
+    north__resizable: false,
+    north__spacing_open: 2,
+    west__minSize: 400,
+    west__onresize: function () {
+      $('.accordion').accordion('resize');
+    },
+    west__resizable: false,
+    livePaneResizing: true
+  });
+
+  // Generate embed using current sizes.
+  var center = $('.ui-layout-center');
+  $('#listener').append('<embed id="nacl_module" src="smoothlife.nmf"' +
+      'width="' + center.width() + '" ' +
+      'height="' + center.height() + '" type="application/x-nacl">');
+
   // jQuery events don't work with embed elements.
   $('#listener').get(0).addEventListener('message', function (e) {
     $('#fps').text(e.data);
   }, true);
-  $('#listener').resizable().resize(function (e, ui) {
-    var el = $(this);
-    $('#nacl_module').width(el.width()).height(el.height());
+
+  $('.accordion').accordion({
+    fillSpace: true,
+    animate: false,
   });
+
   $('#clear').button().click(function (e) {
     $('#nacl_module').get(0).postMessage('Clear:0');
   });
@@ -139,17 +152,35 @@ $(document).ready(function (){
     var name = el.text();
     var prec = el.data('prec');
     var mult = Math.pow(10, prec);
-    el.empty();
+    var values = el.data('values');
+    if (values) {
+      values = values.split(' ');
+    }
+
+    el.empty().addClass('range');
     el.append('<label>' + name + '</label>');
-    el.append('<span>' + el.data('value') + '</span>');
-    el.append($('<div/>').slider({
-      value: el.data('value') * mult,
-      min: el.data('min') * mult,
-      max: el.data('max') * mult,
-      range: 'min',
-      slide: function (e, ui) {
-        el.children('span').text((ui.value / mult).toFixed(prec));
-      }
-    }));
+    if (prec) {
+      el.append('<span>' + el.data('value') + '</span>');
+      el.append($('<div/>').slider({
+        value: el.data('value') * mult,
+        min: el.data('min') * mult,
+        max: el.data('max') * mult,
+        range: 'min',
+        slide: function (e, ui) {
+          el.children('span').text((ui.value / mult).toFixed(prec));
+        }
+      }));
+    } else {
+      el.append('<span>' + values[el.data('value')] + '</span>');
+      el.append($('<div/>').slider({
+        value: el.data('value'),
+        min: 0,
+        max: values.length - 1,
+        range: 'min',
+        slide: function (e, ui) {
+          el.children('span').text(values[ui.value]);
+        }
+      }));
+    }
   });
 });

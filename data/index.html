@@ -12,85 +12,113 @@ found in the LICENSE file.
   <link rel="stylesheet" href="jquery-ui-1.9.0.custom.min.css">
   <script type="text/javascript" src="jquery-1.8.2.min.js"></script>
   <script type="text/javascript" src="jquery-ui-1.9.0.custom.min.js"></script>
+  <script type="text/javascript" src="jquery.layout-latest.min.js"></script>
   <script type="text/javascript" src="main.js"></script>
   <style>
-    body {
-      font-family: "Courier New", monospace;
-    }
     .ui-widget {
       font-size: 0.8em;
     }
+    .ui-layout-north {
+      background: -webkit-linear-gradient(left, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+      font-family: "Courier New", monospace;
+      font-size: 30px;
+      font-weight: 400;
+    }
+    .ui-layout-toggler {
+      background: #ccc;
+    }
     #listener {
-      height: 512px;
-      width: 512px;
-    }
-    .box {
-      border: 1px solid #ccc;
-      border-radius: 2px;
-      box-shadow: 2px 0px 2px 0 #ccc;
-      margin: 10px;
-      padding: 6px;
-    }
-    .floatleft {
-      float: left;
-    }
-    .knobs {
-      width: 300px;
-    }
-    .knobs > div {
-      margin: 6px 0;
+      height: 100%;
       position: relative;
+      width: 100%;
     }
-    .knobs label {
+    .ui-accordion-content {
+      padding: 1em 0.5em !important;
+    }
+    .range {
+      border-bottom: 1px solid #ccc;
+      font-family: "Courier New", monospace;
+      padding: 15px 0;
+      vertical-align: center;
+    }
+    .range label {
       display: inline-block;
-      margin: 0 4px;
-      width: 25%;
+      width: 20%;
     }
-    .knobs span {
+    .range span {
       color: #03c;
       display: inline-block;
-      font-size: 14px;
-      margin: 0 4px;
-      width: 15%;
+      padding-right: 6px;
       text-align: right;
+      width: 20%;
     }
-    .knobs .ui-slider {
-      margin: 0 4px;
-      width: 50%;
-      position: absolute;
-      top: 25%;
-      right: 0;
-    }
-    #presets {
-      float: left;
-      text-align: center;
-      width: 100px;
+    .range div {
+      display: inline-block;
+      width: 55%;
     }
     #buttons {
-      clear: left;
-      margin: 0 auto;
-      width: 80%;
+      background: #fff;
+      border-radius: 2px;
+      bottom: 0;
+      height: 30px;
+      left: 0;
+      padding: 6px;
+      position: absolute;
+      width: auto;
     }
     #fps {
       font-size: 10px;
-      text-align: right;
     }
   </style>
 </head>
 <body data-name="smoothlife">
-  <h1>Smoothlife</h1>
+  <div class="ui-layout-north">Smoothlife</div>
+  <div class="ui-layout-west">
+    <div class="accordion">
+      <h3>Presets</h3>
+      <div>
+      </div>
+      <h3>Kernel</h3>
+      <div class='knobs'>
+        <div data-min="0" data-max="50" data-value="12.0" data-prec="1">ra</div>
+        <div data-min="0" data-max="50" data-value="3.0" data-prec="1">rr</div>
+        <div data-min="0" data-max="50" data-value="12.0" data-prec="1">rb</div>
+      </div>
+      <h3>Smoother</h3>
+      <div class='knobs'>
+        <div data-values="discrete smooth1 smooth2 smooth3" data-value="2">timestep</div>
+        <div data-min="0" data-max="1" data-value="0.115" data-prec="3">dt</div>
+        <div data-min="0" data-max="1" data-value="0.269" data-prec="3">b1</div>
+        <div data-min="0" data-max="1" data-value="0.523" data-prec="3">d1</div>
+        <div data-min="0" data-max="1" data-value="0.340" data-prec="3">b2</div>
+        <div data-min="0" data-max="1" data-value="0.746" data-prec="3">d2</div>
+        <div data-values="mode1 mode2 mode3 mode4" data-value="3">sigmoid mode</div>
+        <div data-values="hard linear hermite sin smooth" data-value="4">sigmoid</div>
+        <div data-values="hard linear hermite sin smooth" data-value="4">mix</div>
+        <div data-min="0" data-max="1" data-value="0.028" data-prec="3">sn</div>
+        <div data-min="0" data-max="1" data-value="0.147" data-prec="3">sm</div>
+      </div>
+      <h3>About</h3>
+      <div>
+      </div>
+    </div>
+  </div>
+  <div class="ui-layout-center">
+    <div id="listener">
+    </div>
+    <div id="buttons">
+      <input type="submit" id="clear" value="Clear">
+      <input type="submit" id="splat" value="Splat">
+      <span id="fps">FPS: 0.000</span>
+    </div>
+  </div>
+  <!--
   <ul id="presets" class="box">
     <li><a href="#">preset1</a></li>
     <li><a href="#">preset2</a></li>
     <li><a href="#">preset3</a></li>
   </ul>
   <div class="floatleft">
-    <div id="listener" class="box">
-      <!--
-      <embed name="nacl_module" id="nacl_module" width="512" height="512"
-          src="smoothlife.nmf" type="application/x-nacl">
-          -->
-    </div>
     <div id="buttons" class="box">
       <input type="submit" id="clear" value="Clear">
       <input type="submit" id="splat" value="Splat">
@@ -111,6 +139,7 @@ found in the LICENSE file.
       <div data-min="0" data-max="1" data-value="0.607" data-prec="3">d2</div>
     </div>
   </div>
+  -->
   <!--
   <div id="knobs">
     <table>

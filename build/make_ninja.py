@@ -52,11 +52,12 @@ SOURCE_FILES = PrefixPath('src', [
 ])
 
 DATA_FILES = PrefixPath('data', [
-  'main.js',
   'index.html',
   'jquery-1.8.2.min.js',
+  'jquery.layout-latest.min.js',
   'jquery-ui-1.9.0.custom.min.css',
   'jquery-ui-1.9.0.custom.min.js',
+  'main.js',
   'images/ui-bg_flat_0_aaaaaa_40x100.png',
   'images/ui-bg_flat_75_ffffff_40x100.png',
   'images/ui-bg_glass_55_fbf9ee_1x400.png',
