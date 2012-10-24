@@ -8,6 +8,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "ppapi/cpp/size.h"
 #include "ppapi/cpp/fullscreen.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/utility/completion_callback_factory.h"
@@ -46,6 +47,7 @@ class SmoothlifeInstance : public pp::Instance {
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   SmoothlifeView* view_;
   SmoothlifeThread* thread_;
+  pp::Size sim_size_;
   LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
   LockedObject<int>* frames_drawn_;

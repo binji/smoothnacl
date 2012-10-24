@@ -69,6 +69,33 @@ pp::Size SmoothlifeView::GetSize() const {
   return graphics_2d_ ? graphics_2d_->size() : pp::Size();
 }
 
+pp::Point SmoothlifeView::ScreenToSim(const pp::Point& p,
+                                      const pp::Size& sim_size) const {
+  double scale;
+  int x_offset;
+  int y_offset;
+  GetScreenToSimScale(sim_size, &scale, &x_offset, &y_offset);
+  return pp::Point(
+      static_cast<int>((p.x() - x_offset) * scale),
+      static_cast<int>((p.y() - y_offset) * scale));
+}
+
+void SmoothlifeView::GetScreenToSimScale(
+    const pp::Size& sim_size,
+    double* out_scale,
+    int* out_xoffset, int* out_yoffset) const {
+  // Keep the aspect ratio.
+  int image_width = GetSize().width();
+  int image_height = GetSize().height();
+  *out_scale = std::max(
+      static_cast<double>(sim_size.width()) / image_width,
+      static_cast<double>(sim_size.height()) / image_height);
+  *out_xoffset =
+      static_cast<int>((image_width - sim_size.width() / *out_scale) / 2);
+  *out_yoffset =
+      static_cast<int>((image_height - sim_size.height() / *out_scale) / 2);
+}
+
 void SmoothlifeView::DrawCallback(int32_t result) {
   if (!graphics_2d_) {
     draw_loop_running_ = false;
@@ -99,18 +126,14 @@ void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
   if (!pixels)
     return;
 
+  double scale;
+  int x_offset;
+  int y_offset;
+  GetScreenToSimScale(a.size(), &scale, &x_offset, &y_offset);
+
   int image_width = GetSize().width();
   int image_height = GetSize().height();
   int buffer_width = a.size().width();
-  int buffer_height = a.size().height();
-
-  // Keep the aspect ratio.
-  double min_scale = std::max(
-      static_cast<double>(buffer_width) / image_width,
-      static_cast<double>(buffer_height) / image_height);
-  int x_offset = (image_width - buffer_width / min_scale) / 2;
-  int y_offset = (image_height - buffer_height / min_scale) / 2;
-
   double buffer_x = 0;
   double buffer_y = 0;
 
@@ -121,9 +144,9 @@ void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
       uint8_t v = 255 * dv; //255 * (1 - dv);
       uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
       pixels[y * image_width + x] = color;
-      buffer_x += min_scale;
+      buffer_x += scale;
     }
-    buffer_y += min_scale;
+    buffer_y += scale;
   }
 }
 
