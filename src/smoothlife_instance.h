@@ -39,6 +39,8 @@ class SmoothlifeInstance : public pp::Instance {
   void MessageSplat(const ParamList& params);
 
   void EnqueueTask(Task* task);
+  void ScheduleUpdate();
+  void UpdateCallback(int32_t result);
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   SmoothlifeView* view_;
@@ -46,6 +48,7 @@ class SmoothlifeInstance : public pp::Instance {
   SmoothlifeThread* thread_;
   LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
+  LockedObject<int>* frames_drawn_;
   MessageMap message_map_;
 
   // Disallow copy constructor and assignment operator.

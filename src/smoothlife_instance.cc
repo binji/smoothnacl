@@ -6,6 +6,9 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <ppapi/c/pp_time.h>
+#include <ppapi/cpp/core.h>
+#include <ppapi/cpp/module.h>
 #include "ppapi/cpp/input_event.h"
 #include "ppapi/cpp/var.h"
 
@@ -17,6 +20,17 @@
 #include "smoothlife_view.h"
 #include "task.h"
 
+namespace {
+
+const int kUpdateInterval = 1000;
+
+double GetTimeTicks() {
+  return pp::Module::Get()->core()->GetTimeTicks();
+}
+
+}  // namespace
+
+
 SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
     : pp::Instance(instance),
       factory_(this),
@@ -24,7 +38,8 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
       is_initial_view_change_(true),
       thread_(NULL),
       locked_buffer_(NULL),
-      task_queue_(NULL) {
+      task_queue_(NULL),
+      frames_drawn_(NULL) {
   // Request to receive input events.
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
@@ -67,11 +82,13 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   AlignedReals* buffer = new AlignedReals(config.size);
   locked_buffer_ = new LockedObject<AlignedReals>(buffer);
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
+  frames_drawn_ = new LockedObject<int>(new int(0));
 
   ThreadContext context;
   context.config = config;
   context.buffer = locked_buffer_;
   context.queue = task_queue_;
+  context.frames_drawn = frames_drawn_;
   thread_ = new SmoothlifeThread(context);
   view_ = new SmoothlifeView(locked_buffer_);
 
@@ -83,6 +100,10 @@ void SmoothlifeInstance::DidChangeView(const pp::View& view) {
     PostMessage(pp::Var(
         "ERROR DidChangeView failed. Could not bind graphics?"));
     return;
+  }
+
+  if (is_initial_view_change_) {
+    ScheduleUpdate();
   }
 
   is_initial_view_change_ = false;
@@ -203,4 +224,33 @@ void SmoothlifeInstance::EnqueueTask(Task* task) {
   TaskQueue* queue = task_queue_->Lock();
   queue->push_back(task);
   task_queue_->Unlock();
+}
+
+void SmoothlifeInstance::ScheduleUpdate() {
+  pp::Module::Get()->core()->CallOnMainThread(
+      kUpdateInterval,
+      factory_.NewCallback(&SmoothlifeInstance::UpdateCallback));
+}
+
+void SmoothlifeInstance::UpdateCallback(int32_t result) {
+  // This is the game loop; UpdateCallback schedules another call to itself to
+  // occur kUpdateInterval milliseconds later.
+  ScheduleUpdate();
+  static PP_TimeTicks last_time = 0;
+  if (last_time) {
+    PP_TimeTicks this_time = GetTimeTicks();
+    int num_frames;
+    int* frames = frames_drawn_->Lock();
+    num_frames = *frames;
+    *frames = 0;
+    frames_drawn_->Unlock();
+
+    char buffer[20];
+    sprintf(&buffer[0], "FPS: %.3f", num_frames / (this_time - last_time));
+    PostMessage(pp::Var(buffer));
+
+    last_time = this_time;
+  } else {
+    last_time = GetTimeTicks();
+  }
 }
