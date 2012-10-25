@@ -3,7 +3,7 @@
 
 namespace {
 
-const int kLookupSize = 1024;
+const int kLookupSize = 512;
 
 double my_hard(double x, double a, double) {
   return func_hard(x, a);
