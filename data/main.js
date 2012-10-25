@@ -72,8 +72,8 @@ function makeValueSlider(group, el) {
 
   var sliderWidget = slider.data('slider');
 
-  slider.bind('slidechange', function (e, ui) {
-    el.children('span').text($(this).data('textValue')());
+  slider.bind('slide', function (e, ui) {
+    el.children('span').text(values[ui.value]);
     updateGroup(group);
   });
   slider.data('realValue', function () {
@@ -84,7 +84,7 @@ function makeValueSlider(group, el) {
   });
   slider.data('setRealValue', function (value) {
     sliderWidget.value(value);
-    slider.trigger('slidechange');
+    slider.trigger('slide');
   });
   return slider;
 };
@@ -100,8 +100,8 @@ function makePrecSlider(group, el) {
   });
   var sliderWidget = slider.data('slider');
 
-  slider.bind('slidechange', function (e, ui) {
-    el.children('span').text($(this).data('textValue')());
+  slider.bind('slide', function (e, ui) {
+    el.children('span').text((ui.value / mult).toFixed(prec));
     updateGroup(group);
   });
   slider.data('realValue', function () {
@@ -184,7 +184,7 @@ function makeEmbed() {
   embedEl.setAttribute('src', 'smoothlife.nmf');
   embedEl.setAttribute('type', 'application/x-nacl');
   embedEl.setAttribute('width', center.width());
-  embedEl.setAttribute('width', center.height());
+  embedEl.setAttribute('height', center.height());
   embedEl.setAttribute('msg1', getUpdateGroupMessage('kernel'));
   embedEl.setAttribute('msg2', getUpdateGroupMessage('smoother'));
   embedEl.setAttribute('msg3', 'Clear:0');
