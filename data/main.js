@@ -184,7 +184,8 @@ function makeEmbed() {
       'height="' + center.height() + '" type="application/x-nacl"' +
       'msg1="' + getUpdateGroupMessage('kernel') + '" ' +
       'msg2="' + getUpdateGroupMessage('smoother') + '" ' +
-      'msg3="Clear:0" msg4="Splat">');
+      'msg3="Clear:0" msg4="Splat"' +
+      'msg5="SetRunOptions:continuous" msg6="SetDrawOptions:simulation">');
 
   // jQuery events don't work with embed elements.
   $('#listener').get(0).addEventListener('message', function (e) {

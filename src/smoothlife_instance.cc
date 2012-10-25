@@ -23,6 +23,7 @@
 namespace {
 
 const int kUpdateInterval = 1000;
+const int kMaxTaskQueueSize = 25;
 
 double GetTimeTicks() {
   return pp::Module::Get()->core()->GetTimeTicks();
@@ -68,6 +69,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   ThreadContext context;
   context.config = config;
   context.run_options = kRunOptions_Continuous;
+  context.draw_options = kDrawOptions_Simulation;
   context.buffer = locked_buffer_;
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
@@ -87,10 +89,7 @@ void SmoothlifeInstance::ParseInitMessages(
     ThreadContext* context) {
   for (uint32_t i = 0; i < argc; ++i) {
     if (strncmp(argn[i], "msg", 3) == 0) {
-      printf("Got message: %s\n", argv[i]);
       HandleMessage(pp::Var(argv[i]));
-    } else if (strcmp(argn[i], "step") == 0) {
-      context->run_options = kRunOptions_Step;
     }
   }
 }
@@ -105,9 +104,9 @@ void SmoothlifeInstance::InitMessageMap() {
   message_map_.insert(MessageMap::value_type(
         "Splat", &SmoothlifeInstance::MessageSplat));
   message_map_.insert(MessageMap::value_type(
-        "Step", &SmoothlifeInstance::MessageStep));
+        "SetRunOptions", &SmoothlifeInstance::MessageSetRunOptions));
   message_map_.insert(MessageMap::value_type(
-        "Run", &SmoothlifeInstance::MessageRun));
+        "SetDrawOptions", &SmoothlifeInstance::MessageSetDrawOptions));
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
@@ -200,8 +199,12 @@ void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
   }
 
   MessageMap::iterator func_iter = message_map_.find(function);
-  if (func_iter != message_map_.end())
+  if (func_iter != message_map_.end()) {
+    printf("Got message: %s\n", message.c_str());
     (this->*func_iter->second)(params);
+  } else {
+    printf("Unknown message: %s\n", message.c_str());
+  }
 }
 
 void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
@@ -249,32 +252,59 @@ void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSplat));
 }
 
-void SmoothlifeInstance::MessageStep(const ParamList& params) {
-  if (params.size() != 0)
+void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
+  if (params.size() != 1)
     return;
 
+  ThreadRunOptions run_options;
+  if (params[0] == "step")
+    run_options = kRunOptions_Step;
+  else if (params[0] == "continuous")
+    run_options = kRunOptions_Continuous;
+  else if (params[0] == "none")
+    run_options = kRunOptions_None;
+  else {
+    printf("Unknown value for SetRunOptions, ignoring.\n");
+    return;
+  }
+
   EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetRunOptions,
-                               kRunOptions_Step));
+                               run_options));
 
   step_cond_->Lock();
   step_cond_->Signal();
   step_cond_->Unlock();
 }
 
-void SmoothlifeInstance::MessageRun(const ParamList& params) {
-  if (params.size() != 0)
+void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
+  if (params.size() != 1)
     return;
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetRunOptions,
-                               kRunOptions_Continuous));
+  ThreadDrawOptions draw_options;
+  if (params[0] == "simulation")
+    draw_options = kDrawOptions_Simulation;
+  else if (params[0] == "kernelDisc")
+    draw_options = kDrawOptions_KernelDisc;
+  else if (params[0] == "kernelRing")
+    draw_options = kDrawOptions_KernelRing;
+  else if (params[0] == "smoother")
+    draw_options = kDrawOptions_Smoother;
+  else {
+    printf("Unknown value for SetDrawOptions, ignoring.\n");
+    return;
+  }
 
-  step_cond_->Lock();
-  step_cond_->Signal();
-  step_cond_->Unlock();
+  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetDrawOptions,
+                               draw_options));
 }
 
 void SmoothlifeInstance::EnqueueTask(Task* task) {
   ScopedLocker<TaskQueue> locker(*task_queue_);
+  if (locker.object()->size() > kMaxTaskQueueSize) {
+    printf("Task queue is full, dropping message.\n");
+    return;
+  }
+
   locker.object()->push_back(task);
 }
 

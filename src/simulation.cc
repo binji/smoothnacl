@@ -94,6 +94,13 @@ void Simulation::SetSmoother(const SmootherConfig& config) {
   smoother_.MakeLookup();
 }
 
+void Simulation::ViewSmoother() {
+  Clear(0);
+  initan(&an_);
+  initam(&am_);
+  smoother_.Apply(an_, am_, &aa_);
+}
+
 void Simulation::Step() {
   int real_count = size_.width() * size_.height();
   fftw_execute(aa_plan_);

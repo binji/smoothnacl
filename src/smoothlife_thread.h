@@ -9,13 +9,25 @@
 #include "task_queue.h"
 
 enum ThreadRunOptions {
-  kRunOptions_Continuous,  // Run the simulation continuously.
-  kRunOptions_Step,  // Wait for a message to step the simulation.
+  // Run the simulation continuously.
+  kRunOptions_Continuous,
+  // Wait for a message to step the simulation.
+  kRunOptions_Step,
+  // Don't run the sim, wait for step message to copy the buffer.
+  kRunOptions_None,
+};
+
+enum ThreadDrawOptions {
+  kDrawOptions_Simulation,
+  kDrawOptions_KernelDisc,
+  kDrawOptions_KernelRing,
+  kDrawOptions_Smoother,
 };
 
 struct ThreadContext {
   SimulationConfig config;
   ThreadRunOptions run_options;
+  ThreadDrawOptions draw_options;
   LockedObject<TaskQueue>* queue;  // Weak.
   LockedObject<AlignedReals>* buffer;  // Weak.
   LockedObject<int>* frames_drawn;  // Weak.
@@ -34,11 +46,13 @@ class SmoothlifeThread {
   void TaskSplat();
   void TaskDrawFilledCircle(double x, double y, double radius, double color);
   void TaskSetRunOptions(ThreadRunOptions run_options);
+  void TaskSetDrawOptions(ThreadDrawOptions draw_options);
 
  private:
   static void* MainLoopThunk(void*);
   void MainLoop();
-  void CopyBuffer();
+  void Draw();
+  void CopyBuffer(const AlignedReals& src);
   void ProcessQueue();
 
   ThreadContext context_;

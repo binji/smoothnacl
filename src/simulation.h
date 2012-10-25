@@ -23,6 +23,7 @@ class Simulation {
   const Smoother& smoother() const { return smoother_; }
   const AlignedReals& buffer() const { return aa_; }
 
+  void ViewSmoother();
   void Step();
   void Clear(double color);
   void DrawFilledCircle(double x, double y, double radius, double color);

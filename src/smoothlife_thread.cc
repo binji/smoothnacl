@@ -38,9 +38,11 @@ void SmoothlifeThread::TaskDrawFilledCircle(double x, double y, double radius,
 }
 
 void SmoothlifeThread::TaskSetRunOptions(ThreadRunOptions run_options) {
-  context_.step_cond->Lock();
   context_.run_options = run_options;
-  context_.step_cond->Unlock();
+}
+
+void SmoothlifeThread::TaskSetDrawOptions(ThreadDrawOptions draw_options) {
+  context_.draw_options = draw_options;
 }
 
 // static
@@ -59,9 +61,12 @@ void SmoothlifeThread::MainLoop() {
 
     // Process queue should be first to allow for any startup initialization.
     ProcessQueue();
-    CopyBuffer();
-    simulation_->Step();
-    if (context_.run_options == kRunOptions_Step) {
+    Draw();
+
+    if (context_.run_options != kRunOptions_None)
+      simulation_->Step();
+
+    if (context_.run_options != kRunOptions_Continuous) {
       context_.step_cond->Lock();
       context_.step_cond->Wait();
       context_.step_cond->Unlock();
@@ -69,10 +74,31 @@ void SmoothlifeThread::MainLoop() {
   }
 }
 
-void SmoothlifeThread::CopyBuffer() {
+void SmoothlifeThread::Draw() {
+  switch (context_.draw_options) {
+    default:
+    case kDrawOptions_Simulation:
+      CopyBuffer(simulation_->buffer());
+      break;
+
+    case kDrawOptions_KernelDisc:
+      CopyBuffer(simulation_->kernel().kd());
+      break;
+
+    case kDrawOptions_KernelRing:
+      CopyBuffer(simulation_->kernel().kr());
+      break;
+
+    case kDrawOptions_Smoother:
+      simulation_->ViewSmoother();
+      CopyBuffer(simulation_->buffer());
+      break;
+  }
+}
+
+void SmoothlifeThread::CopyBuffer(const AlignedReals& src) {
   ScopedLocker<AlignedReals> locker(*context_.buffer);
-  std::copy(simulation_->buffer().begin(), simulation_->buffer().end(),
-            locker.object()->begin());
+  std::copy(src.begin(), src.end(), locker.object()->begin());
 }
 
 void SmoothlifeThread::ProcessQueue() {

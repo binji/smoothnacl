@@ -45,8 +45,8 @@ class SmoothlifeInstance : public pp::Instance {
   void MessageSetSmoother(const ParamList& params);
   void MessageClear(const ParamList& params);
   void MessageSplat(const ParamList& params);
-  void MessageStep(const ParamList& params);
-  void MessageRun(const ParamList& params);
+  void MessageSetRunOptions(const ParamList& params);
+  void MessageSetDrawOptions(const ParamList& params);
 
   void EnqueueTask(Task* task);
   void ScheduleUpdate();
