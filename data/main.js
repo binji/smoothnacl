@@ -15,8 +15,8 @@ function upperCaseFirst(s) {
 }
 
 function updateGroups(groupName) {
-  var values = $('.knobs.' + groupName + ' .range > div').map(function () {
-    return $(this).data('realValue');
+  var values = $('.' + groupName + ' .range > div').map(function () {
+    return $(this).data('realValue')();
   });
   var msg = 'Set' + upperCaseFirst(groupName) + ':' +
       Array.prototype.join.call(values, ',');
@@ -26,7 +26,8 @@ function updateGroups(groupName) {
 
 function updateGroup(groupName) {
   if (!updateTimeoutID[groupName]) {
-    window.setTimeout(updateGroups, 200, groupName);
+    updateTimeoutID[groupName] =
+        window.setTimeout(updateGroups, 200, groupName);
   }
 }
 
@@ -37,34 +38,100 @@ function initPresets() {
     menu.append('<li><a href="#"'+
         'data-value="' + i + '">' + presetName + '</a></li>');
   }
-  menu.menu({select: function (e, ui) {
-    alert(ui.item.children('a:first').data('value'));
-  }});
+  menu.menu({
+    select: function (e, ui) {
+      var presetIndex = ui.item.children('a:first').data('value');
+      onPresetChanged(presetIndex);
+    }
+  });
 }
 
-function onPresetChanged(e) {
-  var presetIndex = document.getElementById('presets').selectedIndex;
-  var preset = presets[presetIndex];
-
-  var kernelPreset = preset[1][0];
-  var kernelEls = document.querySelectorAll('tr.kernel input');
-  for (var i = 0; i < kernelEls.length; ++i) {
-    kernelEls[i].value = kernelPreset[i];
-    sendChangeEvent(kernelEls[i]);
-  }
-
-  var smootherPreset = preset[1][1];
-  var smootherEls = document.querySelectorAll('tr.smooth input');
-  for (var i = 0; i < smootherEls.length; ++i) {
-    smootherEls[i].value = smootherPreset[i];
-    sendChangeEvent(smootherEls[i]);
-  }
+function onPresetChanged(index) {
+  var preset = presets[index];
+  $('.kernel .range > div').each(function (i) {
+    $(this).data('setRealValue')(preset[1][0][i]);
+  });
+  $('.smoother .range > div').each(function (i) {
+    $(this).data('setRealValue')(preset[1][1][i]);
+  });
 }
+
+function makeValueSlider(group, el) {
+  var values = el.data('values').split(' ');
+  var slider = $('<div/>').slider({
+    value: el.data('value'),
+    min: 0,
+    max: values.length - 1,
+    range: 'min',
+  });
+
+  var sliderWidget = slider.data('slider');
+
+  slider.bind('slidechange', function (e, ui) {
+    el.children('span').text($(this).data('textValue')());
+    updateGroup(group);
+  });
+  slider.data('realValue', function () {
+    return sliderWidget.value();
+  });
+  slider.data('textValue', function () {
+    return values[sliderWidget.value()];
+  });
+  slider.data('setRealValue', function (value) {
+    sliderWidget.value(value);
+    slider.trigger('slidechange');
+  });
+  return slider;
+};
+
+function makePrecSlider(group, el) {
+  var prec = el.data('prec');
+  var mult = Math.pow(10, prec);
+  var slider = $('<div/>').slider({
+    value: el.data('value') * mult,
+    min: el.data('min') * mult,
+    max: el.data('max') * mult,
+    range: 'min',
+  });
+  var sliderWidget = slider.data('slider');
+
+  slider.bind('slidechange', function (e, ui) {
+    el.children('span').text($(this).data('textValue')());
+    updateGroup(group);
+  });
+  slider.data('realValue', function () {
+    return sliderWidget.value() / mult;
+  });
+  slider.data('textValue', function () {
+    return (sliderWidget.value() / mult).toFixed(prec);
+  });
+  slider.data('setRealValue', function (value) {
+    sliderWidget.value(value * mult);
+    slider.trigger('slide');
+  });
+  return slider;
+};
+
+function makeSlidersForGroup(group) {
+  $('.' + group + ' > div').each(function () {
+    var el = $(this);
+    var slider;
+
+    if (el.data('values'))
+      slider = makeValueSlider(group, el);
+    else
+      slider = makePrecSlider(group, el);
+
+    var name = el.text();
+    el.empty().addClass('range');
+    el.append('<label>' + name + '</label>');
+    el.append('<span>' + slider.data('textValue')() + '</span>');
+    el.append(slider);
+  });
+};
 
 $(document).ready(function (){
-  //window.setInterval(updateGroups, 200);
   initPresets();
-  //onPresetChanged(null);
 
   $('body').layout({
     slidable: false,
@@ -111,57 +178,7 @@ $(document).ready(function (){
   });
 
   var groups = ['kernel', 'smoother'];
-  $('.knobs > div').each(function () {
-    var el = $(this);
-    var name = el.text();
-    var prec = el.data('prec');
-    var mult = Math.pow(10, prec);
-    var values = el.data('values');
-    if (values) {
-      values = values.split(' ');
-    }
-
-    for (var i = 0; i < groups.length; ++i) {
-      if (el.parent().hasClass(groups[i])) {
-        var group = groups[i];
-        break;
-      }
-    }
-
-    el.empty().addClass('range');
-    el.append('<label>' + name + '</label>');
-    if (prec) {
-      el.append('<span>' + el.data('value') + '</span>');
-      var slider = $('<div/>').slider({
-        value: el.data('value') * mult,
-        min: el.data('min') * mult,
-        max: el.data('max') * mult,
-        range: 'min',
-        slide: function (e, ui) {
-          var realValue = ui.value / mult;
-          $(this).data('realValue', realValue);
-          el.children('span').text(realValue);
-          updateGroup(group);
-        }
-      });
-      slider.data('realValue', el.data('value'));
-      el.append(slider);
-    } else {
-      el.append('<span>' + values[el.data('value')] + '</span>');
-      var slider = $('<div/>').slider({
-        value: el.data('value'),
-        min: 0,
-        max: values.length - 1,
-        range: 'min',
-        slide: function (e, ui) {
-          var realValue = ui.value;
-          $(this).data('realValue', realValue);
-          el.children('span').text(values[ui.value]);
-          updateGroup(group);
-        },
-      });
-      slider.data('realValue', el.data('value'));
-      el.append(slider);
-    }
-  });
+  for (var i = 0; i < groups.length; ++i) {
+    makeSlidersForGroup(groups[i]);
+  }
 });
