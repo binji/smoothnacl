@@ -27,13 +27,23 @@ found in the LICENSE file.
       </div>
       <h3>Kernel</h3>
       <div class='kernel'>
-        <div data-min="0" data-max="50" data-value="12.0" data-prec="1">ra</div>
-        <div data-min="0" data-max="50" data-value="3.0" data-prec="1">rr</div>
-        <div data-min="0" data-max="50" data-value="12.0" data-prec="1">rb</div>
+        <div data-min="0" data-max="50" data-value="4.0" data-prec="1"
+            title="Radius of the 'disc' part of a cell.">
+          disc radius
+        </div>
+        <div data-min="0" data-max="50" data-value="12.0" data-prec="1"
+            title="Radius of the 'ring' part of a cell, surrounding the disc.">
+          ring radius
+        </div>
+        <div data-min="0" data-max="50" data-value="1.0" data-prec="1"
+            title="The anti-aliasing radius. The larger this value, the more blended the region between the disc and the ring.">
+          anti-alias radius
+        </div>
       </div>
       <h3>Smoother</h3>
       <div class='smoother'>
-        <div data-values="discrete smooth1 smooth2 smooth3" data-value="2">timestep</div>
+        <div data-values="discrete smooth1 smooth2 smooth3 smooth4" data-value="2"
+            title="">timestep</div>
         <div data-min="0" data-max="1" data-value="0.115" data-prec="3">dt</div>
         <div data-min="0" data-max="1" data-value="0.269" data-prec="3">b1</div>
         <div data-min="0" data-max="1" data-value="0.523" data-prec="3">d1</div>

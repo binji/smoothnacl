@@ -32,11 +32,10 @@ void Kernel::SetConfig(const KernelConfig& config) {
 }
 
 void Kernel::MakeKernel() {
-  double ri = config_.ra/config_.rr;
-  double bb = config_.ra/config_.rb;
+  double ri = config_.disc_radius;
+  double bb = config_.blend_radius;
 
-  // int Ra = (int)(ra+bb/2+1.0);
-  int Ra = (int)(config_.ra*2);
+  int Ra = (int)(config_.ring_radius*2);
 
   kflr_ = 0.0;
   kfld_ = 0.0;
@@ -53,7 +52,7 @@ void Kernel::MakeKernel() {
           double l = sqrt(x * x + y * y);
           double m = 1 - func_linear(l, ri, bb);
           double n = func_linear(l, ri, bb) *
-              (1 - func_linear(l, config_.ra, bb));
+              (1 - func_linear(l, config_.ring_radius, bb));
           kd_[iy * size_.width() + ix] = m;
           kr_[iy * size_.width() + ix] = n;
           kfld_ += m;

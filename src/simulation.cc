@@ -142,15 +142,15 @@ void Simulation::Splat() {
   int width = aa_.size().width();
   int height = aa_.size().height();
 
-  double radius = kernel_.config().ra;
+  double ring_radius = kernel_.config().ring_radius;
 
-  mx = 2*radius; if (mx>width) mx=width;
-  my = 2*radius; if (my>height) my=height;
+  mx = 2 * ring_radius; if (mx>width) mx=width;
+  my = 2 * ring_radius; if (my>height) my=height;
 
   for (int t=0; t<=(int)(width*height/(mx*my)); t++) {
     double x = RND(width);
     double y = RND(height);
-    double r = radius * (RND(0.5) + 0.5);
+    double r = ring_radius * (RND(0.5) + 0.5);
     DrawFilledCircle(x, y, r, 1.0);
   }
 }

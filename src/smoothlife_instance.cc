@@ -217,9 +217,9 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
     return;
 
   KernelConfig config;
-  config.ra = strtod(params[0].c_str(), NULL);
-  config.rr = strtod(params[1].c_str(), NULL);
-  config.rb = strtod(params[2].c_str(), NULL);
+  config.disc_radius = strtod(params[0].c_str(), NULL);
+  config.ring_radius = strtod(params[1].c_str(), NULL);
+  config.blend_radius = strtod(params[2].c_str(), NULL);
   EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetKernel, config));
 }
 

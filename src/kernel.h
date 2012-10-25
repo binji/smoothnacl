@@ -7,18 +7,9 @@
 #include "fft_allocation.h"
 
 struct KernelConfig {
-  // Radius of the neighborhood of a "cell"; this is the area that can
-  // potentially affect this cell.
-  double ra;
-  // Inverse factor to scale the inner radius of the cell.
-  // For example, if ra=30, rr=3, the inner radius is 10.
-  double rr;  
-  // The anti-aliasing radius, expressed as an inverse factor of ra.
-  // For example, if ra=30, rr=3, rb=15, the anti-aliasing radius is 2.
-  //   The region [0, 9) is inside the cell.
-  //   The region [9, 11) is inside the anti-aliasing region.
-  //   The region [11, 30) is inside the neighborhood.
-  double rb;
+  double disc_radius;
+  double ring_radius;
+  double blend_radius;
 };
 
 class Kernel {
