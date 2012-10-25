@@ -107,6 +107,8 @@ void SmoothlifeInstance::InitMessageMap() {
         "SetRunOptions", &SmoothlifeInstance::MessageSetRunOptions));
   message_map_.insert(MessageMap::value_type(
         "SetDrawOptions", &SmoothlifeInstance::MessageSetDrawOptions));
+  message_map_.insert(MessageMap::value_type(
+        "SetFullscreen", &SmoothlifeInstance::MessageSetFullscreen));
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
@@ -149,6 +151,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       return true;
     case PP_INPUTEVENT_TYPE_KEYDOWN: {
       const uint32_t kKeyEnter = 0x0D;
+      const uint32_t kKeyEscape = 0x1B;
       pp::KeyboardInputEvent key_event(event);
       if (key_event.GetKeyCode() == kKeyEnter) {
         if (!fullscreen_.IsFullscreen()) {
@@ -156,6 +159,8 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
         } else {
           fullscreen_.SetFullscreen(false);
         }
+      } else if (key_event.GetKeyCode() == kKeyEscape) {
+        fullscreen_.SetFullscreen(false);
       }
       return true;
     }
@@ -296,6 +301,13 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
 
   EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetDrawOptions,
                                draw_options));
+}
+
+void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
+  if (params.size() != 1)
+    return;
+
+  fullscreen_.SetFullscreen(params[0] == "true");
 }
 
 void SmoothlifeInstance::EnqueueTask(Task* task) {

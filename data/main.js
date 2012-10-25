@@ -3,11 +3,11 @@ var updateTimeoutID = {
   'smoother': null
 };
 var presets = [
-  ['preset1', [[12.0, 3.0, 12.0], [2, 0.115, 0.269, 0.523, 0.340, 0.746, 3, 4, 4, 0.028, 0.147]]],
-  ['preset2', [[12.0, 3.0, 12.0], [0, 0.100, 0.278, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147]]],
-  ['preset3', [[31.8, 3.0, 31.8], [1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340]]],
-  ['preset4', [[21.8, 3.0, 21.8], [1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490]]],
-  ['preset5', [[21.8, 3.0, 21.8], [1, 0.157, 0.232, 0.599, 0.337, 0.699, 3, 4, 4, 0.025, 0.290]]]
+  ['Jellyfish', [[12.0, 3.0, 12.0], [2, 0.115, 0.269, 0.523, 0.340, 0.746, 3, 4, 4, 0.028, 0.147]]],
+  ['Electric Gliders', [[12.0, 3.0, 12.0], [0, 0.100, 0.278, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147]]],
+  ['Worms and Donuts', [[31.8, 3.0, 31.8], [1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340]]],
+  ['Collapsing Tunnels', [[21.8, 3.0, 21.8], [1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490]]],
+  ['Growing Tube', [[27.2, 3.5, 10.3], [3, 0.138, 0.666, 0.056, 0.175, 0.838, 2, 0, 2, 0.132, 0.311]]]
 ];
 
 function upperCaseFirst(s) {
@@ -54,11 +54,19 @@ function initPresets() {
 function onPresetChanged(index) {
   var preset = presets[index];
   $('.kernel .range > div').each(function (i) {
-    $(this).data('setRealValue')(preset[1][0][i]);
+    $(this).data('updatValueForPreset')(preset[1][0][i]);
   });
   $('.smoother .range > div').each(function (i) {
-    $(this).data('setRealValue')(preset[1][1][i]);
+    $(this).data('updatValueForPreset')(preset[1][1][i]);
   });
+  // Skip the timeout, if the user wants to spam the button they can.
+  updateGroups('kernel');
+  updateGroups('smoother');
+  var module = $('#nacl_module').get(0);
+  // When changing to a preset, reset the screen to make sure it looks
+  // interesting.
+  module.postMessage('Clear:0');
+  module.postMessage('Splat');
 }
 
 function makeValueSlider(group, el) {
@@ -82,9 +90,9 @@ function makeValueSlider(group, el) {
   slider.data('textValue', function () {
     return values[sliderWidget.value()];
   });
-  slider.data('setRealValue', function (value) {
+  slider.data('updatValueForPreset', function (value) {
     sliderWidget.value(value);
-    slider.trigger('slide', [{value: value}]);
+    el.children('span').text(values[value]);
   });
   return slider;
 };
@@ -110,9 +118,9 @@ function makePrecSlider(group, el) {
   slider.data('textValue', function () {
     return (sliderWidget.value() / mult).toFixed(prec);
   });
-  slider.data('setRealValue', function (value) {
+  slider.data('updatValueForPreset', function (value) {
     sliderWidget.value(value * mult);
-    slider.trigger('slide', [{value: value * mult}]);
+    el.children('span').text((value / mult).toFixed(prec));
   });
   return slider;
 };
@@ -163,10 +171,8 @@ function setupUI() {
   $('#splat').button().click(function (e) {
     $('#nacl_module').get(0).postMessage('Splat');
   });
-  $('#presets').menu({
-    select: function (e, ui) {
-      alert(ui.item.children('a:first').text());
-    }
+  $('#fullscreen').button().click(function (e) {
+    $('#nacl_module').get(0).postMessage('SetFullscreen:true');
   });
 
   var groups = ['kernel', 'smoother'];
