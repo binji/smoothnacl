@@ -11,7 +11,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/time.h>
 
+#include <GLES2/gl2.h>
+#include "matrix.h"
+#include "smoothlife.h"
+
+#ifdef EMSCRIPTEN
+#include <EGL/egl.h>
+#include <X11/Xlib.h>
+#include <X11/Xatom.h>
+#include <X11/Xutil.h>
+#include <emscripten/emscripten.h>
+#include <assert.h>
+#else // EMSCRIPTEN
 #include "ppapi/c/pp_stdint.h"
 #include "ppapi/c/pp_completion_callback.h"
 #include "ppapi/c/pp_errors.h"
@@ -34,10 +47,6 @@
 #include "ppapi/c/ppp_graphics_3d.h"
 #include "ppapi/lib/gl/gles2/gl2ext_ppapi.h"
 
-#include <GLES2/gl2.h>
-#include "matrix.h"
-#include "smoothlife.h"
-
 static PPB_Messaging* ppb_messaging_interface = NULL;
 static PPB_Var* ppb_var_interface = NULL;
 static PPB_Core* ppb_core_interface = NULL;
@@ -48,6 +57,8 @@ static PPB_URLLoader* ppb_urlloader_interface = NULL;
 
 static PP_Instance g_instance;
 static PP_Resource g_context;
+
+#endif // EMSCRIPTEN
 
 const int kNumResources = 12;
 const char* g_toLoad[kNumResources] = {
@@ -74,14 +85,13 @@ GLuint g_copybuffercr_prog;
 GLuint g_fft_prog;
 GLuint g_kernelmul_prog;
 
+extern "C" void InitGL();
+extern "C" void InitProgram();
+extern "C" void Render();
 
+#ifndef EMSCRIPTEN
 void PostMessage(const char *fmt, ...);
 char* LoadFile(const char *fileName);
-
-void InitGL();
-void InitProgram();
-void Render();
-
 
 static struct PP_Var CStrToVar(const char* str) {
   if (ppb_var_interface != NULL) {
@@ -144,11 +154,80 @@ void InitGL() {
   glViewport(0, 0, 512, 512);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 }
+#else
+void InitGL() {
+  // This init code was largely taken from emscripten's glbook tests (esUtil).
+  EGLint attribList[] = {
+    EGL_RED_SIZE,       8,
+    EGL_GREEN_SIZE,     8,
+    EGL_BLUE_SIZE,      8,
+    EGL_ALPHA_SIZE,     8,
+    EGL_DEPTH_SIZE,     EGL_DONT_CARE,
+    EGL_STENCIL_SIZE,   EGL_DONT_CARE,
+    EGL_SAMPLE_BUFFERS, 1,
+    EGL_NONE
+  };
+  Window win;
+  Window root;
+  XSetWindowAttributes swa;
+  Display *x_display = NULL;
+  x_display = XOpenDisplay(NULL);
+  root = DefaultRootWindow(x_display);
+  swa.event_mask  =  ExposureMask | PointerMotionMask | KeyPressMask;
+  win = XCreateWindow(
+               x_display, root,
+               0, 0, NX, NY, 0,
+               CopyFromParent, InputOutput,
+               CopyFromParent, CWEventMask,
+               &swa );
+  EGLNativeWindowType  hWnd = (EGLNativeWindowType) win;
+  EGLint numConfigs;
+  EGLint majorVersion;
+  EGLint minorVersion;
+  EGLConfig config;
+  EGLDisplay eglDisplay;
+  EGLContext eglContext;
+  EGLSurface eglSurface;
+  EGLint contextAttribs[] = { EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE, EGL_NONE };
+
+  // Get Display
+  eglDisplay = eglGetDisplay((EGLNativeDisplayType)x_display);
+  assert( eglDisplay != EGL_NO_DISPLAY );
+  // Initialize EGL
+  assert( eglInitialize(eglDisplay, &majorVersion, &minorVersion) );
+  // Get configs
+  assert( eglGetConfigs(eglDisplay, NULL, 0, &numConfigs) );
+  // Choose config
+  assert( eglChooseConfig(eglDisplay, attribList, &config, 1, &numConfigs) );
+  // Create a surface
+  eglSurface = eglCreateWindowSurface(eglDisplay, config, (EGLNativeWindowType)hWnd, NULL);
+  assert( eglSurface != EGL_NO_SURFACE );
+  // Create a GL context
+  eglContext = eglCreateContext(eglDisplay, config, EGL_NO_CONTEXT, contextAttribs );
+  assert( eglContext != EGL_NO_CONTEXT );
+  // Make the context current
+  assert( eglMakeCurrent(eglDisplay, eglSurface, eglSurface, eglContext) );
+
+  glViewport(0, 0, 512, 512);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+}
+#endif // EMSCRIPTEN
 
 
 void InitProgram() {
+#ifndef EMSCRIPTEN
   glSetCurrentContextPPAPI(g_context);
-
+#else
+  for (int i=0; i<kNumResources; i++) {
+#define MAXBUF 10000
+    char buf[MAXBUF];
+    FILE *fp = fopen(g_toLoad[i], "r");
+    assert(fp);
+    size_t len = fread(buf, sizeof(char), MAXBUF, fp);
+    buf[len] = 0;
+    g_loadedData[i] = strdup(buf);
+  }
+#endif // EMSCRIPTEN
   InitializeVbo();
   InitializeTextures();
   g_draw_prog = MakeProgram(g_loadedData[0], g_loadedData[1]);
@@ -169,15 +248,22 @@ void InitProgram() {
 
 void Render() {
   static bool first = true;
-  GLuint p1 = g_copybufferrc_prog;
-  GLuint p2 = g_copybuffercr_prog;
-  GLuint p3 = g_fft_prog;
-
+#ifdef PRINT_TIMING
+  static struct timeval old_tv;
+  struct timeval tv;
+  struct timeval result;
+  static int framecount = 0;
+  framecount++;
+#endif
   if (first) {
-    fft(p1, p2, p3, KR, KRF, -1);
-    fft(p1, p2, p3, KD, KDF, -1);
+    fft(g_copybufferrc_prog, g_copybuffercr_prog, g_fft_prog, KR, KRF, -1);
+    fft(g_copybufferrc_prog, g_copybuffercr_prog, g_fft_prog, KD, KDF, -1);
+#ifdef PRINT_TIMING
+    gettimeofday(&old_tv, NULL);
+#endif
     first = false;
   }
+
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
 #if 0
@@ -189,17 +275,28 @@ void Render() {
 #endif
 #else
   drawa(g_draw_prog, AA);
-  fft(p1, p2, p3, AA, AF, -1);
+  fft(g_copybufferrc_prog, g_copybuffercr_prog, g_fft_prog, AA, AF, -1);
   kernelmul(g_kernelmul_prog, AF, KRF, ANF, sqrt(NX*NY*NZ)/kflr);
   kernelmul(g_kernelmul_prog, AF, KDF, AMF, sqrt(NX*NY*NZ)/kfld);
-  fft(p1, p2, p3, ANF, AN, 1);
-  fft(p1, p2, p3, AMF, AM, 1);
+  fft(g_copybufferrc_prog, g_copybuffercr_prog, g_fft_prog, ANF, AN, 1);
+  fft(g_copybufferrc_prog, g_copybuffercr_prog, g_fft_prog, AMF, AM, 1);
   snm(g_snm_prog, AN, AM, AA);
+#ifdef PRINT_TIMING
+  gettimeofday(&tv, NULL);
+  timersub(&tv, &old_tv, &result);
+  if (result.tv_sec > 0)
+  {
+    double sec = (double)result.tv_sec + (double)result.tv_usec / 100000.0;
+    printf("FPS: %f\n", (double)framecount / sec);
+    framecount = 0;
+    old_tv = tv;
+  }
+#endif // PRINT_TIMING
 #endif
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-
+#ifndef EMSCRIPTEN
 typedef void (*OpenCB)(void *dataPtr);
 struct OpenRequest {
   PP_Resource loader_;
@@ -400,3 +497,15 @@ PP_EXPORT const void* PPP_GetInterface(const char* interface_name) {
 
 PP_EXPORT void PPP_ShutdownModule() {
 }
+
+#else
+
+extern "C" int main() __attribute__((used));
+
+int main() {
+  InitGL();
+  InitProgram();
+  emscripten_set_main_loop(Render, 0, 1);
+  return 0;
+}
+#endif // EMSCRIPTEN
