@@ -55,36 +55,16 @@ SmoothlifeInstance::~SmoothlifeInstance() {
 
 bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
-  // TODO(binji): make this nicer.
-  message_map_.insert(MessageMap::value_type(
-        "SetKernel", &SmoothlifeInstance::MessageSetKernel));
-  message_map_.insert(MessageMap::value_type(
-        "SetSmoother", &SmoothlifeInstance::MessageSetSmoother));
-  message_map_.insert(MessageMap::value_type(
-        "Clear", &SmoothlifeInstance::MessageClear));
-  message_map_.insert(MessageMap::value_type(
-        "Splat", &SmoothlifeInstance::MessageSplat));
+  InitMessageMap();
   SimulationConfig config;
   config.size = sim_size_;
-  config.kernel_config.ra = 12.0;
-  config.kernel_config.rr = 3.0;
-  config.kernel_config.rb = 12.0;
-  config.smoother_config.timestep.type = TIMESTEP_SMOOTH2;
-  config.smoother_config.timestep.dt = 0.115;
-  config.smoother_config.b1 = 0.269;
-  config.smoother_config.b2 = 0.340;
-  config.smoother_config.d1 = 0.523;
-  config.smoother_config.d2 = 0.746;
-  config.smoother_config.mode = SIGMOID_MODE_4;
-  config.smoother_config.sigmoid = SIGMOID_SMOOTH;
-  config.smoother_config.mix = SIGMOID_SMOOTH;
-  config.smoother_config.sn = 0.028;
-  config.smoother_config.sm = 0.147;
 
   AlignedReals* buffer = new AlignedReals(config.size);
   locked_buffer_ = new LockedObject<AlignedReals>(buffer);
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
   frames_drawn_ = new LockedObject<int>(new int(0));
+
+  ParseInitMessages(argc, argn, argv);
 
   ThreadContext context;
   context.config = config;
@@ -95,6 +75,27 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   view_ = new SmoothlifeView(locked_buffer_);
 
   return true;
+}
+
+void SmoothlifeInstance::ParseInitMessages(uint32_t argc, const char* argn[],
+                                           const char* argv[]) {
+  for (uint32_t i = 0; i < argc; ++i) {
+    if (strncmp(argn[i], "msg", 3) == 0) {
+      printf("Got message: %s\n", argv[i]);
+      HandleMessage(pp::Var(argv[i]));
+    }
+  }
+}
+
+void SmoothlifeInstance::InitMessageMap() {
+  message_map_.insert(MessageMap::value_type(
+        "SetKernel", &SmoothlifeInstance::MessageSetKernel));
+  message_map_.insert(MessageMap::value_type(
+        "SetSmoother", &SmoothlifeInstance::MessageSetSmoother));
+  message_map_.insert(MessageMap::value_type(
+        "Clear", &SmoothlifeInstance::MessageClear));
+  message_map_.insert(MessageMap::value_type(
+        "Splat", &SmoothlifeInstance::MessageSplat));
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
@@ -125,7 +126,6 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       if (left_down_) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
-        // TODO(binji): Convert mouse position to buffer coordinates.
         EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskDrawFilledCircle,
                                      sim_point.x(),
                                      sim_point.y(),
@@ -265,7 +265,6 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
     float fps = num_frames / (this_time - last_time);
     char buffer[20];
     sprintf(&buffer[0], "FPS: %.3f", fps);
-    printf("FPS: %.3f\n", fps);
     PostMessage(pp::Var(buffer));
 
     last_time = this_time;

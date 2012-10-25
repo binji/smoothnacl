@@ -14,12 +14,17 @@ function upperCaseFirst(s) {
   return s.charAt(0).toUpperCase() + s.substr(1);
 }
 
-function updateGroups(groupName) {
+function getUpdateGroupMessage(groupName) {
   var values = $('.' + groupName + ' .range > div').map(function () {
     return $(this).data('realValue')();
   });
   var msg = 'Set' + upperCaseFirst(groupName) + ':' +
       Array.prototype.join.call(values, ',');
+  return msg;
+}
+
+function updateGroups(groupName) {
+  var msg = getUpdateGroupMessage(groupName);
   $('#nacl_module').get(0).postMessage(msg);
   updateTimeoutID[groupName] = null;
 }
@@ -130,9 +135,7 @@ function makeSlidersForGroup(group) {
   });
 };
 
-$(document).ready(function (){
-  initPresets();
-
+function setupUI() {
   $('body').layout({
     slidable: false,
     center__onresize: function (name, el) {
@@ -148,17 +151,6 @@ $(document).ready(function (){
     west__resizable: false,
     livePaneResizing: true
   });
-
-  // Generate embed using current sizes.
-  var center = $('.ui-layout-center');
-  $('#listener').append('<embed id="nacl_module" src="smoothlife.nmf"' +
-      'width="' + center.width() + '" ' +
-      'height="' + center.height() + '" type="application/x-nacl">');
-
-  // jQuery events don't work with embed elements.
-  $('#listener').get(0).addEventListener('message', function (e) {
-    $('#fps').text(e.data);
-  }, true);
 
   $('.accordion').accordion({
     fillSpace: true,
@@ -181,4 +173,26 @@ $(document).ready(function (){
   for (var i = 0; i < groups.length; ++i) {
     makeSlidersForGroup(groups[i]);
   }
+}
+
+function makeEmbed() {
+  // Generate embed using current sizes and values.
+  var center = $('.ui-layout-center');
+  $('#listener').append(
+      '<embed id="nacl_module" src="smoothlife.nmf"' +
+      'width="' + center.width() + '" ' +
+      'height="' + center.height() + '" type="application/x-nacl"' +
+      'msg1="' + getUpdateGroupMessage('kernel') + '" ' +
+      'msg2="' + getUpdateGroupMessage('smoother') + '">');
+
+  // jQuery events don't work with embed elements.
+  $('#listener').get(0).addEventListener('message', function (e) {
+    $('#fps').text(e.data);
+  }, true);
+}
+
+$(document).ready(function (){
+  initPresets();
+  setupUI();
+  makeEmbed();
 });

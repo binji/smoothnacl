@@ -14,9 +14,6 @@
 #include "ppapi/cpp/instance_handle.h"
 #include "ppapi/cpp/point.h"
 
-#include "kernel.h"
-#include "simulation.h"
-#include "smoother.h"
 
 SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
     : factory_(this),

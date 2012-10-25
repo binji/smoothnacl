@@ -35,6 +35,9 @@ class SmoothlifeInstance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
+  void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[]);
+
+  void InitMessageMap();
   void MessageSetKernel(const ParamList& params);
   void MessageSetSmoother(const ParamList& params);
   void MessageClear(const ParamList& params);

@@ -46,6 +46,8 @@ void* SmoothlifeThread::MainLoopThunk(void* param) {
 
 void SmoothlifeThread::MainLoop() {
   simulation_ = new Simulation(context_.config);
+  // Process the queue right away to get any startup initialization.
+  ProcessQueue();
   simulation_->Clear(0);
   simulation_->Splat();
 
