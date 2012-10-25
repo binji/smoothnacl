@@ -57,6 +57,7 @@ DATA_FILES = PrefixPath('data', [
   'jquery.layout-latest.min.js',
   'jquery-ui-1.9.0.custom.min.css',
   'jquery-ui-1.9.0.custom.min.js',
+  'main.css',
   'main.js',
   'images/ui-bg_flat_0_aaaaaa_40x100.png',
   'images/ui-bg_flat_75_ffffff_40x100.png',

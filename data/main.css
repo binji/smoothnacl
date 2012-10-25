@@ -1,0 +1,81 @@
+.ui-widget {
+  font-size: 0.8em;
+}
+
+.ui-layout-north {
+  background: -webkit-linear-gradient(left, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
+  font-family: "Courier New", monospace;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.ui-layout-toggler {
+  background: #ccc;
+}
+
+#listener {
+  height: 100%;
+  position: relative;
+  width: 100%;
+}
+
+.ui-accordion-content {
+  padding: 1em 0.5em !important;
+}
+
+#preset-menu {
+  border: 0;
+}
+
+.ui-menu-item {
+  border-bottom: 1px solid #ccc;
+  font-family: "Courier New", monospace;
+  font-size: 20px;
+  font-weight: 400;
+  margin: 0;
+  padding: 15px 0 !important;
+}
+
+.ui-menu-item a.ui-state-focus {
+  background: #ddd;
+  border-radius: 0;
+}
+
+.range {
+  border-bottom: 1px solid #ccc;
+  font-family: "Courier New", monospace;
+  padding: 15px 0;
+}
+
+.range label {
+  display: inline-block;
+  width: 20%;
+}
+
+.range span {
+  color: #03c;
+  display: inline-block;
+  padding-right: 6px;
+  text-align: right;
+  width: 20%;
+}
+
+.range div {
+  display: inline-block;
+  width: 55%;
+}
+
+#buttons {
+  background: #fff;
+  border-radius: 2px;
+  bottom: 0;
+  height: 30px;
+  left: 0;
+  padding: 6px;
+  position: absolute;
+  width: auto;
+}
+
+#fps {
+  font-size: 10px;
+}

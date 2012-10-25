@@ -10,80 +10,11 @@ found in the LICENSE file.
   <meta http-equiv="Expires" content="-1">
   <title>Smoothlife</title>
   <link rel="stylesheet" href="jquery-ui-1.9.0.custom.min.css">
+  <link rel="stylesheet" href="main.css">
   <script type="text/javascript" src="jquery-1.8.2.min.js"></script>
   <script type="text/javascript" src="jquery-ui-1.9.0.custom.min.js"></script>
   <script type="text/javascript" src="jquery.layout-latest.min.js"></script>
   <script type="text/javascript" src="main.js"></script>
-  <style>
-    .ui-widget {
-      font-size: 0.8em;
-    }
-    .ui-layout-north {
-      background: -webkit-linear-gradient(left, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
-      font-family: "Courier New", monospace;
-      font-size: 30px;
-      font-weight: 400;
-    }
-    .ui-layout-toggler {
-      background: #ccc;
-    }
-    #listener {
-      height: 100%;
-      position: relative;
-      width: 100%;
-    }
-    .ui-accordion-content {
-      padding: 1em 0.5em !important;
-    }
-    #preset-menu {
-      border: 0;
-    }
-    .ui-menu-item {
-      border-bottom: 1px solid #ccc;
-      font-family: "Courier New", monospace;
-      font-size: 20px;
-      font-weight: 400;
-      margin: 0;
-      padding: 15px 0 !important;
-    }
-    .ui-menu-item a.ui-state-focus {
-      background: #ddd;
-      border-radius: 0;
-    }
-    .range {
-      border-bottom: 1px solid #ccc;
-      font-family: "Courier New", monospace;
-      padding: 15px 0;
-    }
-    .range label {
-      display: inline-block;
-      width: 20%;
-    }
-    .range span {
-      color: #03c;
-      display: inline-block;
-      padding-right: 6px;
-      text-align: right;
-      width: 20%;
-    }
-    .range div {
-      display: inline-block;
-      width: 55%;
-    }
-    #buttons {
-      background: #fff;
-      border-radius: 2px;
-      bottom: 0;
-      height: 30px;
-      left: 0;
-      padding: 6px;
-      position: absolute;
-      width: auto;
-    }
-    #fps {
-      font-size: 10px;
-    }
-  </style>
 </head>
 <body data-name="smoothlife">
   <div class="ui-layout-north">Smoothlife</div>
@@ -116,6 +47,18 @@ found in the LICENSE file.
       </div>
       <h3>About</h3>
       <div>
+        <p>
+          Smoothlife is an generalization of Conway's Game of Life, expanded to
+          use real values. The original design and implementation is by Stephan
+          Rafler. You can find his paper at
+          <a href="http://arxiv.org/pdf/1111.1567v2.pdf">http://arxiv.org/pdf/1111.1567v2.pdf</a>.
+          The original source can be found at
+          <a href="http://sourceforge.net/projects/smoothlife">http://sourceforge.net/projects/smoothlife</a>.
+        </p>
+        <p>
+          The source for the NaCl implementation can be found at
+          <a href="http://github.com/binji/smoothnacl">http://github.com/binji/smoothnacl.</a>
+        </p>
       </div>
     </div>
   </div>
