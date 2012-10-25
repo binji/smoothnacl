@@ -41,6 +41,7 @@ def Repath(prefix, seq):
 
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = PrefixPath('src', [
+  'condvar.cc',
   'functions.cc',
   'kernel.cc',
   'simulation.cc',

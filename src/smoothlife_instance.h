@@ -12,6 +12,7 @@
 #include "ppapi/cpp/fullscreen.h"
 #include "ppapi/cpp/instance.h"
 #include "ppapi/utility/completion_callback_factory.h"
+#include "condvar.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "task_queue.h"
@@ -20,6 +21,7 @@
 class SmoothlifeInstance;
 class SmoothlifeThread;
 class SmoothlifeView;
+class ThreadContext;
 typedef std::vector<std::string> ParamList;
 typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
 typedef std::map<std::string, MessageFunc> MessageMap;
@@ -35,13 +37,16 @@ class SmoothlifeInstance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
-  void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[]);
+  void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
+                         ThreadContext* context);
 
   void InitMessageMap();
   void MessageSetKernel(const ParamList& params);
   void MessageSetSmoother(const ParamList& params);
   void MessageClear(const ParamList& params);
   void MessageSplat(const ParamList& params);
+  void MessageStep(const ParamList& params);
+  void MessageRun(const ParamList& params);
 
   void EnqueueTask(Task* task);
   void ScheduleUpdate();
@@ -54,6 +59,7 @@ class SmoothlifeInstance : public pp::Instance {
   LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
   LockedObject<int>* frames_drawn_;
+  CondVar* step_cond_;
   MessageMap message_map_;
   pp::Fullscreen fullscreen_;
   bool is_initial_view_change_;

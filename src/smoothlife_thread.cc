@@ -37,6 +37,12 @@ void SmoothlifeThread::TaskDrawFilledCircle(double x, double y, double radius,
   simulation_->DrawFilledCircle(x, y, radius, color);
 }
 
+void SmoothlifeThread::TaskSetRunOptions(ThreadRunOptions run_options) {
+  context_.step_cond->Lock();
+  context_.run_options = run_options;
+  context_.step_cond->Unlock();
+}
+
 // static
 void* SmoothlifeThread::MainLoopThunk(void* param) {
   SmoothlifeThread* self = static_cast<SmoothlifeThread*>(param);
@@ -46,27 +52,27 @@ void* SmoothlifeThread::MainLoopThunk(void* param) {
 
 void SmoothlifeThread::MainLoop() {
   simulation_ = new Simulation(context_.config);
-  // Process the queue right away to get any startup initialization.
-  ProcessQueue();
-  simulation_->Clear(0);
-  simulation_->Splat();
-
   while (!quit_) {
     int* frames = context_.frames_drawn->Lock();
     (*frames)++;
     context_.frames_drawn->Unlock();
 
-    CopyBuffer();
+    // Process queue should be first to allow for any startup initialization.
     ProcessQueue();
+    CopyBuffer();
     simulation_->Step();
+    if (context_.run_options == kRunOptions_Step) {
+      context_.step_cond->Lock();
+      context_.step_cond->Wait();
+      context_.step_cond->Unlock();
+    }
   }
 }
 
 void SmoothlifeThread::CopyBuffer() {
-  AlignedReals* out_data = context_.buffer->Lock();
+  ScopedLocker<AlignedReals> locker(*context_.buffer);
   std::copy(simulation_->buffer().begin(), simulation_->buffer().end(),
-            out_data->begin());
-  context_.buffer->Unlock();
+            locker.object()->begin());
 }
 
 void SmoothlifeThread::ProcessQueue() {

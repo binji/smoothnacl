@@ -63,26 +63,34 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   locked_buffer_ = new LockedObject<AlignedReals>(buffer);
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
   frames_drawn_ = new LockedObject<int>(new int(0));
-
-  ParseInitMessages(argc, argn, argv);
+  step_cond_ = new CondVar;
 
   ThreadContext context;
   context.config = config;
+  context.run_options = kRunOptions_Continuous;
   context.buffer = locked_buffer_;
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
+  context.step_cond = step_cond_;
+
+  ParseInitMessages(argc, argn, argv, &context);
+
   thread_ = new SmoothlifeThread(context);
   view_ = new SmoothlifeView(locked_buffer_);
 
   return true;
 }
 
-void SmoothlifeInstance::ParseInitMessages(uint32_t argc, const char* argn[],
-                                           const char* argv[]) {
+void SmoothlifeInstance::ParseInitMessages(
+    uint32_t argc,
+    const char* argn[], const char* argv[],
+    ThreadContext* context) {
   for (uint32_t i = 0; i < argc; ++i) {
     if (strncmp(argn[i], "msg", 3) == 0) {
       printf("Got message: %s\n", argv[i]);
       HandleMessage(pp::Var(argv[i]));
+    } else if (strcmp(argn[i], "step") == 0) {
+      context->run_options = kRunOptions_Step;
     }
   }
 }
@@ -96,6 +104,10 @@ void SmoothlifeInstance::InitMessageMap() {
         "Clear", &SmoothlifeInstance::MessageClear));
   message_map_.insert(MessageMap::value_type(
         "Splat", &SmoothlifeInstance::MessageSplat));
+  message_map_.insert(MessageMap::value_type(
+        "Step", &SmoothlifeInstance::MessageStep));
+  message_map_.insert(MessageMap::value_type(
+        "Run", &SmoothlifeInstance::MessageRun));
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
@@ -237,10 +249,33 @@ void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSplat));
 }
 
+void SmoothlifeInstance::MessageStep(const ParamList& params) {
+  if (params.size() != 0)
+    return;
+
+  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetRunOptions,
+                               kRunOptions_Step));
+
+  step_cond_->Lock();
+  step_cond_->Signal();
+  step_cond_->Unlock();
+}
+
+void SmoothlifeInstance::MessageRun(const ParamList& params) {
+  if (params.size() != 0)
+    return;
+
+  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetRunOptions,
+                               kRunOptions_Continuous));
+
+  step_cond_->Lock();
+  step_cond_->Signal();
+  step_cond_->Unlock();
+}
+
 void SmoothlifeInstance::EnqueueTask(Task* task) {
-  TaskQueue* queue = task_queue_->Lock();
-  queue->push_back(task);
-  task_queue_->Unlock();
+  ScopedLocker<TaskQueue> locker(*task_queue_);
+  locker.object()->push_back(task);
 }
 
 void SmoothlifeInstance::ScheduleUpdate() {

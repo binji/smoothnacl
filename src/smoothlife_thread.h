@@ -2,16 +2,24 @@
 #define SMOOTHLIFE_THREAD_H_
 
 #include <pthread.h>
+#include "condvar.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "simulation.h"
 #include "task_queue.h"
 
+enum ThreadRunOptions {
+  kRunOptions_Continuous,  // Run the simulation continuously.
+  kRunOptions_Step,  // Wait for a message to step the simulation.
+};
+
 struct ThreadContext {
   SimulationConfig config;
+  ThreadRunOptions run_options;
   LockedObject<TaskQueue>* queue;  // Weak.
   LockedObject<AlignedReals>* buffer;  // Weak.
   LockedObject<int>* frames_drawn;  // Weak.
+  CondVar* step_cond;  // Weak.
 };
 
 class SmoothlifeThread {
@@ -25,6 +33,7 @@ class SmoothlifeThread {
   void TaskClear(double color);
   void TaskSplat();
   void TaskDrawFilledCircle(double x, double y, double radius, double color);
+  void TaskSetRunOptions(ThreadRunOptions run_options);
 
  private:
   static void* MainLoopThunk(void*);
