@@ -178,17 +178,21 @@ function setupUI() {
 function makeEmbed() {
   // Generate embed using current sizes and values.
   var center = $('.ui-layout-center');
-  $('#listener').append(
-      '<embed id="nacl_module" src="smoothlife.nmf"' +
-      'width="' + center.width() + '" ' +
-      'height="' + center.height() + '" type="application/x-nacl"' +
-      'msg1="' + getUpdateGroupMessage('kernel') + '" ' +
-      'msg2="' + getUpdateGroupMessage('smoother') + '" ' +
-      'msg3="Clear:0" msg4="Splat"' +
-      'msg5="SetRunOptions:continuous" msg6="SetDrawOptions:simulation">');
-
-  // jQuery events don't work with embed elements.
-  $('#listener').get(0).addEventListener('message', function (e) {
+  var listenerEl = document.getElementById('listener');
+  var embedEl = document.createElement('embed');
+  embedEl.setAttribute('id', 'nacl_module');
+  embedEl.setAttribute('src', 'smoothlife.nmf');
+  embedEl.setAttribute('type', 'application/x-nacl');
+  embedEl.setAttribute('width', center.width());
+  embedEl.setAttribute('width', center.height());
+  embedEl.setAttribute('msg1', getUpdateGroupMessage('kernel'));
+  embedEl.setAttribute('msg2', getUpdateGroupMessage('smoother'));
+  embedEl.setAttribute('msg3', 'Clear:0');
+  embedEl.setAttribute('msg4', 'Splat');
+  embedEl.setAttribute('msg5', 'SetRunOptions:continuous');
+  embedEl.setAttribute('msg6', 'SetDrawOptions:simulation');
+  listenerEl.appendChild(embedEl);
+  listenerEl.addEventListener('message', function (e) {
     $('#fps').text(e.data);
   }, true);
 }
