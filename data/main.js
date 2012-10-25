@@ -84,7 +84,7 @@ function makeValueSlider(group, el) {
   });
   slider.data('setRealValue', function (value) {
     sliderWidget.value(value);
-    slider.trigger('slide');
+    slider.trigger('slide', [{value: value}]);
   });
   return slider;
 };
@@ -112,7 +112,7 @@ function makePrecSlider(group, el) {
   });
   slider.data('setRealValue', function (value) {
     sliderWidget.value(value * mult);
-    slider.trigger('slide');
+    slider.trigger('slide', [{value: value * mult}]);
   });
   return slider;
 };
