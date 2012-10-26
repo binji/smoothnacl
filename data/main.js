@@ -148,7 +148,9 @@ function setupUI() {
   $('body').layout({
     slidable: false,
     center__onresize: function (name, el) {
-      $('#nacl_module').attr('width', el.width()).attr('height', el.height());
+      if (!document.webkitIsFullScreen) {
+        $('#nacl_module').attr('width', el.width()).attr('height', el.height());
+      }
     },
     north__closable: false,
     north__resizable: false,
