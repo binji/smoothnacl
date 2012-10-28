@@ -44,6 +44,7 @@ SOURCE_FILES = PrefixPath('src', [
   'condvar.cc',
   'functions.cc',
   'kernel.cc',
+  'palette.cc',
   'simulation.cc',
   'smoother.cc',
   'smoothlife_instance.cc',

@@ -41,6 +41,12 @@
   border-radius: 0;
 }
 
+#smootherEmbed {
+  margin: 0 auto;
+  width: 150px;
+  height: 150px;
+}
+
 .range {
   border-bottom: 1px solid #ccc;
   font-family: "Courier New", monospace;

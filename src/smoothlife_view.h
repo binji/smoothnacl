@@ -11,6 +11,8 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 
+class Palette;
+
 namespace pp {
 class Graphics2D;
 class ImageData;
@@ -40,6 +42,7 @@ class SmoothlifeView {
   pp::Graphics2D* graphics_2d_;
   pp::ImageData* pixel_buffer_;
   LockedObject<AlignedReals>* locked_buffer_;  // Weak.
+  Palette* palette_;
   bool draw_loop_running_;
 };
 

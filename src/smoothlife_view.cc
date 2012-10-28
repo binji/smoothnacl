@@ -13,6 +13,7 @@
 #include "ppapi/cpp/instance.h"
 #include "ppapi/cpp/instance_handle.h"
 #include "ppapi/cpp/point.h"
+#include "palette.h"
 
 
 SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
@@ -20,10 +21,13 @@ SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
       graphics_2d_(NULL),
       pixel_buffer_(NULL),
       locked_buffer_(buffer),
-      draw_loop_running_(false) {
+      draw_loop_running_(false),
+      //palette_(new Palette(new LabPaletteGenerator(0.9))) {
+      palette_(new Palette(new WhiteOnBlackPaletteGenerator)) {
 }
 
 SmoothlifeView::~SmoothlifeView() {
+  delete palette_;
   delete graphics_2d_;
   delete pixel_buffer_;
 }
@@ -138,9 +142,13 @@ void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
     buffer_x = 0;
     for (int x = x_offset; x < image_width - x_offset; ++x) {
       double dv = a[(int)buffer_y * buffer_width + (int)buffer_x];
+#if 0
       uint8_t v = 255 * dv; //255 * (1 - dv);
       uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
       pixels[y * image_width + x] = color;
+#else
+      pixels[y * image_width + x] = palette_->GetColor(dv);
+#endif
       buffer_x += scale;
     }
     buffer_y += scale;

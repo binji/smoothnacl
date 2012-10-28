@@ -7,7 +7,9 @@ var presets = [
   ['Electric Gliders', [[4.0, 12.0, 1.0], [0, 0.100, 0.278, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147]]],
   ['Worms and Donuts', [[10.6, 31.8, 1.0], [1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340]]],
   ['Collapsing Tunnels', [[7.26, 21.8, 1.0], [1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490]]],
-  ['Growing Tube', [[7.77, 27.2, 2.64], [3, 0.138, 0.666, 0.056, 0.175, 0.838, 2, 0, 2, 0.132, 0.311]]]
+  ['Growing Tube', [[7.77, 27.2, 2.64], [3, 0.138, 0.666, 0.056, 0.175, 0.838, 2, 0, 2, 0.132, 0.311]]],
+  ['Stitches \'n\' Jitters', [[10.4, 12.0, 1], [2, 0.182, 0.27, 0.508, 0.35, 0.749, 2, 3, 4, 0.028, 0.147]]],
+  ['Toothy', [[10, 12.0, 1], [2, 0.115, 0.269, 0.523, 0.34, 0.746, 3, 3, 4, 0.028, 0.147]]],
 ];
 
 function upperCaseFirst(s) {
@@ -27,6 +29,11 @@ function updateGroups(groupName) {
   var msg = getUpdateGroupMessage(groupName);
   $('#nacl_module').get(0).postMessage(msg);
   updateTimeoutID[groupName] = null;
+
+  if (groupName == 'smoother') {
+    $('#smoother_module').get(0).postMessage(msg);
+    $('#smoother_module').get(0).postMessage('SetRunOptions:none');
+  }
 }
 
 function updateGroup(groupName) {
@@ -120,7 +127,7 @@ function makePrecSlider(group, el) {
   });
   slider.data('updatValueForPreset', function (value) {
     sliderWidget.value(value * mult);
-    el.children('span').text((value / mult).toFixed(prec));
+    el.children('span').text(value.toFixed(prec));
   });
   return slider;
 };
@@ -165,7 +172,6 @@ function setupUI() {
 
   $('.accordion').accordion({
     fillSpace: true,
-//    animate: false,
   });
 
   $('#clear').button().click(function (e) {
@@ -213,6 +219,19 @@ function makeMainEmbed() {
   listenerEl.addEventListener('message', function (e) {
     $('#fps').text(e.data);
   }, true);
+
+  var smootherEmbed = document.getElementById('smootherEmbed');
+  var embedEl2 = document.createElement('embed');
+  embedEl2.setAttribute('id', 'smoother_module');
+  embedEl2.setAttribute('src', 'smoothlife.nmf');
+  embedEl2.setAttribute('type', 'application/x-nacl');
+  embedEl2.setAttribute('width', 150);
+  embedEl2.setAttribute('height', 150);
+  embedEl2.setAttribute('msg1', getUpdateGroupMessage('smoother'));
+  embedEl2.setAttribute('msg2', 'Clear:0');
+  embedEl2.setAttribute('msg3', 'SetRunOptions:none');
+  embedEl2.setAttribute('msg4', 'SetDrawOptions:smoother');
+  smootherEmbed.appendChild(embedEl2);
 }
 
 $(document).ready(function (){
