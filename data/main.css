@@ -65,6 +65,16 @@
   width: 55%;
 }
 
+.buttonset {
+  border-bottom: 1px solid #ccc;
+  font-family: "Courier New", monospace !important;
+  padding: 15px 0;
+}
+
+.buttonset span.ui-button-text {
+  padding: .4em .6em;
+}
+
 #buttons {
   background: #fff;
   border-radius: 2px;

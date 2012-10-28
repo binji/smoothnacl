@@ -69,38 +69,43 @@ function onPresetChanged(index) {
   module.postMessage('Splat');
 }
 
-function makeValueSlider(group, el) {
+function makeButtonset(group, el) {
   var values = el.data('values').split(' ');
-  var slider = $('<div/>').slider({
-    value: el.data('value'),
-    min: 0,
-    max: values.length - 1,
-    range: 'min',
-  });
+  var buttonsetEl = $('<div/>');
+  for (var i = 0; i < values.length; ++i) {
+    var optionId = el.text() + '_' + i;
+    var optionEl =
+        $('<input type="radio" id="'+optionId+'" '+
+            'name="'+el.text()+'" '+
+            'data-value="'+i+'" '+
+            (i === el.data('value') ? 'checked="true"' : '') +
+            '>');
+    optionEl.bind('change', function (e) {
+      updateGroup(group);
+    });
+    var labelEl = $('<label for="'+optionId+'"/>').text(values[i]);
 
-  var sliderWidget = slider.data('slider');
+    buttonsetEl.append(optionEl).append(labelEl);
+  }
+  buttonsetEl.buttonset();
 
-  slider.bind('slide', function (e, ui) {
-    el.children('span').text(values[ui.value]);
-    updateGroup(group);
-  });
+  /*
   slider.data('realValue', function () {
     return sliderWidget.value();
-  });
-  slider.data('textValue', function () {
-    return values[sliderWidget.value()];
   });
   slider.data('updatValueForPreset', function (value) {
     sliderWidget.value(value);
     el.children('span').text(values[value]);
   });
   return slider;
+  */
+  return buttonsetEl;
 };
 
 function makePrecSlider(group, el) {
   var prec = el.data('prec');
   var mult = Math.pow(10, prec);
-  var slider = $('<div/>').slider({
+  var slider = $('<div/>').addClass('slider').slider({
     value: el.data('value') * mult,
     min: el.data('min') * mult,
     max: el.data('max') * mult,
@@ -128,18 +133,19 @@ function makePrecSlider(group, el) {
 function makeSlidersForGroup(group) {
   $('.' + group + ' > div').each(function () {
     var el = $(this);
-    var slider;
 
-    if (el.data('values'))
-      slider = makeValueSlider(group, el);
-    else
-      slider = makePrecSlider(group, el);
+    if (el.data('values')) {
+      var buttonset = makeButtonset(group, el);
+      el.empty().addClass('buttonset').append(buttonset);
+    } else {
+      var slider = makePrecSlider(group, el);
+      var name = el.text();
+      el.empty().addClass('range');
+      el.append('<label>' + name + '</label>');
+      el.append('<span>' + slider.data('textValue')() + '</span>');
+      el.append(slider);
+    }
 
-    var name = el.text();
-    el.empty().addClass('range');
-    el.append('<label>' + name + '</label>');
-    el.append('<span>' + slider.data('textValue')() + '</span>');
-    el.append(slider);
   });
 };
 
