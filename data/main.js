@@ -165,7 +165,7 @@ function setupUI() {
 
   $('.accordion').accordion({
     fillSpace: true,
-    animate: false,
+//    animate: false,
   });
 
   $('#clear').button().click(function (e) {
