@@ -120,7 +120,7 @@ function makePrecSlider(group, el) {
   });
   slider.data('updatValueForPreset', function (value) {
     sliderWidget.value(value * mult);
-    el.children('span').text((value / mult).toFixed(prec));
+    el.children('span').text(value.toFixed(prec));
   });
   return slider;
 };
