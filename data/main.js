@@ -15,13 +15,31 @@ function upperCaseFirst(s) {
 }
 
 function getUpdateGroupMessage(groupName) {
+  return 'Set' + upperCaseFirst(groupName) + ':' +
+      getGroupValuesString(groupName);
+}
+
+function getGroupValuesString(groupName) {
   var values = $('.' + groupName + ' .range > div').map(function () {
     return $(this).data('realValue')();
   });
-  var msg = 'Set' + upperCaseFirst(groupName) + ':' +
-      Array.prototype.join.call(values, ',');
-  return msg;
+  return Array.prototype.join.call(values, ',');
 }
+
+function getGroupValues(groupName) {
+  return $.makeArray($('.' + groupName + ' .range > div').map(function () {
+    return $(this).data('realValue')();
+  }));
+}
+
+function getValues() {
+  return getGroupValues('kernel').concat(getGroupValues('smoother'));
+}
+
+function getValuesString() {
+  return Array.prototype.join.call(getValues(), ',');
+}
+
 
 function updateGroups(groupName) {
   var msg = getUpdateGroupMessage(groupName);
@@ -37,10 +55,10 @@ function updateGroup(groupName) {
 }
 
 function initPresets() {
-  var menu = $('#preset-menu');
+  var menu = $('#presetMenu');
   for (var i = 0; i < presets.length; ++i) {
     var presetName = presets[i][0];
-    menu.append('<li><a href="#"'+
+    menu.append('<li><a href="#" ' +
         'data-value="' + i + '">' + presetName + '</a></li>');
   }
   menu.menu({
@@ -49,6 +67,14 @@ function initPresets() {
       onPresetChanged(presetIndex);
     }
   });
+}
+
+function addPreset(name, values) {
+  var menu = $('#presetMenu');
+  presets.push([name, values]);
+  menu.append('<li><a href="#" data-value="'+
+      (presets.length-1)+'">'+name+'</a></li>');
+  menu.menu('refresh');
 }
 
 function onPresetChanged(index) {
@@ -165,7 +191,6 @@ function setupUI() {
 
   $('.accordion').accordion({
     fillSpace: true,
-    animate: false,
   });
 
   $('#clear').button().click(function (e) {
@@ -176,6 +201,10 @@ function setupUI() {
   });
   $('#fullscreen').button().click(function (e) {
     $('#nacl_module').get(0).postMessage('SetFullscreen:true');
+  });
+  $('#savePresetButton').button().click(function (e) {
+    var presetName = $('#savePresetName').val();
+    addPreset(presetName, getValues());
   });
 
   var groups = ['kernel', 'smoother'];
