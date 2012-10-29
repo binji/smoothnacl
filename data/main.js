@@ -54,13 +54,27 @@ function updateGroup(groupName) {
   }
 }
 
-function initPresets() {
+function loadPresets(array) {
   var menu = $('#presetMenu');
-  for (var i = 0; i < presets.length; ++i) {
-    var presetName = presets[i][0];
-    menu.append('<li><a href="#" ' +
-        'data-value="' + i + '">' + presetName + '</a></li>');
+  for (var i = 0; i < array.length; ++i) {
+    var presetName = array[i][0];
+    menu.append(
+        $('<li>').append(
+            $('<a>').attr('href', '#')
+                    .data('value', i)
+                    .text(presetName)));
   }
+}
+
+function initPresets() {
+  var savedPresets = localStorage.getItem('presets');
+  if (savedPresets) {
+    loadPresets(JSON.parse(savedPresets));
+  } else {
+    loadPresets(presets);
+  }
+
+  var menu = $('#presetMenu');
   menu.menu({
     select: function (e, ui) {
       var presetIndex = ui.item.children('a:first').data('value');
@@ -70,10 +84,15 @@ function initPresets() {
 }
 
 function addPreset(name, values) {
-  var menu = $('#presetMenu');
   presets.push([name, values]);
-  menu.append('<li><a href="#" data-value="'+
-      (presets.length-1)+'">'+name+'</a></li>');
+  localStorage.setItem('presets', JSON.stringify(presets));
+
+  var menu = $('#presetMenu');
+  menu.append(
+      $('<li>').append(
+          $('<a>').attr('href', '#')
+                  .data('value', presets.length - 1)
+                  .text(name)));
   menu.menu('refresh');
 }
 
