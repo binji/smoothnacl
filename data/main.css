@@ -85,10 +85,27 @@
   border-bottom: 1px solid #ccc;
   font-family: "Courier New", monospace !important;
   padding: 15px 0;
+  position: relative;
+}
+
+.buttonset > label {
+  float: left;
+  left: 0;
+  position: absolute;
+  top: 24px;
+  vertical-align: center;
+}
+
+.buttonset > .ui-buttonset {
+  float: right;
 }
 
 .buttonset span.ui-button-text {
   padding: .4em .6em;
+}
+
+.clearfix {
+  clear: both;
 }
 
 #buttons {

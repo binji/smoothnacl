@@ -119,12 +119,13 @@ function makeButtonset(group, el) {
   var buttonsetEl = $('<div/>');
   for (var i = 0; i < values.length; ++i) {
     var optionId = el.text() + '_' + i;
-    var optionEl =
-        $('<input type="radio" id="'+optionId+'" '+
-            'name="'+el.text()+'" '+
-            'data-value="'+i+'" '+
-            (i === el.data('value') ? 'checked="true"' : '') +
-            '>');
+    var optionEl = $('<input>').attr('type', 'radio')
+                               .attr('id', optionId)
+                               .attr('name', el.text())
+                               .data('value', i);
+    if (i === el.data('value'))
+      optionEl.attr('checked', 'true');
+
     optionEl.bind('change', function (e) {
       updateGroup(group);
     });
@@ -175,13 +176,17 @@ function makePrecSlider(group, el) {
   return slider;
 };
 
-function makeSlidersForGroup(group) {
+function makeUIForGroup(group) {
   $('.' + group + ' > div').each(function () {
     var el = $(this);
 
     if (el.data('values')) {
       var buttonset = makeButtonset(group, el);
-      el.empty().addClass('buttonset').append(buttonset);
+      var name = el.text();
+      el.empty().addClass('buttonset');
+      el.append('<label>' + name + '</label>');
+      el.append(buttonset);
+      el.append($('<div>').addClass('clearfix'));
     } else {
       var slider = makePrecSlider(group, el);
       var name = el.text();
@@ -234,7 +239,7 @@ function setupUI() {
 
   var groups = ['kernel', 'smoother'];
   for (var i = 0; i < groups.length; ++i) {
-    makeSlidersForGroup(groups[i]);
+    makeUIForGroup(groups[i]);
   }
 }
 
