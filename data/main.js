@@ -8,8 +8,7 @@ var presets = [
   ['Worms and Donuts', [10.6, 31.8, 1.0, 1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340]],
   ['Collapsing Tunnels', [7.26, 21.8, 1.0, 1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490]],
   ['Growing Tube', [7.77, 27.2, 2.64, 3, 0.138, 0.666, 0.056, 0.175, 0.838, 2, 0, 2, 0.132, 0.311]],
-  ['Stitches \'n\' Jitters', [10.4, 12.0, 1, 2, 0.182, 0.27, 0.508, 0.35, 0.749, 2, 3, 4, 0.028, 0.147]],
-  ['Toothy', [10, 12.0, 1, 2, 0.115, 0.269, 0.523, 0.34, 0.746, 3, 3, 4, 0.028, 0.147]],
+  ['Stitches \'n\' Jitters', [10.4, 12.0, 1, 2, 0.182, 0.27, 0.508, 0.35, 0.749, 2, 3, 4, 0.028, 0.147]]
 ];
 
 function upperCaseFirst(s) {
@@ -48,10 +47,12 @@ function updateGroups(groupName) {
   $('#nacl_module').get(0).postMessage(msg);
   updateTimeoutID[groupName] = null;
 
+  /*
   if (groupName == 'smoother') {
     $('#smoother_module').get(0).postMessage(msg);
     $('#smoother_module').get(0).postMessage('SetRunOptions:none');
   }
+  */
 }
 
 function updateGroup(groupName) {
@@ -225,7 +226,9 @@ function setupUI() {
   });
 
   $('.accordion').accordion({
+    collapsible: true,
     fillSpace: true,
+    active: 2
   });
 
   $('#clear').button().click(function (e) {
@@ -259,7 +262,7 @@ function makeEmbed(appendChildTo, attrs) {
   appendChildTo.appendChild(embedEl);
 }
 
-function makeMainEmbed() {
+function getInitialMessages() {
   var kernelMessage;
   var smootherMessage;
 
@@ -267,24 +270,31 @@ function makeMainEmbed() {
     try {
       var valueString = atob(window.location.hash.slice(1));
       var values = valueString.split(',');
-      kernelValues = 'SetKernel:'+values.slice(0, 3).join(',');
-      smootherValues = 'SetSmoother:'+values.slice(3, 14).join(',');
+      kernelMessage = 'SetKernel:'+values.slice(0, 3).join(',');
+      smootherMessage = 'SetSmoother:'+values.slice(3, 14).join(',');
     } catch (exc) {
-      kernelValues = getUpdateGroupMessage('kernel');
-      smootherValues = getUpdateGroupMessage('smoother');
+      kernelMessage = getUpdateGroupMessage('kernel');
+      smootherMessage = getUpdateGroupMessage('smoother');
     }
   } else {
-    kernelValues = getUpdateGroupMessage('kernel');
-    smootherValues = getUpdateGroupMessage('smoother');
+    kernelMessage = getUpdateGroupMessage('kernel');
+    smootherMessage = getUpdateGroupMessage('smoother');
   }
 
+  return {
+    'kernel': kernelMessage,
+    'smoother': smootherMessage
+  };
+}
+
+function makeMainEmbed(groupMessages) {
   var listenerEl = document.getElementById('listener');
   makeEmbed(listenerEl, {
     id: 'nacl_module',
     width: $('.ui-layout-center').width(),
     height: $('.ui-layout-center').height(),
-    msg1: kernelValues,
-    msg2: smootherValues,
+    msg1: groupMessages.kernel,
+    msg2: groupMessages.smoother,
     msg3: 'Clear:0',
     msg4: 'Splat',
     msg5: 'SetRunOptions:continuous',
@@ -295,23 +305,25 @@ function makeMainEmbed() {
   listenerEl.addEventListener('message', function (e) {
     $('#fps').text(e.data);
   }, true);
+}
 
+function makeSmootherEmbed(groupMessages) {
   var smootherEmbed = document.getElementById('smootherEmbed');
-  var embedEl2 = document.createElement('embed');
-  embedEl2.setAttribute('id', 'smoother_module');
-  embedEl2.setAttribute('src', 'smoothlife.nmf');
-  embedEl2.setAttribute('type', 'application/x-nacl');
-  embedEl2.setAttribute('width', 150);
-  embedEl2.setAttribute('height', 150);
-  embedEl2.setAttribute('msg1', getUpdateGroupMessage('smoother'));
-  embedEl2.setAttribute('msg2', 'Clear:0');
-  embedEl2.setAttribute('msg3', 'SetRunOptions:none');
-  embedEl2.setAttribute('msg4', 'SetDrawOptions:smoother');
-  smootherEmbed.appendChild(embedEl2);
+  makeEmbed(smootherEmbed, {
+    id: 'smoother_module',
+    width: 150,
+    height: 150,
+    msg1: groupMessages.smoother,
+    msg2: 'Clear:0',
+    msg3: 'SetRunOptions:none',
+    msg4: 'SetDrawOptions:smoother'
+  });
 }
 
 $(document).ready(function (){
   initPresets();
   setupUI();
-  makeMainEmbed();
+  var groupMessages = getInitialMessages();
+  makeMainEmbed(groupMessages);
+  //makeSmootherEmbed(groupMessages);
 });

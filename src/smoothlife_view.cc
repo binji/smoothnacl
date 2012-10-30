@@ -142,13 +142,7 @@ void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
     buffer_x = 0;
     for (int x = x_offset; x < image_width - x_offset; ++x) {
       double dv = a[(int)buffer_y * buffer_width + (int)buffer_x];
-#if 0
-      uint8_t v = 255 * dv; //255 * (1 - dv);
-      uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
-      pixels[y * image_width + x] = color;
-#else
       pixels[y * image_width + x] = palette_->GetColor(dv);
-#endif
       buffer_x += scale;
     }
     buffer_y += scale;

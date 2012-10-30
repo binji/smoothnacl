@@ -46,7 +46,7 @@ void xyz2rgb(unsigned char* r, unsigned char* g, unsigned char* b, double x, dou
   *b = (unsigned char)(255.0*correct(bl));
 }
 
-/* Convert from LAB doubles to sRGB bytes 
+/* Convert from LAB doubles to sRGB bytes
  * (just composing the above transforms)
  */
 void lab2rgb(uint8_t* R, uint8_t* G, uint8_t* B, double l, double a, double b) {
