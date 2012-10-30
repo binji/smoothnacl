@@ -23,7 +23,7 @@
   padding: 1em 0.5em !important;
 }
 
-#preset-menu {
+#presetMenu {
   border: 0;
 }
 
@@ -45,6 +45,21 @@
   margin: 0 auto;
   width: 150px;
   height: 150px;
+}
+
+#savePreset {
+  margin-left: 7px;
+  padding: 15px 0;
+}
+
+#savePresetName {
+  padding: 6px 0;
+  margin-right: 6px;
+  width: 60%;
+}
+
+#savePresetButton {
+  float: right;
 }
 
 .range {
@@ -69,6 +84,33 @@
 .range div {
   display: inline-block;
   width: 55%;
+}
+
+.buttonset {
+  border-bottom: 1px solid #ccc;
+  font-family: "Courier New", monospace !important;
+  padding: 15px 0;
+  position: relative;
+}
+
+.buttonset > label {
+  float: left;
+  left: 0;
+  position: absolute;
+  top: 24px;
+  vertical-align: center;
+}
+
+.buttonset > .ui-buttonset {
+  float: right;
+}
+
+.buttonset span.ui-button-text {
+  padding: .4em .6em;
+}
+
+.clearfix {
+  clear: both;
 }
 
 #buttons {
