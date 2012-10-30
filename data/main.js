@@ -20,14 +20,14 @@ function getUpdateGroupMessage(groupName) {
 }
 
 function getGroupValuesString(groupName) {
-  var values = $('.' + groupName + ' .range > div').map(function () {
+  var values = $('.' + groupName + ' .has-value').map(function () {
     return $(this).data('realValue')();
   });
   return Array.prototype.join.call(values, ',');
 }
 
 function getGroupValues(groupName) {
-  return $.makeArray($('.' + groupName + ' .range > div').map(function () {
+  return $.makeArray($('.' + groupName + ' .has-value').map(function () {
     return $(this).data('realValue')();
   }));
 }
@@ -98,11 +98,11 @@ function addPreset(name, values) {
 
 function onPresetChanged(index) {
   var preset = presets[index];
-  $('.kernel .range > div').each(function (i) {
-    $(this).data('updatValueForPreset')(preset[1].slice(0, 3)[i]);
+  $('.kernel .has-value').each(function (i) {
+    $(this).data('updateValueForPreset')(preset[1].slice(0, 3)[i]);
   });
-  $('.smoother .range > div').each(function (i) {
-    $(this).data('updatValueForPreset')(preset[1].slice(3, 14)[i]);
+  $('.smoother .has-value').each(function (i) {
+    $(this).data('updateValueForPreset')(preset[1].slice(3, 14)[i]);
   });
   // Skip the timeout, if the user wants to spam the button they can.
   updateGroups('kernel');
@@ -116,9 +116,9 @@ function onPresetChanged(index) {
 
 function makeButtonset(group, el) {
   var values = el.data('values').split(' ');
-  var buttonsetEl = $('<div/>');
+  var buttonsetEl = $('<div/>').addClass('has-value');
   for (var i = 0; i < values.length; ++i) {
-    var optionId = el.text() + '_' + i;
+    var optionId = el.text().replace(' ', '_') + '_' + i;
     var optionEl = $('<input>').attr('type', 'radio')
                                .attr('id', optionId)
                                .attr('name', el.text())
@@ -134,24 +134,22 @@ function makeButtonset(group, el) {
     buttonsetEl.append(optionEl).append(labelEl);
   }
   buttonsetEl.buttonset();
+  buttonsetEl.data('realValue', function () {
+    return buttonsetEl.children('input:checked').data('value');
+  });
+  buttonsetEl.data('updateValueForPreset', function (value) {
+    buttonsetEl.children('input').removeAttr('checked');
+    buttonsetEl.children('input').eq(value).attr('checked', 'true');
+    buttonsetEl.buttonset('refresh');
+  });
 
-  /*
-  slider.data('realValue', function () {
-    return sliderWidget.value();
-  });
-  slider.data('updatValueForPreset', function (value) {
-    sliderWidget.value(value);
-    el.children('span').text(values[value]);
-  });
-  return slider;
-  */
   return buttonsetEl;
 };
 
 function makePrecSlider(group, el) {
   var prec = el.data('prec');
   var mult = Math.pow(10, prec);
-  var slider = $('<div/>').addClass('slider').slider({
+  var slider = $('<div/>').addClass('has-value').slider({
     value: el.data('value') * mult,
     min: el.data('min') * mult,
     max: el.data('max') * mult,
@@ -169,7 +167,7 @@ function makePrecSlider(group, el) {
   slider.data('textValue', function () {
     return (sliderWidget.value() / mult).toFixed(prec);
   });
-  slider.data('updatValueForPreset', function (value) {
+  slider.data('updateValueForPreset', function (value) {
     sliderWidget.value(value * mult);
     el.children('span').text(value.toFixed(prec));
   });
