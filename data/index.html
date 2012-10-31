@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <title>Smoothlife</title>
+  <link rel="stylesheet" href="jquery-ui-1.9.0.custom.min.css">
+  <link rel="stylesheet" href="main.css">
+  <script type="text/javascript" src="jquery-1.8.2.min.js"></script>
+  <script type="text/javascript" src="jquery-ui-1.9.0.custom.min.js"></script>
+  <script type="text/javascript" src="jquery.layout-latest.min.js"></script>
+  <script type="text/javascript" src="main.js"></script>
+</head>
+<body>
+  <div class="ui-layout-north">Smoothlife</div>
+  <div class="ui-layout-west">
+    <div class="accordion">
+      <h3>Presets</h3>
+      <div>
+        <ul id="presetMenu">
+        </ul>
+        <div id="savePreset">
+          <input type="text" id="savePresetName" placeholder="Save name">
+          <input type="submit" id="savePresetButton" value="Save">
+        </div>
+      </div>
+      <h3>Kernel</h3>
+      <div class='kernel'>
+        <div data-min="0" data-max="50" data-value="4.0" data-prec="1"
+            title="Radius of the 'disc' part of a cell.">
+          disc radius
+        </div>
+        <div data-min="0" data-max="50" data-value="12.0" data-prec="1"
+            title="Radius of the 'ring' part of a cell, surrounding the disc.">
+          ring radius
+        </div>
+        <div data-min="0" data-max="50" data-value="1.0" data-prec="1"
+            title="The anti-aliasing radius. The larger this value, the more blended the region between the disc and the ring.">
+          anti-alias radius
+        </div>
+      </div>
+      <h3>Smoother</h3>
+      <div class='smoother'>
+        <div data-values="discrete smooth1 smooth2 smooth3" data-value="2">timestep</div>
+        <div data-min="0" data-max="1" data-value="0.115" data-prec="3">dt</div>
+        <div data-min="0" data-max="1" data-value="0.269" data-prec="3">b1</div>
+        <div data-min="0" data-max="1" data-value="0.523" data-prec="3">d1</div>
+        <div data-min="0" data-max="1" data-value="0.340" data-prec="3">b2</div>
+        <div data-min="0" data-max="1" data-value="0.746" data-prec="3">d2</div>
+        <div data-values="mode1 mode2 mode3 mode4" data-value="3">sigmoid mode</div>
+        <div data-values="hard linear hermite sin smooth" data-value="4">sigmoid</div>
+        <div data-values="hard linear hermite sin smooth" data-value="4">mix</div>
+        <div data-min="0" data-max="1" data-value="0.028" data-prec="3">sn</div>
+        <div data-min="0" data-max="1" data-value="0.147" data-prec="3">sm</div>
+      </div>
+      <h3>About</h3>
+      <div>
+        <p>
+          Smoothlife is an generalization of Conway's Game of Life, expanded to
+          use real values. The original design and implementation is by Stephan
+          Rafler. You can find his paper at
+          <a href="http://arxiv.org/pdf/1111.1567v2.pdf">http://arxiv.org/pdf/1111.1567v2.pdf</a>.
+          The original source can be found at
+          <a href="http://sourceforge.net/projects/smoothlife">http://sourceforge.net/projects/smoothlife</a>.
+        </p>
+        <p>
+          The source for the NaCl implementation can be found at
+          <a href="http://github.com/binji/smoothnacl">http://github.com/binji/smoothnacl.</a>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="ui-layout-center">
+    <div id="listener">
+    </div>
+    <div id="buttons">
+      <input type="submit" id="clear" value="Clear">
+      <input type="submit" id="splat" value="Splat">
+      <input type="submit" id="fullscreen" value="Fullscreen">
+      <span id="fps">FPS: 0.000</span>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,4 +1,7 @@
 nacl_sdk/
-nacl_sdk.zip
-newlib/
-glibc/
+fftw/
+out/
+build.ninja
+.ninja_log
+httpd.pid
+*.pyc
