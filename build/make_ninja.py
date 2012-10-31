@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
 import cStringIO
 import ninja_syntax
 import optparse
@@ -8,9 +12,6 @@ import sys
 SCRIPT_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 
-
-def PrefixPath(path, seq):
-  return [os.path.join(path, x) for x in seq]
 
 def Prefix(prefix, items):
   return ' '.join(prefix + x for x in items.split())
@@ -27,10 +28,22 @@ def SplitPath(path):
     result[:0] = [tail]
     path = head
 
+def NoRepath(seq):
+  result = []
+  for path in seq:
+    if path[0] == '<':
+      result.append(path[1:])
+    else:
+      result.append(path)
+  return result
+
 def Repath(prefix, seq):
   result = []
   for path in seq:
-    path = os.path.join(*SplitPath(path)[1:])
+    if path[0] == '<':
+      path = os.path.basename(path[1:])
+    else:
+      path = os.path.join(*SplitPath(path)[1:])
     if type(prefix) is list:
       args = prefix + [path]
       result.append(os.path.join(*args))
@@ -40,55 +53,63 @@ def Repath(prefix, seq):
 
 
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
-SOURCE_FILES = PrefixPath('src', [
-  'condvar.cc',
-  'functions.cc',
-  'kernel.cc',
-  'simulation.cc',
-  'smoother.cc',
-  'smoothlife_instance.cc',
-  'smoothlife_module.cc',
-  'smoothlife_thread.cc',
-  'smoothlife_view.cc',
-])
-
-DATA_FILES = PrefixPath('data', [
-  'index.html',
-  'jquery-1.8.2.min.js',
-  'jquery.layout-latest.min.js',
-  'jquery-ui-1.9.0.custom.min.css',
-  'jquery-ui-1.9.0.custom.min.js',
-  'main.css',
-  'main.js',
-  'images/ui-bg_flat_0_aaaaaa_40x100.png',
-  'images/ui-bg_flat_75_ffffff_40x100.png',
-  'images/ui-bg_glass_55_fbf9ee_1x400.png',
-  'images/ui-bg_glass_65_ffffff_1x400.png',
-  'images/ui-bg_glass_75_dadada_1x400.png',
-  'images/ui-bg_glass_75_e6e6e6_1x400.png',
-  'images/ui-bg_glass_95_fef1ec_1x400.png',
-  'images/ui-bg_highlight-soft_75_cccccc_1x100.png',
-  'images/ui-icons_222222_256x240.png',
-  'images/ui-icons_2e83ff_256x240.png',
-  'images/ui-icons_454545_256x240.png',
-  'images/ui-icons_888888_256x240.png',
-  'images/ui-icons_cd0a0a_256x240.png'
-])
+SOURCE_FILES = [
+  'src/condvar.cc',
+  'src/functions.cc',
+  'src/kernel.cc',
+  'src/simulation.cc',
+  'src/smoother.cc',
+  'src/smoothlife_instance.cc',
+  'src/smoothlife_module.cc',
+  'src/smoothlife_thread.cc',
+  'src/smoothlife_view.cc',
+]
 
 
-BUILT_FILES = PrefixPath('out', [
-  'smoothlife.nmf',
-  'smoothlife_32.nexe',
-  'smoothlife_64.nexe',
-])
+DATA_FILES = [
+  'data/index.html',
+  'data/main.css',
+  'data/main.js',
+  'data/images/ui-bg_flat_0_aaaaaa_40x100.png',
+  'data/images/ui-bg_flat_75_ffffff_40x100.png',
+  'data/images/ui-bg_glass_55_fbf9ee_1x400.png',
+  'data/images/ui-bg_glass_65_ffffff_1x400.png',
+  'data/images/ui-bg_glass_75_dadada_1x400.png',
+  'data/images/ui-bg_glass_75_e6e6e6_1x400.png',
+  'data/images/ui-bg_glass_95_fef1ec_1x400.png',
+  'data/images/ui-bg_highlight-soft_75_cccccc_1x100.png',
+  'data/images/ui-icons_222222_256x240.png',
+  'data/images/ui-icons_2e83ff_256x240.png',
+  'data/images/ui-icons_454545_256x240.png',
+  'data/images/ui-icons_888888_256x240.png',
+  'data/images/ui-icons_cd0a0a_256x240.png',
+  # Strip paths that start with < when repathing.
+  '<third_party/jquery/jquery-1.8.2.min.js',
+  '<third_party/jquery.layout/jquery.layout-latest.min.js',
+  '<third_party/jquery-ui/jquery-ui-1.9.0.custom.min.css',
+  '<third_party/jquery-ui/jquery-ui-1.9.0.custom.min.js',
+]
+SRC_DATA_FILES = NoRepath(DATA_FILES)
+DST_DATA_FILES = Repath('out', DATA_FILES)
 
-PACKAGE_FILES = DATA_FILES + BUILT_FILES + PrefixPath('data', [
-  'icon16.png',
-  'icon64.png',
-  'icon128.png',
-  'background.js',
-  'manifest.json',
-])
+
+BUILT_FILES = [
+  'out/smoothlife.nmf',
+  'out/smoothlife_32.nexe',
+  'out/smoothlife_64.nexe',
+]
+
+
+PACKAGE_FILES = DATA_FILES + BUILT_FILES + [
+  'data/icon16.png',
+  'data/icon64.png',
+  'data/icon128.png',
+  'data/background.js',
+  'data/manifest.json',
+]
+SRC_PACKAGE_FILES = NoRepath(PACKAGE_FILES)
+DST_PACKAGE_FILES = Repath(['out', 'package'], PACKAGE_FILES)
+
 
 def main():
   parser = optparse.OptionParser()
@@ -107,7 +128,7 @@ def main():
   Code(w)
   Data(w)
   Package(w)
-  w.default('out/smoothlife.nmf ' + ' '.join(Repath('out', DATA_FILES)))
+  w.default('out/smoothlife.nmf ' + ' '.join(DST_DATA_FILES))
 
   # Don't write build.ninja until everything succeeds
   with open(out_filename, 'w') as f:
@@ -127,10 +148,11 @@ def Code(w):
   libs = Prefix('-l', '''pthread ppapi_cpp ppapi fftw3''')
 
   flags = '-g -std=c++0x -O2 -msse2'
+  fftw_dir = 'third_party/fftw-prebuilt'
 
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
-    includes = '-Ilib/newlib_x86_{bits}/include'.format(**vars())
-    libdirs = '-Llib/newlib_x86_{bits}/lib'.format(**vars())
+    includes = '-I{fftw_dir}/newlib_x86_{bits}/include'.format(**vars())
+    libdirs = '-L{fftw_dir}/newlib_x86_{bits}/lib'.format(**vars())
 
     w.variable('cflags' + bits, '{flags} {includes}'.format(**vars()))
     w.variable('ldflags' + bits, '{libdirs} {libs}'.format(**vars()))
@@ -159,8 +181,7 @@ def Code(w):
 def Data(w):
   w.newline()
   w.rule('cp', command='cp $in $out', description='CP $out')
-  dest = Repath('out', DATA_FILES)
-  for inf, outf in zip(dest, DATA_FILES):
+  for inf, outf in zip(DST_DATA_FILES, SRC_DATA_FILES):
     w.build(inf, 'cp', outf)
 
 
@@ -168,10 +189,9 @@ def Package(w):
   w.newline()
   w.rule('zip', command='$zip -C out/package $out $in', description='ZIP $out')
   w.variable('zip', 'script/zip.py')
-  dest = Repath(['out', 'package'], PACKAGE_FILES)
-  for inf, outf in zip(dest, PACKAGE_FILES):
+  for inf, outf in zip(DST_PACKAGE_FILES, SRC_PACKAGE_FILES):
     w.build(inf, 'cp', outf)
-  w.build(os.path.join('out', 'smoothlife.zip'), 'zip', dest)
+  w.build(os.path.join('out', 'smoothlife.zip'), 'zip', DST_PACKAGE_FILES)
   w.build('package', 'phony', 'out/smoothlife.zip')
 
 
