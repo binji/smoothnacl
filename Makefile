@@ -8,7 +8,7 @@ build.ninja:
 	@build/make_ninja.py
 
 clean:
-	rm -rf out
+	rm -rf out build.ninja
 
 run: all
 	script/run.py out ${CHROME_PATH} ${NEXE_ARGS}
