@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "smoothlife_instance.h"
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -9,15 +10,14 @@
 #include <ppapi/c/pp_time.h>
 #include <ppapi/cpp/core.h>
 #include <ppapi/cpp/module.h>
-#include "ppapi/cpp/input_event.h"
-#include "ppapi/cpp/var.h"
+#include <ppapi/cpp/input_event.h>
+#include <ppapi/cpp/var.h>
 
-#include "kernel.h"
-#include "simulation.h"
-#include "smoother.h"
-#include "smoothlife_instance.h"
-#include "smoothlife_thread.h"
-#include "smoothlife_view.h"
+#include "cpu/kernel.h"
+#include "cpu/simulation.h"
+#include "cpu/smoother.h"
+#include "cpu/smoothlife_thread.h"
+#include "cpu/smoothlife_view.h"
 #include "task.h"
 
 namespace {
@@ -66,10 +66,10 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   frames_drawn_ = new LockedObject<int>(new int(0));
   step_cond_ = new CondVar;
 
-  ThreadContext context;
+  cpu::ThreadContext context;
   context.config = config;
-  context.run_options = kRunOptions_Continuous;
-  context.draw_options = kDrawOptions_Simulation;
+  context.run_options = cpu::kRunOptions_Continuous;
+  context.draw_options = cpu::kDrawOptions_Simulation;
   context.buffer = locked_buffer_;
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
@@ -77,8 +77,8 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   ParseInitMessages(argc, argn, argv, &context);
 
-  thread_ = new SmoothlifeThread(context);
-  view_ = new SmoothlifeView(locked_buffer_);
+  thread_ = new cpu::SmoothlifeThread(context);
+  view_ = new cpu::SmoothlifeView(locked_buffer_);
 
   return true;
 }
@@ -86,7 +86,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 void SmoothlifeInstance::ParseInitMessages(
     uint32_t argc,
     const char* argn[], const char* argv[],
-    ThreadContext* context) {
+    cpu::ThreadContext* context) {
   for (uint32_t i = 0; i < argc; ++i) {
     if (strncmp(argn[i], "msg", 3) == 0) {
       HandleMessage(pp::Var(argv[i]));
@@ -139,11 +139,12 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       if (left_down_) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
-        EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskDrawFilledCircle,
-                                     sim_point.x(),
-                                     sim_point.y(),
-                                     10,
-                                     1.0));
+        EnqueueTask(MakeFunctionTask(
+              &cpu::SmoothlifeThread::TaskDrawFilledCircle,
+              sim_point.x(),
+              sim_point.y(),
+              10,
+              1.0));
       }
       return true;
     }
@@ -220,7 +221,7 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
   config.disc_radius = strtod(params[0].c_str(), NULL);
   config.ring_radius = strtod(params[1].c_str(), NULL);
   config.blend_radius = strtod(params[2].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetKernel, config));
+  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetKernel, config));
 }
 
 void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
@@ -239,7 +240,7 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
   config.mix = static_cast<Sigmoid>(atoi(params[8].c_str()));
   config.sn = strtod(params[9].c_str(), NULL);
   config.sm = strtod(params[10].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetSmoother, config));
+  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetSmoother, config));
 }
 
 void SmoothlifeInstance::MessageClear(const ParamList& params) {
@@ -247,33 +248,33 @@ void SmoothlifeInstance::MessageClear(const ParamList& params) {
     return;
 
   double color = strtod(params[0].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskClear, color));
+  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskClear, color));
 }
 
 void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSplat));
+  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSplat));
 }
 
 void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
   if (params.size() != 1)
     return;
 
-  ThreadRunOptions run_options;
+  cpu::ThreadRunOptions run_options;
   if (params[0] == "step")
-    run_options = kRunOptions_Step;
+    run_options = cpu::kRunOptions_Step;
   else if (params[0] == "continuous")
-    run_options = kRunOptions_Continuous;
+    run_options = cpu::kRunOptions_Continuous;
   else if (params[0] == "none")
-    run_options = kRunOptions_None;
+    run_options = cpu::kRunOptions_None;
   else {
     printf("Unknown value for SetRunOptions, ignoring.\n");
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetRunOptions,
+  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetRunOptions,
                                run_options));
 
   step_cond_->Lock();
@@ -285,21 +286,21 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
   if (params.size() != 1)
     return;
 
-  ThreadDrawOptions draw_options;
+  cpu::ThreadDrawOptions draw_options;
   if (params[0] == "simulation")
-    draw_options = kDrawOptions_Simulation;
+    draw_options = cpu::kDrawOptions_Simulation;
   else if (params[0] == "kernelDisc")
-    draw_options = kDrawOptions_KernelDisc;
+    draw_options = cpu::kDrawOptions_KernelDisc;
   else if (params[0] == "kernelRing")
-    draw_options = kDrawOptions_KernelRing;
+    draw_options = cpu::kDrawOptions_KernelRing;
   else if (params[0] == "smoother")
-    draw_options = kDrawOptions_Smoother;
+    draw_options = cpu::kDrawOptions_Smoother;
   else {
     printf("Unknown value for SetDrawOptions, ignoring.\n");
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetDrawOptions,
+  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetDrawOptions,
                                draw_options));
 }
 

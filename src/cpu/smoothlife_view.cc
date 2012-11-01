@@ -7,13 +7,15 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ppapi/cpp/completion_callback.h"
-#include "ppapi/cpp/graphics_2d.h"
-#include "ppapi/cpp/image_data.h"
-#include "ppapi/cpp/instance.h"
-#include "ppapi/cpp/instance_handle.h"
-#include "ppapi/cpp/point.h"
+#include <ppapi/cpp/completion_callback.h>
+#include <ppapi/cpp/graphics_2d.h>
+#include <ppapi/cpp/image_data.h>
+#include <ppapi/cpp/instance.h>
+#include <ppapi/cpp/instance_handle.h>
+#include <ppapi/cpp/point.h>
 
+
+namespace cpu {
 
 SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
     : factory_(this),
@@ -147,36 +149,4 @@ void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
   }
 }
 
-
-#if 0
-unsigned long long rdtsc(void) {
-  unsigned int tickl, tickh;
-  __asm__ __volatile__("rdtsc":"=a"(tickl),"=d"(tickh));
-  return ((unsigned long long)tickh << 32)|tickl;
-}
-
-#if 1
-  const int kCounter = 100;
-  int counter = kCounter;
-  const char* name[10];
-  uint64_t tsc[10];
-  memset(&tsc[0], 0, sizeof(uint64_t) * 10);
-#endif
-
-#define MARK(X) do { \
-    name[c] = #X; \
-    X; \
-    temp = rdtsc(); \
-    tsc[c++] += temp - last; \
-    last = temp; \
-  } while(0)
-
-  if (--counter == 0) {
-    for (int i = 0; i < c; ++i) {
-      printf("%s: %g\n", name[i], static_cast<double>(tsc[i]) / kCounter);
-    }
-    counter = kCounter;
-    memset(&tsc[0], 0, sizeof(uint64_t) * 10);
-  }
-#endif
-
+}  // namespace cpu

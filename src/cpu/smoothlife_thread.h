@@ -7,10 +7,12 @@
 
 #include <pthread.h>
 #include "condvar.h"
+#include "cpu/simulation.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
-#include "simulation.h"
 #include "task_queue.h"
+
+namespace cpu {
 
 enum ThreadRunOptions {
   // Run the simulation continuously.
@@ -68,5 +70,7 @@ class SmoothlifeThread {
   SmoothlifeThread(const SmoothlifeThread&);  // Undefined.
   SmoothlifeThread& operator =(const SmoothlifeThread&);  // Undefined.
 };
+
+}  // namespace cpu
 
 #endif  // SMOOTHLIFE_THREAD_H_

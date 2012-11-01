@@ -6,6 +6,8 @@
 #include <algorithm>
 #include "task.h"
 
+namespace cpu {
+
 SmoothlifeThread::SmoothlifeThread(const ThreadContext& context)
     : context_(context),
       simulation_(NULL),
@@ -115,3 +117,5 @@ void SmoothlifeThread::ProcessQueue() {
   queue->clear();
   context_.queue->Unlock();
 }
+
+}  // namespace cpu

@@ -7,22 +7,24 @@
 
 #include <functional>
 
+namespace cpu {
 class SmoothlifeThread;
+}
 
 class Task {
  public:
   virtual ~Task() {}
-  virtual void Run(SmoothlifeThread* thread) = 0;
+  virtual void Run(cpu::SmoothlifeThread* thread) = 0;
 };
 
 class FunctionTask : public Task {
  public:
-  typedef void FunctionType(SmoothlifeThread*);
+  typedef void FunctionType(cpu::SmoothlifeThread*);
   FunctionTask(const std::function<FunctionType>& function)
       : function_(function) {
   }
 
-  virtual void Run(SmoothlifeThread* thread) {
+  virtual void Run(cpu::SmoothlifeThread* thread) {
     function_(thread);
   }
 

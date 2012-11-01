@@ -8,10 +8,10 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "ppapi/cpp/size.h"
-#include "ppapi/cpp/fullscreen.h"
-#include "ppapi/cpp/instance.h"
-#include "ppapi/utility/completion_callback_factory.h"
+#include <ppapi/cpp/size.h>
+#include <ppapi/cpp/fullscreen.h>
+#include <ppapi/cpp/instance.h>
+#include <ppapi/utility/completion_callback_factory.h>
 #include "condvar.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
@@ -19,12 +19,15 @@
 
 
 class SmoothlifeInstance;
-class SmoothlifeThread;
-class SmoothlifeView;
-class ThreadContext;
 typedef std::vector<std::string> ParamList;
 typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
 typedef std::map<std::string, MessageFunc> MessageMap;
+
+namespace cpu {
+class SmoothlifeThread;
+class SmoothlifeView;
+class ThreadContext;
+}
 
 
 class SmoothlifeInstance : public pp::Instance {
@@ -38,7 +41,7 @@ class SmoothlifeInstance : public pp::Instance {
 
  private:
   void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
-                         ThreadContext* context);
+                         cpu::ThreadContext* context);
 
   void InitMessageMap();
   void MessageSetKernel(const ParamList& params);
@@ -54,8 +57,8 @@ class SmoothlifeInstance : public pp::Instance {
   void UpdateCallback(int32_t result);
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
-  SmoothlifeView* view_;
-  SmoothlifeThread* thread_;
+  cpu::SmoothlifeView* view_;
+  cpu::SmoothlifeThread* thread_;
   pp::Size sim_size_;
   LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;

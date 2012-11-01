@@ -55,14 +55,15 @@ def Repath(prefix, seq):
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = [
   'src/condvar.cc',
+  'src/cpu/kernel.cc',
+  'src/cpu/simulation.cc',
+  'src/cpu/smoother.cc',
+  'src/cpu/smoothlife_thread.cc',
+  'src/cpu/smoothlife_view.cc',
   'src/functions.cc',
-  'src/kernel.cc',
-  'src/simulation.cc',
-  'src/smoother.cc',
+  'src/gpu/texture.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
-  'src/smoothlife_thread.cc',
-  'src/smoothlife_view.cc',
 ]
 
 
@@ -145,13 +146,14 @@ def Code(w):
       command='$cc $in $ldflags -o $out',
       description='LINK $out')
 
-  libs = Prefix('-l', '''pthread ppapi_cpp ppapi fftw3''')
+  libs = Prefix('-l', '''pthread ppapi_gles2 ppapi_cpp ppapi fftw3''')
 
   flags = '-g -std=c++0x -O2 -msse2'
   fftw_dir = 'third_party/fftw-prebuilt'
 
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
-    includes = '-I{fftw_dir}/newlib_x86_{bits}/include'.format(**vars())
+    includes = '-Isrc '
+    includes += '-I{fftw_dir}/newlib_x86_{bits}/include'.format(**vars())
     libdirs = '-L{fftw_dir}/newlib_x86_{bits}/lib'.format(**vars())
 
     w.variable('cflags' + bits, '{flags} {includes}'.format(**vars()))

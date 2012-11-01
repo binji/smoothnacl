@@ -5,16 +5,13 @@
 #ifndef SIMULATION_H_
 #define SIMULATION_H_
 
-#include "ppapi/cpp/size.h"
+#include <ppapi/cpp/size.h>
+#include "cpu/kernel.h"
+#include "cpu/smoother.h"
 #include "fft_allocation.h"
-#include "kernel.h"
-#include "smoother.h"
+#include "simulation_config.h"
 
-struct SimulationConfig {
-  pp::Size size;
-  KernelConfig kernel_config;
-  SmootherConfig smoother_config;
-};
+namespace cpu {
 
 class Simulation {
  public:
@@ -50,5 +47,7 @@ class Simulation {
   Simulation(const Simulation&);  // Undefined.
   Simulation& operator =(const Simulation&);  // Undefined.
 };
+
+}  // namespace cpu
 
 #endif  // SIMULATION_H_

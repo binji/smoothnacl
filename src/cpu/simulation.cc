@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "simulation.h"
+#include "cpu/simulation.h"
 #include <algorithm>
 #include <assert.h>
 #include <fftw3.h>
 #include <math.h>
 
+namespace cpu {
 namespace {
 
 void MultiplyComplex(const AlignedComplexes& in1,
@@ -158,3 +159,5 @@ void Simulation::Splat() {
     DrawFilledCircle(x, y, r, 1.0);
   }
 }
+
+}  // namespace cpu

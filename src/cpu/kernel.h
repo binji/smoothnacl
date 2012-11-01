@@ -7,14 +7,11 @@
 
 #include <assert.h>
 #include <fftw3.h>
-#include "ppapi/cpp/size.h"
+#include <ppapi/cpp/size.h>
 #include "fft_allocation.h"
+#include "kernel_config.h"
 
-struct KernelConfig {
-  double disc_radius;
-  double ring_radius;
-  double blend_radius;
-};
+namespace cpu {
 
 class Kernel {
  public:
@@ -46,5 +43,7 @@ class Kernel {
   Kernel(const Kernel&);  // undefined
   Kernel& operator =(const Kernel&);  // undefined
 };
+
+}  // namespace cpu
 
 #endif  // KERNEL_H_

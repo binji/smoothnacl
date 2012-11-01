@@ -2,9 +2,10 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "smoother.h"
+#include "cpu/smoother.h"
 #include "functions.h"
 
+namespace cpu {
 namespace {
 
 const int kLookupSize = 512;
@@ -173,3 +174,5 @@ void Smoother::Apply_Smooth4(const double* an, const double* am,
     na[i] = clamp01(am[i] + config_.timestep.dt * (f - am[i]));
   }
 }
+
+}  // namespace cpu

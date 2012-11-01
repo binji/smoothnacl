@@ -5,9 +5,9 @@
 #ifndef EXAMPLES_SMOOTHLIFE_VIEW_H_
 #define EXAMPLES_SMOOTHLIFE_VIEW_H_
 
-#include "ppapi/cpp/point.h"
-#include "ppapi/cpp/rect.h"
-#include "ppapi/utility/completion_callback_factory.h"
+#include <ppapi/cpp/point.h>
+#include <ppapi/cpp/rect.h>
+#include <ppapi/utility/completion_callback_factory.h>
 #include "fft_allocation.h"
 #include "locked_object.h"
 
@@ -18,6 +18,8 @@ class Instance;
 class Size;
 class View;
 }  // namespace pp
+
+namespace cpu {
 
 class SmoothlifeView {
  public:
@@ -42,5 +44,7 @@ class SmoothlifeView {
   LockedObject<AlignedReals>* locked_buffer_;  // Weak.
   bool draw_loop_running_;
 };
+
+}  // namespace cpu
 
 #endif  // EXAMPLES_SMOOTHLIFE_VIEW_H_
