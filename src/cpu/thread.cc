@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "smoothlife_thread.h"
+#include "cpu/thread.h"
 #include <algorithm>
 #include "task.h"
 
 namespace cpu {
 
-SmoothlifeThread::SmoothlifeThread(const ThreadContext& context)
+Thread::Thread(const ThreadContext& context)
     : context_(context),
       simulation_(NULL),
       thread_create_result_(0),
@@ -16,49 +16,49 @@ SmoothlifeThread::SmoothlifeThread(const ThreadContext& context)
   thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
 }
 
-SmoothlifeThread::~SmoothlifeThread() {
+Thread::~Thread() {
   quit_ = true;
   if (thread_create_result_ == 0)
     pthread_join(thread_, NULL);
 }
 
-void SmoothlifeThread::TaskSetKernel(const KernelConfig& config) {
+void Thread::TaskSetKernel(const KernelConfig& config) {
   simulation_->SetKernel(config);
 }
 
-void SmoothlifeThread::TaskSetSmoother(const SmootherConfig& config) {
+void Thread::TaskSetSmoother(const SmootherConfig& config) {
   simulation_->SetSmoother(config);
 }
 
-void SmoothlifeThread::TaskClear(double color) {
+void Thread::TaskClear(double color) {
   simulation_->Clear(color);
 }
 
-void SmoothlifeThread::TaskSplat() {
+void Thread::TaskSplat() {
   simulation_->Splat();
 }
 
-void SmoothlifeThread::TaskDrawFilledCircle(double x, double y, double radius,
+void Thread::TaskDrawFilledCircle(double x, double y, double radius,
                                             double color) {
   simulation_->DrawFilledCircle(x, y, radius, color);
 }
 
-void SmoothlifeThread::TaskSetRunOptions(ThreadRunOptions run_options) {
+void Thread::TaskSetRunOptions(ThreadRunOptions run_options) {
   context_.run_options = run_options;
 }
 
-void SmoothlifeThread::TaskSetDrawOptions(ThreadDrawOptions draw_options) {
+void Thread::TaskSetDrawOptions(ThreadDrawOptions draw_options) {
   context_.draw_options = draw_options;
 }
 
 // static
-void* SmoothlifeThread::MainLoopThunk(void* param) {
-  SmoothlifeThread* self = static_cast<SmoothlifeThread*>(param);
+void* Thread::MainLoopThunk(void* param) {
+  Thread* self = static_cast<Thread*>(param);
   self->MainLoop();
   return NULL;
 }
 
-void SmoothlifeThread::MainLoop() {
+void Thread::MainLoop() {
   simulation_ = new Simulation(context_.config);
   while (!quit_) {
     int* frames = context_.frames_drawn->Lock();
@@ -80,7 +80,7 @@ void SmoothlifeThread::MainLoop() {
   }
 }
 
-void SmoothlifeThread::Draw() {
+void Thread::Draw() {
   switch (context_.draw_options) {
     default:
     case kDrawOptions_Simulation:
@@ -102,12 +102,12 @@ void SmoothlifeThread::Draw() {
   }
 }
 
-void SmoothlifeThread::CopyBuffer(const AlignedReals& src) {
+void Thread::CopyBuffer(const AlignedReals& src) {
   ScopedLocker<AlignedReals> locker(*context_.buffer);
   std::copy(src.begin(), src.end(), locker.object()->begin());
 }
 
-void SmoothlifeThread::ProcessQueue() {
+void Thread::ProcessQueue() {
   TaskQueue* queue = context_.queue->Lock();
   for (TaskQueue::iterator iter = queue->begin(), end = queue->end();
        iter != end;

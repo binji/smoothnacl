@@ -11,24 +11,9 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "task_queue.h"
+#include "thread_options.h"
 
 namespace cpu {
-
-enum ThreadRunOptions {
-  // Run the simulation continuously.
-  kRunOptions_Continuous,
-  // Wait for a message to step the simulation.
-  kRunOptions_Step,
-  // Don't run the sim, wait for step message to copy the buffer.
-  kRunOptions_None,
-};
-
-enum ThreadDrawOptions {
-  kDrawOptions_Simulation,
-  kDrawOptions_KernelDisc,
-  kDrawOptions_KernelRing,
-  kDrawOptions_Smoother,
-};
 
 struct ThreadContext {
   SimulationConfig config;
@@ -40,10 +25,10 @@ struct ThreadContext {
   CondVar* step_cond;  // Weak.
 };
 
-class SmoothlifeThread {
+class Thread {
  public:
-  explicit SmoothlifeThread(const ThreadContext& context);
-  ~SmoothlifeThread();
+  explicit Thread(const ThreadContext& context);
+  ~Thread();
 
   // Tasks: Do not call these directly, use MakeFunctionTask(...) instead.
   void TaskSetKernel(const KernelConfig& config);
@@ -67,8 +52,8 @@ class SmoothlifeThread {
   int thread_create_result_;
   bool quit_;
 
-  SmoothlifeThread(const SmoothlifeThread&);  // Undefined.
-  SmoothlifeThread& operator =(const SmoothlifeThread&);  // Undefined.
+  Thread(const Thread&);  // Undefined.
+  Thread& operator =(const Thread&);  // Undefined.
 };
 
 }  // namespace cpu

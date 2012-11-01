@@ -16,9 +16,10 @@
 #include "cpu/kernel.h"
 #include "cpu/simulation.h"
 #include "cpu/smoother.h"
-#include "cpu/smoothlife_thread.h"
 #include "cpu/smoothlife_view.h"
+#include "cpu/thread.h"
 #include "task.h"
+#include "thread_options.h"
 
 namespace {
 
@@ -68,8 +69,8 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   cpu::ThreadContext context;
   context.config = config;
-  context.run_options = cpu::kRunOptions_Continuous;
-  context.draw_options = cpu::kDrawOptions_Simulation;
+  context.run_options = kRunOptions_Continuous;
+  context.draw_options = kDrawOptions_Simulation;
   context.buffer = locked_buffer_;
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
@@ -77,7 +78,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   ParseInitMessages(argc, argn, argv, &context);
 
-  thread_ = new cpu::SmoothlifeThread(context);
+  thread_ = new cpu::Thread(context);
   view_ = new cpu::SmoothlifeView(locked_buffer_);
 
   return true;
@@ -140,7 +141,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
         EnqueueTask(MakeFunctionTask(
-              &cpu::SmoothlifeThread::TaskDrawFilledCircle,
+              &cpu::Thread::TaskDrawFilledCircle,
               sim_point.x(),
               sim_point.y(),
               10,
@@ -221,7 +222,7 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
   config.disc_radius = strtod(params[0].c_str(), NULL);
   config.ring_radius = strtod(params[1].c_str(), NULL);
   config.blend_radius = strtod(params[2].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetKernel, config));
+  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetKernel, config));
 }
 
 void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
@@ -240,7 +241,7 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
   config.mix = static_cast<Sigmoid>(atoi(params[8].c_str()));
   config.sn = strtod(params[9].c_str(), NULL);
   config.sm = strtod(params[10].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetSmoother, config));
+  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetSmoother, config));
 }
 
 void SmoothlifeInstance::MessageClear(const ParamList& params) {
@@ -248,34 +249,33 @@ void SmoothlifeInstance::MessageClear(const ParamList& params) {
     return;
 
   double color = strtod(params[0].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskClear, color));
+  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskClear, color));
 }
 
 void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSplat));
+  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSplat));
 }
 
 void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
   if (params.size() != 1)
     return;
 
-  cpu::ThreadRunOptions run_options;
+  ThreadRunOptions run_options;
   if (params[0] == "step")
-    run_options = cpu::kRunOptions_Step;
+    run_options = kRunOptions_Step;
   else if (params[0] == "continuous")
-    run_options = cpu::kRunOptions_Continuous;
+    run_options = kRunOptions_Continuous;
   else if (params[0] == "none")
-    run_options = cpu::kRunOptions_None;
+    run_options = kRunOptions_None;
   else {
     printf("Unknown value for SetRunOptions, ignoring.\n");
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetRunOptions,
-                               run_options));
+  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetRunOptions, run_options));
 
   step_cond_->Lock();
   step_cond_->Signal();
@@ -286,22 +286,21 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
   if (params.size() != 1)
     return;
 
-  cpu::ThreadDrawOptions draw_options;
+  ThreadDrawOptions draw_options;
   if (params[0] == "simulation")
-    draw_options = cpu::kDrawOptions_Simulation;
+    draw_options = kDrawOptions_Simulation;
   else if (params[0] == "kernelDisc")
-    draw_options = cpu::kDrawOptions_KernelDisc;
+    draw_options = kDrawOptions_KernelDisc;
   else if (params[0] == "kernelRing")
-    draw_options = cpu::kDrawOptions_KernelRing;
+    draw_options = kDrawOptions_KernelRing;
   else if (params[0] == "smoother")
-    draw_options = cpu::kDrawOptions_Smoother;
+    draw_options = kDrawOptions_Smoother;
   else {
     printf("Unknown value for SetDrawOptions, ignoring.\n");
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&cpu::SmoothlifeThread::TaskSetDrawOptions,
-                               draw_options));
+  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetDrawOptions, draw_options));
 }
 
 void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
