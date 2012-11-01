@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SMOOTHER_H_
-#define SMOOTHER_H_
+#ifndef CPU_SMOOTHER_H_
+#define CPU_SMOOTHER_H_
 
 #include "fft_allocation.h"
 #include "smoother_config.h"
@@ -42,4 +42,4 @@ class Smoother {
 
 }  // namespace cpu
 
-#endif  // SMOOTHER_H_
+#endif  // CPU_SMOOTHER_H_

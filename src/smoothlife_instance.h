@@ -24,7 +24,7 @@ typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
 typedef std::map<std::string, MessageFunc> MessageMap;
 
 namespace cpu {
-class SmoothlifeView;
+class View;
 class Thread;
 class ThreadContext;
 }
@@ -57,7 +57,7 @@ class SmoothlifeInstance : public pp::Instance {
   void UpdateCallback(int32_t result);
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
-  cpu::SmoothlifeView* view_;
+  cpu::View* view_;
   cpu::Thread* thread_;
   pp::Size sim_size_;
   LockedObject<AlignedReals>* locked_buffer_;

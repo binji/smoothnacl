@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef KERNEL_H_
-#define KERNEL_H_
+#ifndef CPU_KERNEL_H_
+#define CPU_KERNEL_H_
 
 #include <assert.h>
 #include <fftw3.h>
@@ -46,4 +46,4 @@ class Kernel {
 
 }  // namespace cpu
 
-#endif  // KERNEL_H_
+#endif  // CPU_KERNEL_H_

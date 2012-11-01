@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SIMULATION_H_
-#define SIMULATION_H_
+#ifndef CPU_SIMULATION_H_
+#define CPU_SIMULATION_H_
 
 #include <ppapi/cpp/size.h>
 #include "cpu/kernel.h"
@@ -50,4 +50,4 @@ class Simulation {
 
 }  // namespace cpu
 
-#endif  // SIMULATION_H_
+#endif  // CPU_SIMULATION_H_

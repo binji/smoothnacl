@@ -16,8 +16,8 @@
 #include "cpu/kernel.h"
 #include "cpu/simulation.h"
 #include "cpu/smoother.h"
-#include "cpu/smoothlife_view.h"
 #include "cpu/thread.h"
+#include "cpu/view.h"
 #include "task.h"
 #include "thread_options.h"
 
@@ -79,7 +79,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   ParseInitMessages(argc, argn, argv, &context);
 
   thread_ = new cpu::Thread(context);
-  view_ = new cpu::SmoothlifeView(locked_buffer_);
+  view_ = new cpu::View(locked_buffer_);
 
   return true;
 }

@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "smoothlife_view.h"
+#include "cpu/view.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -17,7 +17,7 @@
 
 namespace cpu {
 
-SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
+View::View(LockedObject<AlignedReals>* buffer)
     : factory_(this),
       graphics_2d_(NULL),
       pixel_buffer_(NULL),
@@ -25,12 +25,12 @@ SmoothlifeView::SmoothlifeView(LockedObject<AlignedReals>* buffer)
       draw_loop_running_(false) {
 }
 
-SmoothlifeView::~SmoothlifeView() {
+View::~View() {
   delete graphics_2d_;
   delete pixel_buffer_;
 }
 
-bool SmoothlifeView::DidChangeView(pp::Instance* instance,
+bool View::DidChangeView(pp::Instance* instance,
                              const pp::View& view) {
   pp::Size old_size = GetSize();
   pp::Size new_size = view.GetRect().size();
@@ -64,11 +64,11 @@ bool SmoothlifeView::DidChangeView(pp::Instance* instance,
   return true;
 }
 
-pp::Size SmoothlifeView::GetSize() const {
+pp::Size View::GetSize() const {
   return graphics_2d_ ? graphics_2d_->size() : pp::Size();
 }
 
-pp::Point SmoothlifeView::ScreenToSim(const pp::Point& p,
+pp::Point View::ScreenToSim(const pp::Point& p,
                                       const pp::Size& sim_size) const {
   double scale;
   int x_offset;
@@ -79,7 +79,7 @@ pp::Point SmoothlifeView::ScreenToSim(const pp::Point& p,
       static_cast<int>((p.y() - y_offset) * scale));
 }
 
-void SmoothlifeView::GetScreenToSimScale(
+void View::GetScreenToSimScale(
     const pp::Size& sim_size,
     double* out_scale,
     int* out_xoffset, int* out_yoffset) const {
@@ -95,7 +95,7 @@ void SmoothlifeView::GetScreenToSimScale(
       static_cast<int>((image_height - sim_size.height() / *out_scale) / 2);
 }
 
-void SmoothlifeView::DrawCallback(int32_t result) {
+void View::DrawCallback(int32_t result) {
   if (!graphics_2d_) {
     draw_loop_running_ = false;
     return;
@@ -112,15 +112,15 @@ void SmoothlifeView::DrawCallback(int32_t result) {
   // store. When it is finished, it calls the callback. By hooking our draw
   // function to the Flush callback, we will be able to draw as quickly as
   // possible.
-  graphics_2d_->Flush(factory_.NewCallback(&SmoothlifeView::DrawCallback));
+  graphics_2d_->Flush(factory_.NewCallback(&View::DrawCallback));
 }
 
-void SmoothlifeView::PaintRectToGraphics2D(const pp::Rect& rect) {
+void View::PaintRectToGraphics2D(const pp::Rect& rect) {
   const pp::Point top_left(0, 0);
   graphics_2d_->PaintImageData(*pixel_buffer_, top_left, rect);
 }
 
-void SmoothlifeView::DrawBuffer(const AlignedReals& a) {
+void View::DrawBuffer(const AlignedReals& a) {
   uint32_t* pixels = static_cast<uint32_t*>(pixel_buffer_->data());
   if (!pixels)
     return;

@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef SMOOTHLIFE_THREAD_H_
-#define SMOOTHLIFE_THREAD_H_
+#ifndef CPU_THREAD_H_
+#define CPU_THREAD_H_
 
 #include <pthread.h>
 #include "condvar.h"
@@ -58,4 +58,4 @@ class Thread {
 
 }  // namespace cpu
 
-#endif  // SMOOTHLIFE_THREAD_H_
+#endif  // CPU_THREAD_H_

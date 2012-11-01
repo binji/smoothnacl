@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef EXAMPLES_SMOOTHLIFE_VIEW_H_
-#define EXAMPLES_SMOOTHLIFE_VIEW_H_
+#ifndef CPU_VIEW_H_
+#define CPU_VIEW_H_
 
 #include <ppapi/cpp/point.h>
 #include <ppapi/cpp/rect.h>
@@ -21,10 +21,10 @@ class View;
 
 namespace cpu {
 
-class SmoothlifeView {
+class View {
  public:
-  SmoothlifeView(LockedObject<AlignedReals>* buffer);
-  ~SmoothlifeView();
+  explicit View(LockedObject<AlignedReals>* buffer);
+  ~View();
 
   bool DidChangeView(pp::Instance* instance, const pp::View& view);
   pp::Size GetSize() const;
@@ -38,7 +38,7 @@ class SmoothlifeView {
   void PaintRectToGraphics2D(const pp::Rect& rect);
   void DrawBuffer(const FftAllocation<double>& a);
 
-  pp::CompletionCallbackFactory<SmoothlifeView> factory_;
+  pp::CompletionCallbackFactory<View> factory_;
   pp::Graphics2D* graphics_2d_;
   pp::ImageData* pixel_buffer_;
   LockedObject<AlignedReals>* locked_buffer_;  // Weak.
@@ -47,4 +47,4 @@ class SmoothlifeView {
 
 }  // namespace cpu
 
-#endif  // EXAMPLES_SMOOTHLIFE_VIEW_H_
+#endif  // CPU_VIEW_H_
