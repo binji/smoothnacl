@@ -141,7 +141,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
         EnqueueTask(MakeFunctionTask(
-              &cpu::Thread::TaskDrawFilledCircle,
+              &ThreadBase::TaskDrawFilledCircle,
               sim_point.x(),
               sim_point.y(),
               10,
@@ -222,7 +222,7 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
   config.disc_radius = strtod(params[0].c_str(), NULL);
   config.ring_radius = strtod(params[1].c_str(), NULL);
   config.blend_radius = strtod(params[2].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetKernel, config));
+  EnqueueTask(MakeFunctionTask(&ThreadBase::TaskSetKernel, config));
 }
 
 void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
@@ -241,7 +241,7 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
   config.mix = static_cast<Sigmoid>(atoi(params[8].c_str()));
   config.sn = strtod(params[9].c_str(), NULL);
   config.sm = strtod(params[10].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetSmoother, config));
+  EnqueueTask(MakeFunctionTask(&ThreadBase::TaskSetSmoother, config));
 }
 
 void SmoothlifeInstance::MessageClear(const ParamList& params) {
@@ -249,14 +249,14 @@ void SmoothlifeInstance::MessageClear(const ParamList& params) {
     return;
 
   double color = strtod(params[0].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskClear, color));
+  EnqueueTask(MakeFunctionTask(&ThreadBase::TaskClear, color));
 }
 
 void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSplat));
+  EnqueueTask(MakeFunctionTask(&ThreadBase::TaskSplat));
 }
 
 void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
@@ -275,7 +275,7 @@ void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetRunOptions, run_options));
+  EnqueueTask(MakeFunctionTask(&ThreadBase::TaskSetRunOptions, run_options));
 
   step_cond_->Lock();
   step_cond_->Signal();
@@ -300,7 +300,7 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&cpu::Thread::TaskSetDrawOptions, draw_options));
+  EnqueueTask(MakeFunctionTask(&ThreadBase::TaskSetDrawOptions, draw_options));
 }
 
 void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {

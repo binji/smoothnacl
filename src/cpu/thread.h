@@ -11,6 +11,7 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "task_queue.h"
+#include "thread_base.h"
 #include "thread_options.h"
 
 namespace cpu {
@@ -25,7 +26,7 @@ struct ThreadContext {
   CondVar* step_cond;  // Weak.
 };
 
-class Thread {
+class Thread : public ThreadBase {
  public:
   explicit Thread(const ThreadContext& context);
   ~Thread();

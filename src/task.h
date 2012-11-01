@@ -7,24 +7,22 @@
 
 #include <functional>
 
-namespace cpu {
-class Thread;
-}
+class ThreadBase;
 
 class Task {
  public:
   virtual ~Task() {}
-  virtual void Run(cpu::Thread* thread) = 0;
+  virtual void Run(ThreadBase* thread) = 0;
 };
 
 class FunctionTask : public Task {
  public:
-  typedef void FunctionType(cpu::Thread*);
-  FunctionTask(const std::function<FunctionType>& function)
+  typedef void FunctionType(ThreadBase*);
+  explicit FunctionTask(const std::function<FunctionType>& function)
       : function_(function) {
   }
 
-  virtual void Run(cpu::Thread* thread) {
+  virtual void Run(ThreadBase* thread) {
     function_(thread);
   }
 
