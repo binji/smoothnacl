@@ -61,6 +61,7 @@ SOURCE_FILES = [
   'src/cpu/thread.cc',
   'src/cpu/view.cc',
   'src/functions.cc',
+  'src/gpu/kernel.cc',
   'src/gpu/texture.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',

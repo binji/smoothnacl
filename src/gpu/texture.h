@@ -8,14 +8,22 @@
 #include <GLES2/gl2.h>
 #include "fft_allocation.h"
 
+namespace gpu {
+
 enum TextureOptions {
   TEXTURE_NOFRAMEBUFFER,
   TEXTURE_FRAMEBUFFER,
 };
 
+enum TextureFormat {
+  FORMAT_REAL,
+  FORMAT_COMPLEX,
+};
+
 class Texture { 
  public:
-  Texture(GLsizei width, GLsizei height, GLenum format, TextureOptions options);
+  Texture(GLsizei width, GLsizei height, TextureFormat format,
+          TextureOptions options);
   ~Texture();
 
   void BindFramebuffer();
@@ -32,5 +40,7 @@ class Texture {
   GLenum format_;
   TextureOptions options_;
 };
+
+}  // namespace gpu
 
 #endif  // TEXTURE_H_

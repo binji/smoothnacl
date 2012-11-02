@@ -2,17 +2,20 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef KERNEL_H_
-#define KERNEL_H_
+#ifndef GPU_KERNEL_H_
+#define GPU_KERNEL_H_
 
 #include <GLES2/gl2.h>
-#include "kernel.h"
-#include "texture.h"
+#include "cpu/kernel.h"
+#include "gpu/texture.h"
 
-class KernelGPU {
+struct KernelConfig;
+
+namespace gpu {
+
+class Kernel {
  public:
-  KernelGPU(const pp::Size& size, const KernelConfig& config);
-  ~KernelGPU();
+  Kernel(const pp::Size& size, const KernelConfig& config);
 
   const pp::Size& size() const { return kernel_.size(); }
   const KernelConfig& config() const { return kernel_.config(); }
@@ -21,12 +24,14 @@ class KernelGPU {
   double kfld() const { return kernel_.kfld(); }
 
  private:
-  Kernel kernel_;
+  cpu::Kernel kernel_;
   Texture krf_;
   Texture kdf_;
 
-  KernelGPU(const KernelGPU&);  // undefined
-  KernelGPU& operator =(const KernelGPU&);  // undefined
+  Kernel(const Kernel&);  // undefined
+  Kernel& operator =(const Kernel&);  // undefined
 };
 
-#endif  // KERNEL_H_
+}  // namespace gpu
+
+#endif  // GPU_KERNEL_H_

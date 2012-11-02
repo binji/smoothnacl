@@ -2,16 +2,30 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "texture.h"
+#include "gpu/texture.h"
 #include <algorithm>
+#include <assert.h>
 
-Texture::Texture(GLsizei width, GLsizei height, GLenum format,
+namespace gpu {
+namespace {
+
+GLenum GetGLFormat(TextureFormat format) {
+  switch (format) {
+    case FORMAT_REAL: return GL_LUMINANCE;
+    case FORMAT_COMPLEX: return GL_RGBA;
+    default: assert(0);
+  }
+}
+
+}  // namespace
+
+Texture::Texture(GLsizei width, GLsizei height, TextureFormat format,
                  TextureOptions options)
     : id_(0),
       fb_id_(0),
       width_(width),
       height_(height),
-      format_(format),
+      format_(GetGLFormat(format)),
       options_(options) {
   glGenTextures(1, &id_);
   glBindTexture(GL_TEXTURE_2D, id_);
@@ -67,3 +81,5 @@ void Texture::Load(const AlignedComplexes& buffer) {
                GL_FLOAT, temp);
   delete [] temp;
 }
+
+}  // namespace gpu
