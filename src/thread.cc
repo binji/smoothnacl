@@ -2,11 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "cpu/thread.h"
+#include "thread.h"
 #include <algorithm>
+#include "draw_strategy_base.h"
+#include "simulation_base.h"
 #include "task.h"
-
-namespace cpu {
 
 Thread::Thread(const ThreadContext& context)
     : context_(context),
@@ -59,7 +59,7 @@ void* Thread::MainLoopThunk(void* param) {
 }
 
 void Thread::MainLoop() {
-  simulation_ = new Simulation(context_.config);
+  simulation_ = context_.factory->Create(context_.config);
   while (!quit_) {
     int* frames = context_.frames_drawn->Lock();
     (*frames)++;
@@ -67,7 +67,7 @@ void Thread::MainLoop() {
 
     // Process queue should be first to allow for any startup initialization.
     ProcessQueue();
-    Draw();
+    context_.draw_strategy->Draw(context_.draw_options, simulation_);
 
     if (context_.run_options != kRunOptions_None)
       simulation_->Step();
@@ -80,33 +80,6 @@ void Thread::MainLoop() {
   }
 }
 
-void Thread::Draw() {
-  switch (context_.draw_options) {
-    default:
-    case kDrawOptions_Simulation:
-      CopyBuffer(simulation_->buffer());
-      break;
-
-    case kDrawOptions_KernelDisc:
-      CopyBuffer(simulation_->kernel().kd());
-      break;
-
-    case kDrawOptions_KernelRing:
-      CopyBuffer(simulation_->kernel().kr());
-      break;
-
-    case kDrawOptions_Smoother:
-      simulation_->ViewSmoother();
-      CopyBuffer(simulation_->buffer());
-      break;
-  }
-}
-
-void Thread::CopyBuffer(const AlignedReals& src) {
-  ScopedLocker<AlignedReals> locker(*context_.buffer);
-  std::copy(src.begin(), src.end(), locker.object()->begin());
-}
-
 void Thread::ProcessQueue() {
   TaskQueue* queue = context_.queue->Lock();
   for (TaskQueue::iterator iter = queue->begin(), end = queue->end();
@@ -117,5 +90,3 @@ void Thread::ProcessQueue() {
   queue->clear();
   context_.queue->Unlock();
 }
-
-}  // namespace cpu

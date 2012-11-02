@@ -55,16 +55,17 @@ def Repath(prefix, seq):
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = [
   'src/condvar.cc',
+  'src/cpu/draw_strategy.cc',
   'src/cpu/kernel.cc',
   'src/cpu/simulation.cc',
   'src/cpu/smoother.cc',
-  'src/cpu/thread.cc',
   'src/cpu/view.cc',
   'src/functions.cc',
   'src/gpu/kernel.cc',
   'src/gpu/texture.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
+  'src/thread.cc',
 ]
 
 

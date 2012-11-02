@@ -9,26 +9,28 @@
 #include "cpu/kernel.h"
 #include "cpu/smoother.h"
 #include "fft_allocation.h"
+#include "simulation_base.h"
 #include "simulation_config.h"
 
 namespace cpu {
 
-class Simulation {
+class Simulation : public SimulationBase {
  public:
   explicit Simulation(const SimulationConfig& config);
   ~Simulation();
 
-  void SetKernel(const KernelConfig& config);
-  void SetSmoother(const SmootherConfig& config);
+  virtual void SetKernel(const KernelConfig& config);
+  virtual void SetSmoother(const SmootherConfig& config);
   const Kernel& kernel() const { return kernel_; }
   const Smoother& smoother() const { return smoother_; }
   const AlignedReals& buffer() const { return aa_; }
 
-  void ViewSmoother();
-  void Step();
-  void Clear(double color);
-  void DrawFilledCircle(double x, double y, double radius, double color);
-  void Splat();
+  virtual void ViewSmoother();
+  virtual void Step();
+  virtual void Clear(double color);
+  virtual void DrawFilledCircle(double x, double y, double radius,
+                                double color);
+  virtual void Splat();
 
  private:
   pp::Size size_;
@@ -46,6 +48,13 @@ class Simulation {
 
   Simulation(const Simulation&);  // Undefined.
   Simulation& operator =(const Simulation&);  // Undefined.
+};
+
+class SimulationFactory : public SimulationFactoryBase {
+ public:
+  virtual SimulationBase* Create(const SimulationConfig& config) {
+    return new Simulation(config);
+  }
 };
 
 }  // namespace cpu

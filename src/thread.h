@@ -2,31 +2,32 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef CPU_THREAD_H_
-#define CPU_THREAD_H_
+#ifndef THREAD_H_
+#define THREAD_H_
 
 #include <pthread.h>
 #include "condvar.h"
-#include "cpu/simulation.h"
-#include "fft_allocation.h"
 #include "locked_object.h"
+#include "simulation_config.h"
 #include "task_queue.h"
-#include "thread_base.h"
 #include "thread_options.h"
 
-namespace cpu {
+class DrawStrategyBase;
+class SimulationBase;
+class SimulationFactoryBase;
 
 struct ThreadContext {
   SimulationConfig config;
   ThreadRunOptions run_options;
   ThreadDrawOptions draw_options;
   LockedObject<TaskQueue>* queue;  // Weak.
-  LockedObject<AlignedReals>* buffer;  // Weak.
   LockedObject<int>* frames_drawn;  // Weak.
   CondVar* step_cond;  // Weak.
+  SimulationFactoryBase* factory;  // Weak.
+  DrawStrategyBase* draw_strategy;  // Weak.
 };
 
-class Thread : public ThreadBase {
+class Thread {
  public:
   explicit Thread(const ThreadContext& context);
   ~Thread();
@@ -43,12 +44,10 @@ class Thread : public ThreadBase {
  private:
   static void* MainLoopThunk(void*);
   void MainLoop();
-  void Draw();
-  void CopyBuffer(const AlignedReals& src);
   void ProcessQueue();
 
   ThreadContext context_;
-  Simulation* simulation_;
+  SimulationBase* simulation_;
   pthread_t thread_;
   int thread_create_result_;
   bool quit_;
@@ -57,6 +56,4 @@ class Thread : public ThreadBase {
   Thread& operator =(const Thread&);  // Undefined.
 };
 
-}  // namespace cpu
-
-#endif  // CPU_THREAD_H_
+#endif  // THREAD_H_

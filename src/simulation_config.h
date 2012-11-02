@@ -5,6 +5,10 @@
 #ifndef SIMULATION_CONFIG_H_
 #define SIMULATION_CONFIG_H_
 
+#include <ppapi/cpp/size.h>
+#include "kernel_config.h"
+#include "smoother_config.h"
+
 struct SimulationConfig {
   pp::Size size;
   KernelConfig kernel_config;

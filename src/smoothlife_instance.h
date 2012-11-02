@@ -19,14 +19,14 @@
 
 
 class SmoothlifeInstance;
-class ThreadBase;
+class Thread;
+class ThreadContext;
 typedef std::vector<std::string> ParamList;
 typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
 typedef std::map<std::string, MessageFunc> MessageMap;
 
 namespace cpu {
 class View;
-class ThreadContext;
 }
 
 
@@ -41,7 +41,7 @@ class SmoothlifeInstance : public pp::Instance {
 
  private:
   void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
-                         cpu::ThreadContext* context);
+                         ThreadContext* context);
 
   void InitMessageMap();
   void MessageSetKernel(const ParamList& params);
@@ -58,7 +58,7 @@ class SmoothlifeInstance : public pp::Instance {
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   cpu::View* view_;
-  ThreadBase* thread_;
+  Thread* thread_;
   pp::Size sim_size_;
   LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
