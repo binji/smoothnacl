@@ -67,6 +67,13 @@ void Texture::Load(const AlignedReals& buffer) {
                GL_FLOAT, &buffer[0]);
 }
 
+void Texture::Load(const float4* buffer, size_t width, size_t height) {
+  assert(width == width_);
+  assert(height == height_);
+  assert(GL_RGBA == format_);
+  // TODO(binji): implement
+}
+
 void Texture::Load(const AlignedComplexes& buffer) {
   assert(buffer.size().width() == width_);
   assert(buffer.size().height() == height_);

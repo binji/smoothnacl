@@ -6,9 +6,12 @@
 #define TEXTURE_H_
 
 #include <GLES2/gl2.h>
+#include <ppapi/cpp/size.h>
 #include "fft_allocation.h"
 
 namespace gpu {
+
+typedef float float4[4];
 
 enum TextureOptions {
   TEXTURE_NOFRAMEBUFFER,
@@ -18,6 +21,7 @@ enum TextureOptions {
 enum TextureFormat {
   FORMAT_REAL,
   FORMAT_COMPLEX,
+  FORMAT_4FLOAT,
 };
 
 class Texture { 
@@ -27,6 +31,7 @@ class Texture {
   ~Texture();
 
   void BindFramebuffer();
+  void Load(const float4* buffer, size_t width, size_t height);
   void Load(const AlignedReals& buffer);
   void Load(const AlignedComplexes& buffer);
 

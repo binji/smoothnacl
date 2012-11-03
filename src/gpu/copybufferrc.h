@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef GPU_COPYBUFFERCR_H_
-#define GPU_COPYBUFFERCR_H_
+#ifndef GPU_COPYBUFFERRC_H_
+#define GPU_COPYBUFFERRC_H_
 
 #include <ppapi/cpp/size.h>
 #include "gpu/shader.h"
@@ -31,4 +31,4 @@ class CopyBufferRC {
 
 }  // namespace gpu
 
-#endif  // GPU_COPYBUFFERCR_H_
+#endif  // GPU_COPYBUFFERRC_H_
