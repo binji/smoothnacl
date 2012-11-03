@@ -62,6 +62,7 @@ SOURCE_FILES = [
   'src/cpu/view.cc',
   'src/functions.cc',
   'src/gpu/kernel.cc',
+  'src/gpu/shader.cc',
   'src/gpu/texture.cc',
   'src/gpu/vertex_buffer.cc',
   'src/smoothlife_instance.cc',
