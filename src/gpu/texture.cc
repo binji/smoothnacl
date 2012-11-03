@@ -55,6 +55,8 @@ Texture::~Texture() {
 void Texture::BindFramebuffer() {
   assert(options_ == TEXTURE_FRAMEBUFFER);
   glBindFramebuffer(GL_FRAMEBUFFER, fb_id_);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         id_, 0);
 }
 
 void Texture::Load(const AlignedReals& buffer) {

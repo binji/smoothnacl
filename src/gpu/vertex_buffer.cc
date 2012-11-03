@@ -1,0 +1,81 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
+#include "gpu/vertex_buffer.h"
+#include <stddef.h>
+#include <string.h>
+
+namespace gpu {
+
+VertexBuffer::VertexBuffer() {
+  glGenBuffers(1, &id_);
+  Clear();
+}
+
+VertexBuffer::~VertexBuffer() {
+}
+
+
+void VertexBuffer::Clear() {
+  memset(&verts_[0], 0, sizeof(verts_));
+}
+
+void VertexBuffer::SetSize(float width, float height) {
+  verts_[0].pos[0] = 0;
+  verts_[0].pos[1] = 0;
+  verts_[1].pos[0] = width;
+  verts_[1].pos[1] = 0;
+  verts_[2].pos[0] = 0;
+  verts_[2].pos[1] = height;
+  verts_[3].pos[0] = width;
+  verts_[3].pos[1] = height;
+}
+
+void VertexBuffer::SetTex(size_t index, float top, float left, float bottom,
+                          float right) {
+  verts_[0].tex[index][0] = left;
+  verts_[0].tex[index][1] = top;
+  verts_[1].tex[index][0] = right;
+  verts_[1].tex[index][1] = top;
+  verts_[2].tex[index][0] = left;
+  verts_[2].tex[index][1] = bottom;
+  verts_[3].tex[index][0] = right;
+  verts_[3].tex[index][1] = bottom;
+}
+
+void VertexBuffer::LoadData() {
+  glBindBuffer(GL_ARRAY_BUFFER, id_);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(verts_), &verts_[0], GL_STATIC_DRAW);
+}
+
+void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0) {
+  glBindBuffer(GL_ARRAY_BUFFER, id_);
+  glVertexAttribPointer(loc_pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<void*>(offsetof(Vertex, pos)));
+  glVertexAttribPointer(loc_tex0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<void*>(offsetof(Vertex, tex[0])));
+  glEnableVertexAttribArray(loc_tex0);
+}
+
+void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0,
+                              GLuint loc_tex1) {
+  SetAttribs(loc_pos, loc_tex0);
+  glVertexAttribPointer(loc_tex1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<void*>(offsetof(Vertex, tex[1])));
+  glEnableVertexAttribArray(loc_tex1);
+}
+
+void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0, GLuint loc_tex1,
+                              GLuint loc_tex2) {
+  SetAttribs(loc_pos, loc_tex0, loc_tex1);
+  glVertexAttribPointer(loc_tex2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        reinterpret_cast<void*>(offsetof(Vertex, tex[2])));
+  glEnableVertexAttribArray(loc_tex2);
+}
+
+void VertexBuffer::Draw() {
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+}  // namespace gpu
