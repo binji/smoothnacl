@@ -52,6 +52,24 @@ def Repath(prefix, seq):
   return result
 
 
+SHADER_FILES = [
+  'data/copybuffercr.frag',
+  'data/copybuffercr.vert',
+  'data/copybufferrc.frag',
+  'data/copybufferrc.vert',
+  'data/draw.frag',
+  'data/draw.vert',
+  'data/fft.frag',
+  'data/fft.vert',
+  'data/kernelmul.frag',
+  'data/kernelmul.vert',
+  'data/snm.frag',
+  'data/snm.vert',
+]
+OUT_SHADER_CC = 'out/gen/shader_source.cc'
+OUT_SHADER_H = 'out/gen/shader_source.h'
+
+
 MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = [
   'src/condvar.cc',
@@ -68,6 +86,7 @@ SOURCE_FILES = [
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
   'src/thread.cc',
+  OUT_SHADER_CC,
 ]
 
 
@@ -130,6 +149,7 @@ def main():
   w.variable('nacl_sdk_usr', 'nacl_sdk/pepper_23')
   w.variable('toolchain_dir', '$nacl_sdk_usr/toolchain/linux_x86_newlib')
 
+  Gen(w)
   Code(w)
   Data(w)
   Package(w)
@@ -138,6 +158,15 @@ def main():
   # Don't write build.ninja until everything succeeds
   with open(out_filename, 'w') as f:
     f.write(s.getvalue())
+
+
+def Gen(w):
+  w.newline()
+  w.rule('shader_to_c',
+      command='script/shader_to_c.py -r out -o $outbase $in',
+      description='SHADER_TO_C $out')
+  w.build([OUT_SHADER_CC, OUT_SHADER_H], 'shader_to_c', SHADER_FILES,
+      variables={'outbase': os.path.splitext(OUT_SHADER_CC)[0]})
 
 
 def Code(w):
@@ -156,7 +185,7 @@ def Code(w):
   fftw_dir = 'third_party/fftw-prebuilt'
 
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
-    includes = '-Isrc '
+    includes = '-Isrc -Iout '
     includes += '-I{fftw_dir}/newlib_x86_{bits}/include'.format(**vars())
     libdirs = '-L{fftw_dir}/newlib_x86_{bits}/lib'.format(**vars())
 
@@ -168,6 +197,7 @@ def Code(w):
     objs = [SourceToObj(x, bits) for x in sources]
     for source, obj in zip(sources, objs):
       w.build(obj, 'cc', source,
+          order_only=OUT_SHADER_H,
           variables={'cflags': '$cflags' + bits, 'cc': '$cc' + bits})
 
     w.build('out/smoothlife_{bits}.nexe'.format(**vars()), 'link', objs,

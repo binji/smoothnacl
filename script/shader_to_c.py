@@ -60,7 +60,7 @@ def main(args):
     parser.error('Must use -o to specify output file.')
 
   header = options.out + '.h'
-  cc = options.out + '.c'
+  cc = options.out + '.cc'
 
   hfile = open(header, 'w')
   with open(header, 'w') as hfile:
