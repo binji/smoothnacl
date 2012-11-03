@@ -83,6 +83,7 @@ SOURCE_FILES = [
   'src/gpu/kernel_mul.cc',
   'src/gpu/shader.cc',
   'src/gpu/simulation.cc',
+  'src/gpu/smoother.cc',
   'src/gpu/texture.cc',
   'src/gpu/vertex_buffer.cc',
   'src/smoothlife_instance.cc',

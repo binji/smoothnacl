@@ -9,6 +9,7 @@
 #include "gpu/kernel.h"
 #include "gpu/kernel_mul.h"
 #include "gpu/shader.h"
+#include "gpu/smoother.h"
 #include "gpu/vertex_buffer.h"
 #include "simulation_base.h"
 #include "simulation_config.h"
@@ -35,6 +36,7 @@ class Simulation : public SimulationBase {
   pp::Size size_;
   Kernel kernel_;
   KernelMul kernel_mul_;
+  Smoother smoother_;
 
   Simulation(const Simulation&);  // Undefined.
   Simulation& operator =(const Simulation&);  // Undefined.

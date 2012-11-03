@@ -13,7 +13,8 @@ namespace {
 Simulation::Simulation(const SimulationConfig& config)
     : size_(config.size),
       kernel_(config.size, config.kernel_config),
-      kernel_mul_(config.size) {
+      kernel_mul_(config.size),
+      smoother_(config.size, config.smoother_config) {
 }
 
 Simulation::~Simulation() {
@@ -24,6 +25,7 @@ void Simulation::SetKernel(const KernelConfig& config) {
 }
 
 void Simulation::SetSmoother(const SmootherConfig& config) {
+  smoother_.SetConfig(config);
 }
 
 void Simulation::ViewSmoother() {
