@@ -22,7 +22,7 @@ class VertexBuffer {
 
   void Clear();
   void SetSize(float width, float height);
-  void SetTex(size_t index, float top, float left, float bottom, float right);
+  void SetTex(size_t index, float left, float top, float right, float bottom);
   void LoadData();
   void SetAttribs(GLuint loc_pos, GLuint loc_tex0);
   void SetAttribs(GLuint loc_pos, GLuint loc_tex0, GLuint loc_tex1);

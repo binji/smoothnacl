@@ -11,16 +11,23 @@
 
 namespace gpu {
 
+class Texture;
+
 class Shader {
  public:
-  Shader(const char* vertex_shader, const char* frag_shader);
+  Shader();
   ~Shader();
+
+  void Init(const char* vertex_shader, const char* frag_shader);
 
   GLuint GetAttribLocation(const char* name);
   GLuint GetUniformLocation(const char* name);
   void Use();
   void Uniform1f(const char* name, GLfloat value);
   void Uniform1i(const char* name, GLint value);
+  void UniformTexture(const char* name, int index, const Texture& texture);
+  void UniformMatrixOrtho(const char* name, float l, float r, float b, float t,
+                          float near, float far);
 
  private:
   GLuint CompileShader(GLenum type, const char* data);

@@ -32,8 +32,8 @@ void VertexBuffer::SetSize(float width, float height) {
   verts_[3].pos[1] = height;
 }
 
-void VertexBuffer::SetTex(size_t index, float top, float left, float bottom,
-                          float right) {
+void VertexBuffer::SetTex(size_t index, float left, float top, float right,
+                          float bottom) {
   verts_[0].tex[index][0] = left;
   verts_[0].tex[index][1] = top;
   verts_[1].tex[index][0] = right;

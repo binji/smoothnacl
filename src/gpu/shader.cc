@@ -3,14 +3,18 @@
 // found in the LICENSE file.
 
 #include "gpu/shader.h"
+#include "gpu/texture.h"
 
 namespace gpu {
 
-Shader::Shader(const char* vertex_shader, const char* frag_shader) {
-  id_ = MakeProgram(vertex_shader, frag_shader);
+Shader::Shader() : id_(0) {
 }
 
 Shader::~Shader() {
+}
+
+void Shader::Init(const char* vertex_shader, const char* frag_shader) {
+  id_ = MakeProgram(vertex_shader, frag_shader);
 }
 
 GLuint Shader::GetAttribLocation(const char* name) {
@@ -43,6 +47,26 @@ void Shader::Uniform1f(const char* name, GLfloat value) {
 
 void Shader::Uniform1i(const char* name, GLint value) {
   glUniform1i(GetUniformLocation(name), value);
+}
+
+void Shader::UniformTexture(const char* name, int index,
+                            const Texture& texture) {
+  glActiveTexture(GL_TEXTURE0 + index);
+  glBindTexture(GL_TEXTURE_2D, texture.id());
+  glUniform1i(GetUniformLocation(name), index);
+}
+
+void Shader::UniformMatrixOrtho(const char* name, float l, float r, float b,
+                                float t, float near, float far) {
+  float matrix[16] = {0};
+  matrix[0] = 2.0f / (r - l);
+  matrix[5] = 2.0f / (t - b);
+  matrix[10] = -2.0f / (far - near);
+  matrix[12] = -(r + l) / (r - l);
+  matrix[13] = -(t + b) / (t - b);
+  matrix[14] = -(far + near) / (far - near);
+  matrix[15] = 1;
+  glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0]);
 }
 
 GLuint Shader::CompileShader(GLenum type, const char* data) {
