@@ -6,10 +6,12 @@
 #define GPU_SIMULATION_H_
 
 #include <ppapi/cpp/size.h>
+#include "gpu/fft.h"
 #include "gpu/kernel.h"
 #include "gpu/kernel_mul.h"
 #include "gpu/shader.h"
 #include "gpu/smoother.h"
+#include "gpu/texture.h"
 #include "gpu/vertex_buffer.h"
 #include "simulation_base.h"
 #include "simulation_config.h"
@@ -37,6 +39,13 @@ class Simulation : public SimulationBase {
   Kernel kernel_;
   KernelMul kernel_mul_;
   Smoother smoother_;
+  FFT fft_;
+  Texture aa_;
+  Texture an_;
+  Texture am_;
+  Texture aaf_;
+  Texture anf_;
+  Texture amf_;
 
   Simulation(const Simulation&);  // Undefined.
   Simulation& operator =(const Simulation&);  // Undefined.

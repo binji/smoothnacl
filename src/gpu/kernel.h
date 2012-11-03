@@ -20,6 +20,9 @@ class Kernel {
   const pp::Size& size() const { return kernel_.size(); }
   const KernelConfig& config() const { return kernel_.config(); }
   void SetConfig(const KernelConfig& config);
+
+  const Texture& krf() const { return krf_; }
+  const Texture& kdf() const { return kdf_; }
   double kflr() const { return kernel_.kflr(); }
   double kfld() const { return kernel_.kfld(); }
 

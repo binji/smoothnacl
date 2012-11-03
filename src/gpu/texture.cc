@@ -71,7 +71,8 @@ void Texture::Load(const float4* buffer, size_t width, size_t height) {
   assert(width == width_);
   assert(height == height_);
   assert(GL_RGBA == format_);
-  // TODO(binji): implement
+  glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_,
+               GL_FLOAT, &buffer[0]);
 }
 
 void Texture::Load(const AlignedComplexes& buffer) {
