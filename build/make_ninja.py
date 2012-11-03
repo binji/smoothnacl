@@ -79,6 +79,8 @@ SOURCE_FILES = [
   'src/cpu/smoother.cc',
   'src/cpu/view.cc',
   'src/functions.cc',
+  'src/gpu/copybuffercr.cc',
+  'src/gpu/copybufferrc.cc',
   'src/gpu/kernel.cc',
   'src/gpu/kernel_mul.cc',
   'src/gpu/shader.cc',
