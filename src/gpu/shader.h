@@ -5,9 +5,9 @@
 #ifndef GPU_SHADER_H_
 #define GPU_SHADER_H_
 
-#include <GLES2/gl2.h>
 #include <map>
 #include <string>
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 
@@ -20,8 +20,8 @@ class Shader {
 
   void Init(const char* vertex_shader, const char* frag_shader);
 
-  GLuint GetAttribLocation(const char* name);
-  GLuint GetUniformLocation(const char* name);
+  Location GetAttribLocation(const char* name);
+  Location GetUniformLocation(const char* name);
   void Use();
   void Uniform1f(const char* name, GLfloat value);
   void Uniform1i(const char* name, GLint value);
@@ -30,11 +30,11 @@ class Shader {
                           float near, float far);
 
  private:
-  GLuint CompileShader(GLenum type, const char* data);
-  GLuint MakeProgram(const char* vertex_shader, const char* frag_shader);
+  ID CompileShader(GLenum type, const char* data);
+  ID MakeProgram(const char* vertex_shader, const char* frag_shader);
 
-  GLuint id_;
-  typedef std::map<std::string, GLuint> NameLocationMap;
+  ID id_;
+  typedef std::map<std::string, Location> NameLocationMap;
   NameLocationMap attribs_;
   NameLocationMap uniforms_;
 };

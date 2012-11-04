@@ -5,9 +5,9 @@
 #ifndef TEXTURE_H_
 #define TEXTURE_H_
 
-#include <GLES2/gl2.h>
 #include <ppapi/cpp/size.h>
 #include "fft_allocation.h"
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 
@@ -35,11 +35,11 @@ class Texture {
   void Load(const AlignedReals& buffer);
   void Load(const AlignedComplexes& buffer);
 
-  GLuint id() const { return id_; }
+  ID id() const { return id_; }
 
  private:
-  GLuint id_;
-  GLuint fb_id_;
+  ID id_;
+  ID fb_id_;
   GLsizei width_;
   GLsizei height_;
   GLenum format_;

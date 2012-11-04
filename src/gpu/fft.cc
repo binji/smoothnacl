@@ -4,10 +4,10 @@
 
 #include "gpu/fft.h"
 #include <assert.h>
-#include <GLES2/gl2.h>
 #include <math.h>
 #include "gen/shader_source.h"
 #include "gpu/texture.h"
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 
@@ -40,7 +40,7 @@ void FFT::ApplyRC(const Texture& in, Texture& out) {
     fft_stage_.ApplyY(index, FFT_SIGN_POSITIVE, *src, *dst);
     std::swap(src, dst);
   }
-  glBindBuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void FFT::ApplyCR(const Texture& in, Texture& out) {
@@ -56,7 +56,7 @@ void FFT::ApplyCR(const Texture& in, Texture& out) {
     std::swap(src, dst);
   }
   copybuffercr_.Apply(*src, out);
-  glBindBuffer(GL_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 }  // namespace gpu

@@ -21,9 +21,7 @@ GLenum GetGLFormat(TextureFormat format) {
 
 Texture::Texture(GLsizei width, GLsizei height, TextureFormat format,
                  TextureOptions options)
-    : id_(0),
-      fb_id_(0),
-      width_(width),
+    : width_(width),
       height_(height),
       format_(GetGLFormat(format)),
       options_(options) {
@@ -42,10 +40,12 @@ Texture::Texture(GLsizei width, GLsizei height, TextureFormat format,
     glBindFramebuffer(GL_FRAMEBUFFER, fb_id_);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
                            id_, 0);
+    /*
     GLint err = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (err != GL_FRAMEBUFFER_COMPLETE) {
       printf("glCheckFramebufferStatus: %d\n", err);
     }
+    */
   }
 }
 

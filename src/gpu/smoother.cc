@@ -3,9 +3,9 @@
 // found in the LICENSE file.
 
 #include "gpu/smoother.h"
-#include <GLES2/gl2.h>
 #include "gen/shader_source.h"
 #include "gpu/texture.h"
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 

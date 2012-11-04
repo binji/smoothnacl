@@ -7,7 +7,7 @@
 
 namespace gpu {
 
-Shader::Shader() : id_(0) {
+Shader::Shader() {
 }
 
 Shader::~Shader() {
@@ -17,22 +17,22 @@ void Shader::Init(const char* vertex_shader, const char* frag_shader) {
   id_ = MakeProgram(vertex_shader, frag_shader);
 }
 
-GLuint Shader::GetAttribLocation(const char* name) {
+Location Shader::GetAttribLocation(const char* name) {
   NameLocationMap::iterator iter = attribs_.find(name);
   if (iter != attribs_.end())
     return iter->second;
 
-  GLuint location = glGetAttribLocation(id_, name);
+  Location location = glGetAttribLocation(id_, name);
   attribs_[name] = location;
   return location;
 }
 
-GLuint Shader::GetUniformLocation(const char* name) {
+Location Shader::GetUniformLocation(const char* name) {
   NameLocationMap::iterator iter = uniforms_.find(name);
   if (iter != uniforms_.end())
     return iter->second;
 
-  GLuint location = glGetUniformLocation(id_, name);
+  Location location = glGetUniformLocation(id_, name);
   uniforms_[name] = location;
   return location;
 }
@@ -69,19 +69,19 @@ void Shader::UniformMatrixOrtho(const char* name, float l, float r, float b,
   glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0]);
 }
 
-GLuint Shader::CompileShader(GLenum type, const char* data) {
+ID Shader::CompileShader(GLenum type, const char* data) {
   const char* shader_strings[1];
   shader_strings[0] = data;
-  GLuint shader = glCreateShader(type);
+  ID shader = glCreateShader(type);
   glShaderSource(shader, 1, shader_strings, NULL);
   glCompileShader(shader);
   return shader;
 }
 
-GLuint Shader::MakeProgram(const char* vertex_shader, const char* frag_shader) {
-  GLuint vert = CompileShader(GL_VERTEX_SHADER, vertex_shader);
-  GLuint frag = CompileShader(GL_FRAGMENT_SHADER, frag_shader);
-  GLuint prog = glCreateProgram();
+ID Shader::MakeProgram(const char* vertex_shader, const char* frag_shader) {
+  ID vert = CompileShader(GL_VERTEX_SHADER, vertex_shader);
+  ID frag = CompileShader(GL_FRAGMENT_SHADER, frag_shader);
+  ID prog = glCreateProgram();
   glAttachShader(prog, vert);
   glAttachShader(prog, frag);
   glLinkProgram(prog);

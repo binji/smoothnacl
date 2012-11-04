@@ -90,6 +90,7 @@ SOURCE_FILES = [
   'src/gpu/smoother.cc',
   'src/gpu/texture.cc',
   'src/gpu/vertex_buffer.cc',
+  'src/gpu/wrap_gl.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
   'src/thread.cc',

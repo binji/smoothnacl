@@ -5,8 +5,8 @@
 #ifndef GPU_VERTEX_BUFFER_H_
 #define GPU_VERTEX_BUFFER_H_
 
-#include <GLES2/gl2.h>
 #include <stdlib.h>
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 
@@ -24,14 +24,14 @@ class VertexBuffer {
   void SetSize(float width, float height);
   void SetTex(size_t index, float left, float top, float right, float bottom);
   void LoadData();
-  void SetAttribs(GLuint loc_pos, GLuint loc_tex0);
-  void SetAttribs(GLuint loc_pos, GLuint loc_tex0, GLuint loc_tex1);
-  void SetAttribs(GLuint loc_pos,
-                  GLuint loc_tex0, GLuint loc_tex1, GLuint loc_tex2);
+  void SetAttribs(Location loc_pos, Location loc_tex0);
+  void SetAttribs(Location loc_pos, Location loc_tex0, Location loc_tex1);
+  void SetAttribs(Location loc_pos,
+                  Location loc_tex0, Location loc_tex1, Location loc_tex2);
   void Draw();
 
  private:
-  GLuint id_;
+  ID id_;
   Vertex verts_[4];  // Always a quad.
 };
 

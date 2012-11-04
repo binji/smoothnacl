@@ -3,8 +3,8 @@
 // found in the LICENSE file.
 
 #include "gpu/simulation.h"
-#include <GLES2/gl2.h>
 #include <math.h>
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 

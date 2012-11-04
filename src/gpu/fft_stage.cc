@@ -4,10 +4,10 @@
 
 #include "gpu/fft_stage.h"
 #include <assert.h>
-#include <GLES2/gl2.h>
 #include <math.h>
 #include "gen/shader_source.h"
 #include "gpu/texture.h"
+#include "gpu/wrap_gl.h"
 
 namespace gpu {
 namespace {

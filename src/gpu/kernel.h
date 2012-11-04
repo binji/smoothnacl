@@ -5,9 +5,9 @@
 #ifndef GPU_KERNEL_H_
 #define GPU_KERNEL_H_
 
-#include <GLES2/gl2.h>
 #include "cpu/kernel.h"
 #include "gpu/texture.h"
+#include "gpu/wrap_gl.h"
 
 struct KernelConfig;
 

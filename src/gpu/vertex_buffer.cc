@@ -49,7 +49,7 @@ void VertexBuffer::LoadData() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts_), &verts_[0], GL_STATIC_DRAW);
 }
 
-void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0) {
+void VertexBuffer::SetAttribs(Location loc_pos, Location loc_tex0) {
   glBindBuffer(GL_ARRAY_BUFFER, id_);
   glVertexAttribPointer(loc_pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<void*>(offsetof(Vertex, pos)));
@@ -58,16 +58,16 @@ void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0) {
   glEnableVertexAttribArray(loc_tex0);
 }
 
-void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0,
-                              GLuint loc_tex1) {
+void VertexBuffer::SetAttribs(Location loc_pos, Location loc_tex0,
+                              Location loc_tex1) {
   SetAttribs(loc_pos, loc_tex0);
   glVertexAttribPointer(loc_tex1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<void*>(offsetof(Vertex, tex[1])));
   glEnableVertexAttribArray(loc_tex1);
 }
 
-void VertexBuffer::SetAttribs(GLuint loc_pos, GLuint loc_tex0, GLuint loc_tex1,
-                              GLuint loc_tex2) {
+void VertexBuffer::SetAttribs(Location loc_pos, Location loc_tex0,
+                              Location loc_tex1, Location loc_tex2) {
   SetAttribs(loc_pos, loc_tex0, loc_tex1);
   glVertexAttribPointer(loc_tex2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<void*>(offsetof(Vertex, tex[2])));
