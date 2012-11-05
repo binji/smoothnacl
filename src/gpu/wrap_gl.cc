@@ -5,10 +5,26 @@
 #include "gpu/wrap_gl.h"
 #include <assert.h>
 #include <functional>
+#include <memory>
+#include <string.h>
 #include "gpu/gl_task.h"
 
 namespace gpu {
 namespace {
+
+template <typename T>
+struct ArrayDeleter {
+  void operator ()(T* t) {
+    delete [] t;
+  }
+};
+
+template <typename T>
+std::shared_ptr<T> CloneData(const void* data, size_t size) {
+  T* new_data = new T[size];
+  memcpy(new_data, data, size * sizeof(T));
+  return std::shared_ptr<T>(new_data, ArrayDeleter<T>());
+}
 
 // TODO(binji): implement
 void EnqueueTask(GLTask*) {
@@ -42,9 +58,9 @@ void glBindTexture(GLenum target, ID texture) {
 
 void glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data,
                   GLenum usage) {
-  // TODO(binji): clone buffer
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glBufferData, target, size, data, usage)));
+      std::bind(&task_glBufferData, target, size,
+                std::move(CloneData<uint8_t>(data, size)), usage)));
 }
 
 void glClear(GLbitfield mask) {
@@ -62,13 +78,13 @@ void glCompileShader(ID shader) {
 
 ID glCreateProgram(void) {
   ID id;
-  EnqueueTask(new FunctionGLTask(std::bind(&task_glCreateProgram, &id)));
+  EnqueueTask(new FunctionGLTask(std::bind(&task_glCreateProgram, id)));
   return id;
 }
 
 ID glCreateShader(GLenum type) {
   ID id;
-  EnqueueTask(new FunctionGLTask(std::bind(&task_glCreateShader, &id, type)));
+  EnqueueTask(new FunctionGLTask(std::bind(&task_glCreateShader, id, type)));
   return id;
 }
 
@@ -112,32 +128,32 @@ void glFramebufferTexture2D(GLenum target, GLenum attachment, GLenum textarget,
 void glGenBuffers(GLsizei n, ID* buffers) {
   assert(n == 1);
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glGenBuffers, 1, &buffers[0])));
+      std::bind(&task_glGenBuffer, buffers[0])));
 }
 
 void glGenFramebuffers(GLsizei n, ID* framebuffers) {
   assert(n == 1);
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glGenFramebuffers, 1, &framebuffers[0])));
+      std::bind(&task_glGenFramebuffer, framebuffers[0])));
 }
 
 void glGenTextures(GLsizei n, ID* textures) {
   assert(n == 1);
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glGenTextures, 1, &textures[0])));
+      std::bind(&task_glGenTexture, textures[0])));
 }
 
 Location glGetAttribLocation(ID program, const GLchar* name) {
   Location loc;
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glGetAttribLocation, &loc, program, name)));
+      std::bind(&task_glGetAttribLocation, loc, program, name)));
   return loc;
 }
 
 Location glGetUniformLocation(ID program, const GLchar* name) {
   Location loc;
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glGetUniformLocation, &loc, program, name)));
+      std::bind(&task_glGetUniformLocation, loc, program, name)));
   return loc;
 }
 
@@ -154,10 +170,19 @@ void glShaderSource(ID shader, GLsizei count, const GLchar** string,
 void glTexImage2D(GLenum target, GLint level, GLint internalformat,
                   GLsizei width, GLsizei height, GLint border, GLenum format,
                   GLenum type, const GLvoid* pixels) {
-  // TODO(binji): clone buffer
+  assert(type == GL_FLOAT);
+  size_t bpp;
+  switch (format) {
+    case GL_LUMINANCE: bpp = 4; break;
+    case GL_RGBA: bpp = 16; break;
+    default: assert(0); break;
+  }
+  size_t size = width * height * bpp;
+
   EnqueueTask(new FunctionGLTask(
       std::bind(&task_glTexImage2D, target, level, internalformat, width,
-                height, border, format, type, pixels)));
+                height, border, format, type,
+                std::move(CloneData<uint8_t>(pixels, size)))));
 }
 
 void glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
@@ -175,9 +200,10 @@ void glUniform1i(Location location, GLint x) {
 
 void glUniformMatrix4fv(Location location, GLsizei count, GLboolean transpose,
                         const GLfloat* value) {
-  // TODO(binji): clone buffer
+  assert(count == 1);
   EnqueueTask(new FunctionGLTask(
-      std::bind(&task_glUniformMatrix4fv, location, count, transpose, value)));
+      std::bind(&task_glUniformMatrix4fv, location, count, transpose,
+                std::move(CloneData<float>(value, 16)))));
 }
 
 void glUseProgram(ID program) {
@@ -196,6 +222,5 @@ void glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
   EnqueueTask(new FunctionGLTask(
       std::bind(&::glViewport, x, y, width, height)));
 }
-
 
 }  // namespace gpu

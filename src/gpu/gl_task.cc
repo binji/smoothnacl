@@ -4,6 +4,7 @@
 
 #include "gpu/gl_task.h"
 #include <GLES2/gl2.h>
+#include <string.h>
 
 namespace gpu {
 
@@ -23,23 +24,23 @@ void task_glBindTexture(GLenum target, ID texture) {
   ::glBindTexture(target, texture.value());
 }
 
-void task_glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data,
+void task_glBufferData(GLenum target, GLsizeiptr size, UniqueData data,
                        GLenum usage) {
-  ::glBufferData(target, size, data, usage);
+  ::glBufferData(target, size, data.get(), usage);
 }
 
 void task_glCompileShader(ID shader) {
   ::glCompileShader(shader.value());
 }
 
-void task_glCreateProgram(ID* out_program) {
+void task_glCreateProgram(ID out_program) {
   GLuint id = ::glCreateProgram();
-  out_program->set_value(id);
+  out_program.set_value(id);
 }
 
-void task_glCreateShader(ID* out_shader, GLenum type) {
+void task_glCreateShader(ID out_shader, GLenum type) {
   GLuint id = ::glCreateShader(type);
-  out_shader->set_value(id);
+  out_shader.set_value(id);
 }
 
 void task_glDeleteProgram(ID program) {
@@ -70,37 +71,34 @@ void task_glFramebufferTexture2D(GLenum target, GLenum attachment,
                            level);
 }
 
-void task_glGenBuffers(GLsizei n, ID* buffers) {
-  assert(n == 1);
+void task_glGenBuffer(ID buffer) {
   GLuint id;
   ::glGenBuffers(1, &id);
-  buffers[0].set_value(id);
+  buffer.set_value(id);
 }
 
-void task_glGenFramebuffers(GLsizei n, ID* framebuffers) {
-  assert(n == 1);
+void task_glGenFramebuffer(ID framebuffer) {
   GLuint id;
   ::glGenFramebuffers(1, &id);
-  framebuffers[0].set_value(id);
+  framebuffer.set_value(id);
 }
 
-void task_glGenTextures(GLsizei n, ID* textures) {
-  assert(n == 1);
+void task_glGenTexture(ID texture) {
   GLuint id;
   ::glGenTextures(1, &id);
-  textures[0].set_value(id);
+  texture.set_value(id);
 }
 
-void task_glGetAttribLocation(Location* out_location, ID program,
+void task_glGetAttribLocation(Location out_location, ID program,
                               const GLchar* name) {
   GLint location = ::glGetAttribLocation(program.value(), name);
-  out_location->set_value(location);
+  out_location.set_value(location);
 }
 
-void task_glGetUniformLocation(Location* out_location, ID program,
+void task_glGetUniformLocation(Location out_location, ID program,
                                const GLchar* name) {
   GLint location = ::glGetUniformLocation(program.value(), name);
-  out_location->set_value(location);
+  out_location.set_value(location);
 }
 
 void task_glLinkProgram(ID program) {
@@ -114,9 +112,9 @@ void task_glShaderSource(ID shader, GLsizei count, const GLchar** string,
 
 void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,
                        GLsizei width, GLsizei height, GLint border,
-                       GLenum format, GLenum type, const GLvoid* pixels) {
+                       GLenum format, GLenum type, UniqueData pixels) {
   ::glTexImage2D(target, level, internalformat, width, height, border, format,
-                 type, pixels);
+                 type, pixels.get());
 }
 
 void task_glUniform1f(Location location, GLfloat x) {
@@ -128,8 +126,8 @@ void task_glUniform1i(Location location, GLint x) {
 }
 
 void task_glUniformMatrix4fv(Location location, GLsizei count,
-                             GLboolean transpose, const GLfloat* value) {
-  ::glUniformMatrix4fv(location.value(), count, transpose, value);
+                             GLboolean transpose, UniqueMatrix value) {
+  ::glUniformMatrix4fv(location.value(), count, transpose, value.get());
 }
 
 void task_glUseProgram(ID program) {
