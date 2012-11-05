@@ -83,6 +83,7 @@ SOURCE_FILES = [
   'src/gpu/copybufferrc.cc',
   'src/gpu/fft.cc',
   'src/gpu/fft_stage.cc',
+  'src/gpu/gl_task.cc',
   'src/gpu/kernel.cc',
   'src/gpu/kernel_mul.cc',
   'src/gpu/shader.cc',

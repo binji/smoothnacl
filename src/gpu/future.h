@@ -5,6 +5,7 @@
 #ifndef GPU_FUTURE_H_
 #define GPU_FUTURE_H_
 
+#include <assert.h>
 #include <memory>
 
 namespace gpu {
