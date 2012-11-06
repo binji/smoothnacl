@@ -81,13 +81,14 @@ void Thread::MainLoop() {
 }
 
 void Thread::ProcessQueue() {
-  // TODO(binji): delete tasks.
   TaskQueue* queue = context_.queue->Lock();
-  for (TaskQueue::iterator iter = queue->begin(), end = queue->end();
+  TaskQueue copy = *queue;
+  queue->clear();
+  context_.queue->Unlock();
+
+  for (TaskQueue::iterator iter = copy.begin(), end = copy.end();
        iter != end;
        ++iter) {
     (*iter)->Run(this);
   }
-  queue->clear();
-  context_.queue->Unlock();
 }

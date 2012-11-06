@@ -89,6 +89,7 @@ SOURCE_FILES = [
   'src/gpu/shader.cc',
   'src/gpu/simulation.cc',
   'src/gpu/smoother.cc',
+  'src/gpu/task_functions.cc',
   'src/gpu/texture.cc',
   'src/gpu/vertex_buffer.cc',
   'src/gpu/wrap_gl.cc',

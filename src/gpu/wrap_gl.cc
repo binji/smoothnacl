@@ -8,6 +8,7 @@
 #include <memory>
 #include <string.h>
 #include "gpu/gl_task.h"
+#include "gpu/task_functions.h"
 
 namespace gpu {
 namespace {
@@ -24,10 +25,6 @@ std::shared_ptr<T> CloneData(const void* data, size_t size) {
   T* new_data = new T[size];
   memcpy(new_data, data, size * sizeof(T));
   return std::shared_ptr<T>(new_data, ArrayDeleter<T>());
-}
-
-// TODO(binji): implement
-void EnqueueTask(GLTask*) {
 }
 
 }  // namespace

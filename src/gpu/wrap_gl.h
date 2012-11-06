@@ -6,12 +6,9 @@
 #define GPU_WRAP_GL_H_
 
 #include <GLES2/gl2.h>
-#include "future.h"
+#include "gpu/future.h"
 
 namespace gpu {
-
-typedef Future<GLuint> ID;
-typedef Future<GLint> Location;
 
 void glActiveTexture(GLenum texture);
 void glAttachShader(ID program, ID shader);

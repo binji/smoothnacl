@@ -320,7 +320,7 @@ void SmoothlifeInstance::EnqueueTask(Task* task) {
     return;
   }
 
-  locker.object()->push_back(task);
+  locker.object()->push_back(std::shared_ptr<Task>(task));
 }
 
 void SmoothlifeInstance::ScheduleUpdate() {

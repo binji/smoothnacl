@@ -6,6 +6,7 @@
 #define GPU_FUTURE_H_
 
 #include <assert.h>
+#include <GLES2/gl2.h>
 #include <memory>
 
 namespace gpu {
@@ -25,6 +26,9 @@ class Future {
  private:
   std::shared_ptr<T> p_;
 };
+
+typedef Future<GLuint> ID;
+typedef Future<GLint> Location;
 
 }  // namespace gpu
 
