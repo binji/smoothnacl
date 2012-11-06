@@ -92,6 +92,7 @@ SOURCE_FILES = [
   'src/gpu/task_functions.cc',
   'src/gpu/texture.cc',
   'src/gpu/vertex_buffer.cc',
+  'src/gpu/view.cc',
   'src/gpu/wrap_gl.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
