@@ -26,6 +26,7 @@ class Simulation : public SimulationBase {
   virtual void SetKernel(const KernelConfig& config);
   virtual void SetSmoother(const SmootherConfig& config);
   const Kernel& kernel() const { return kernel_; }
+  const Texture& aa() const { return aa_; }
 
   virtual void ViewSmoother();
   virtual void Step();

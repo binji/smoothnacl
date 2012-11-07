@@ -81,6 +81,7 @@ SOURCE_FILES = [
   'src/functions.cc',
   'src/gpu/copybuffercr.cc',
   'src/gpu/copybufferrc.cc',
+  'src/gpu/draw_strategy.cc',
   'src/gpu/fft.cc',
   'src/gpu/fft_stage.cc',
   'src/gpu/gl_task.cc',

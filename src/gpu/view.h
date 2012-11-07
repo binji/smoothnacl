@@ -8,6 +8,7 @@
 #include <ppapi/cpp/point.h>
 #include <ppapi/cpp/size.h>
 #include <ppapi/utility/completion_callback_factory.h>
+#include "locked_object.h"
 
 namespace pp {
 class Graphics3D;
@@ -17,9 +18,11 @@ class View;
 
 namespace gpu {
 
+class GLTaskList;
+
 class View {
  public:
-  View();
+  explicit View(LockedObject<GLTaskList>* locked_tasks);
   ~View();
 
   bool DidChangeView(pp::Instance* instance, const pp::View& view);
@@ -34,9 +37,9 @@ class View {
   pp::Graphics3D* graphics_3d_;
   pp::Size size_;
   bool draw_loop_running_;
+  LockedObject<GLTaskList>* locked_tasks_;  // Weak.
 };
 
 }  // namespace gpu
 
 #endif  // GPU_VIEW_H_
-

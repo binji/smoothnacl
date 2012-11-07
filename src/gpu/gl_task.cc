@@ -3,30 +3,11 @@
 // found in the LICENSE file.
 
 #include "gpu/gl_task.h"
-#include <memory>
-#include <vector>
+#include <algorithm>
 
 namespace gpu {
 
-namespace {
-
-typedef std::vector<std::shared_ptr<GLTask> > TaskQueue;
-TaskQueue g_tasks;
-
-}  // namespace
-
-void EnqueueTask(GLTask* task) {
-  g_tasks.push_back(std::shared_ptr<GLTask>(task));
-}
-
-void ProcessQueue() {
-  for (TaskQueue::iterator iter = g_tasks.begin(), end = g_tasks.end();
-       iter != end;
-       ++iter) {
-    (*iter)->Run();
-  }
-  g_tasks.clear();
-}
+GLTaskList g_task_list;
 
 FunctionGLTask::FunctionGLTask(const std::function<FunctionType>& function)
     : function_(function) {
@@ -34,6 +15,25 @@ FunctionGLTask::FunctionGLTask(const std::function<FunctionType>& function)
 
 void FunctionGLTask::Run() {
   function_();
+}
+
+void GLTaskList::Enqueue(GLTask* task) {
+  tasks_.push_back(std::shared_ptr<GLTask>(task));
+}
+
+GLTaskList GLTaskList::Take() {
+  GLTaskList retval;
+  std::swap(retval.tasks_, tasks_);
+  return retval;
+}
+
+void GLTaskList::RunAndClear() {
+  for (Tasks::iterator iter = tasks_.begin(), end = tasks_.end();
+       iter != end;
+       ++iter) {
+    (*iter)->Run();
+  }
+  tasks_.clear();
 }
 
 }  // namespace gpu

@@ -7,13 +7,15 @@
 #include <stdio.h>
 #include <ppapi/cpp/graphics_3d.h>
 #include <ppapi/cpp/instance.h>
+#include "gpu/gl_task.h"
 
 namespace gpu {
 
-View::View()
+View::View(LockedObject<GLTaskList>* locked_tasks)
     : factory_(this),
       graphics_3d_(NULL),
-      draw_loop_running_(false) {
+      draw_loop_running_(false),
+      locked_tasks_(locked_tasks) {
 }
 
 View::~View() {
@@ -100,6 +102,11 @@ void View::SwapBuffersCallback(int32_t result) {
     draw_loop_running_ = false;
     return;
   }
+
+  GLTaskList* task_list = locked_tasks_->Lock();
+  GLTaskList tasks = task_list->Take();
+  locked_tasks_->Unlock();
+  tasks.RunAndClear();
 
   graphics_3d_->SwapBuffers(factory_.NewCallback(&View::SwapBuffersCallback));
 }

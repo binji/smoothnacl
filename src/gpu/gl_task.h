@@ -6,14 +6,10 @@
 #define GPU_GL_TASK_H_
 
 #include <functional>
+#include <memory>
+#include <vector>
 
 namespace gpu {
-
-class GLTask;
-
-// Global functions.
-void EnqueueTask(GLTask* task);
-void ProcessQueue();
 
 class GLTask {
  public:
@@ -30,6 +26,20 @@ class FunctionGLTask : public GLTask {
  private:
   std::function<FunctionType> function_;
 };
+
+class GLTaskList {
+ public:
+  void Enqueue(GLTask* task);
+  GLTaskList Take();
+  void RunAndClear();
+
+ private:
+  typedef std::vector<std::shared_ptr<GLTask> > Tasks;
+
+  Tasks tasks_;
+};
+
+extern GLTaskList g_task_list;
 
 }  // namespace gpu
 
