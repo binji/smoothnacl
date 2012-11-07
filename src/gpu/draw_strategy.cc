@@ -12,9 +12,9 @@
 namespace gpu {
 
 DrawStrategy::DrawStrategy(const pp::Size& size,
-                           LockedObject<GLTaskList>* locked_tasks)
+                           LockedQueue* locked_queue)
     : size_(size),
-      locked_tasks_(locked_tasks) {
+      locked_queue_(locked_queue) {
 }
 
 void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
@@ -39,9 +39,7 @@ void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
       break;
   }
 
-  GLTaskList* task_list = locked_tasks_->Lock();
-  *task_list = g_task_list.Take();
-  locked_tasks_->Unlock();
+  locked_queue_->PushBack(g_task_list.Take());
 }
 
 void DrawStrategy::InitShader() {

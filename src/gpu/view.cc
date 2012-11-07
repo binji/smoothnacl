@@ -11,11 +11,11 @@
 
 namespace gpu {
 
-View::View(LockedObject<GLTaskList>* locked_tasks)
+View::View(LockedQueue* locked_queue)
     : factory_(this),
       graphics_3d_(NULL),
       draw_loop_running_(false),
-      locked_tasks_(locked_tasks) {
+      locked_queue_(locked_queue) {
 }
 
 View::~View() {
@@ -103,10 +103,8 @@ void View::SwapBuffersCallback(int32_t result) {
     return;
   }
 
-  GLTaskList* task_list = locked_tasks_->Lock();
-  GLTaskList tasks = task_list->Take();
-  locked_tasks_->Unlock();
-  tasks.RunAndClear();
+  // Run all commands from the front of the task queue.
+  locked_queue_->PopFront().RunAndClear();
 
   graphics_3d_->SwapBuffers(factory_.NewCallback(&View::SwapBuffersCallback));
 }

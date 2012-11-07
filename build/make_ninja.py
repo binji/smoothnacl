@@ -87,6 +87,7 @@ SOURCE_FILES = [
   'src/gpu/gl_task.cc',
   'src/gpu/kernel.cc',
   'src/gpu/kernel_mul.cc',
+  'src/gpu/locked_queue.cc',
   'src/gpu/shader.cc',
   'src/gpu/simulation.cc',
   'src/gpu/smoother.cc',

@@ -7,9 +7,9 @@
 
 #include <ppapi/cpp/size.h>
 #include "draw_strategy_base.h"
+#include "gpu/locked_queue.h"
 #include "gpu/shader.h"
 #include "gpu/vertex_buffer.h"
-#include "locked_object.h"
 
 namespace gpu {
 
@@ -17,7 +17,7 @@ class GLTaskList;
 
 class DrawStrategy : public DrawStrategyBase {
  public:
-  DrawStrategy(const pp::Size& size, LockedObject<GLTaskList>* locked_tasks);
+  DrawStrategy(const pp::Size& size, LockedQueue* locked_queue);
   virtual void Draw(ThreadDrawOptions options, SimulationBase* simulation);
 
  private:
@@ -27,7 +27,7 @@ class DrawStrategy : public DrawStrategyBase {
   pp::Size size_;
   Shader shader_;
   VertexBuffer vb_;
-  LockedObject<GLTaskList>* locked_tasks_;  // Weak.
+  LockedQueue* locked_queue_;  // Weak.
 
   DrawStrategy(const DrawStrategy&);  // Undefined.
   DrawStrategy& operator =(const DrawStrategy&);  // Undefined.
