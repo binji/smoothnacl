@@ -13,6 +13,7 @@ GLenum GetGLFormat(TextureFormat format) {
   switch (format) {
     case FORMAT_REAL: return GL_LUMINANCE;
     case FORMAT_COMPLEX: return GL_RGBA;
+    case FORMAT_4FLOAT: return GL_RGBA;
     default: assert(0);
   }
 }
@@ -32,7 +33,7 @@ Texture::Texture(GLsizei width, GLsizei height, TextureFormat format,
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_FLOAT,
+  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format_, GL_FLOAT,
                NULL);
 
   if (options == TEXTURE_FRAMEBUFFER) {

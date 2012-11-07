@@ -13,15 +13,15 @@
 #include <ppapi/cpp/input_event.h>
 #include <ppapi/cpp/var.h>
 
-#include "cpu/draw_strategy.h"
-#include "cpu/simulation.h"
-#include "cpu/view.h"
+#include "cpu/initializer_factory.h"
+#include "gpu/initializer_factory.h"
 #include "kernel_config.h"
 #include "simulation_config.h"
 #include "smoother_config.h"
 #include "task.h"
 #include "thread.h"
 #include "thread_options.h"
+#include "view_base.h"
 
 namespace {
 
@@ -41,7 +41,6 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
       view_(NULL),
       thread_(NULL),
       sim_size_(512, 512),
-      locked_buffer_(NULL),
       task_queue_(NULL),
       frames_drawn_(NULL),
       fullscreen_(this),
@@ -52,7 +51,6 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
 
 SmoothlifeInstance::~SmoothlifeInstance() {
   delete task_queue_;
-  delete locked_buffer_;
   delete thread_;
   delete view_;
 }
@@ -63,10 +61,10 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   SimulationConfig config;
   config.size = sim_size_;
 
-  AlignedReals* buffer = new AlignedReals(config.size);
-  locked_buffer_ = new LockedObject<AlignedReals>(buffer);
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
   frames_drawn_ = new LockedObject<int>(new int(0));
+  //initializer_factory_ = new cpu::InitializerFactory(config.size);
+  initializer_factory_ = new gpu::InitializerFactory(config.size);
   step_cond_ = new CondVar;
 
   ThreadContext context;
@@ -76,13 +74,12 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
   context.step_cond = step_cond_;
-  context.draw_strategy = new cpu::DrawStrategy(locked_buffer_);
-  context.factory = new cpu::SimulationFactory;
+  context.initializer_factory = initializer_factory_;
 
   ParseInitMessages(argc, argn, argv, &context);
 
   thread_ = new Thread(context);
-  view_ = new cpu::View(locked_buffer_);
+  view_ = initializer_factory_->CreateView();
 
   return true;
 }

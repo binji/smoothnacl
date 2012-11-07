@@ -74,6 +74,7 @@ MAKE_NINJA = os.path.relpath(__file__, ROOT_DIR)
 SOURCE_FILES = [
   'src/condvar.cc',
   'src/cpu/draw_strategy.cc',
+  'src/cpu/initializer_factory.cc',
   'src/cpu/kernel.cc',
   'src/cpu/simulation.cc',
   'src/cpu/smoother.cc',
@@ -85,6 +86,7 @@ SOURCE_FILES = [
   'src/gpu/fft.cc',
   'src/gpu/fft_stage.cc',
   'src/gpu/gl_task.cc',
+  'src/gpu/initializer_factory.cc',
   'src/gpu/kernel.cc',
   'src/gpu/kernel_mul.cc',
   'src/gpu/locked_queue.cc',

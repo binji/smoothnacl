@@ -196,7 +196,7 @@ void FFTStage::MakePlanX(float sign, int index, float4* buffer) {
 void FFTStage::MakeAllPlanY() {
   int texture_width = size_.height();
   float4* buffer = new float4[texture_width];
-  planx_ = new Texture2[log2h_ + 1];
+  plany_ = new Texture2[log2h_ + 1];
 
   for (int s = 0; s <= 1; s++) {
     for (int index = 1; index <= log2h_; index++) {

@@ -50,13 +50,6 @@ class Simulation : public SimulationBase {
   Simulation& operator =(const Simulation&);  // Undefined.
 };
 
-class SimulationFactory : public SimulationFactoryBase {
- public:
-  virtual SimulationBase* Create(const SimulationConfig& config) {
-    return new Simulation(config);
-  }
-};
-
 }  // namespace cpu
 
 #endif  // CPU_SIMULATION_H_

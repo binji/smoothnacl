@@ -24,10 +24,4 @@ class SimulationBase {
   virtual void Splat() = 0;
 };
 
-class SimulationFactoryBase {
- public:
-  virtual ~SimulationFactoryBase() {}
-  virtual SimulationBase* Create(const SimulationConfig& config) = 0;
-};
-
 #endif  // SIMULATION_BASE_H_

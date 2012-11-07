@@ -5,6 +5,7 @@
 #include "thread.h"
 #include <algorithm>
 #include "draw_strategy_base.h"
+#include "initializer_factory_base.h"
 #include "simulation_base.h"
 #include "task.h"
 
@@ -59,7 +60,9 @@ void* Thread::MainLoopThunk(void* param) {
 }
 
 void Thread::MainLoop() {
-  simulation_ = context_.factory->Create(context_.config);
+  simulation_ = context_.initializer_factory->CreateSimulation(context_.config);
+  draw_strategy_ = context_.initializer_factory->CreateDrawStrategy();
+
   while (!quit_) {
     int* frames = context_.frames_drawn->Lock();
     (*frames)++;
@@ -67,12 +70,15 @@ void Thread::MainLoop() {
 
     // Process queue should be first to allow for any startup initialization.
     ProcessQueue();
-    context_.draw_strategy->Draw(context_.draw_options, simulation_);
+    draw_strategy_->Draw(context_.draw_options, simulation_);
 
     if (context_.run_options != kRunOptions_None)
       simulation_->Step();
 
     if (context_.run_options != kRunOptions_Continuous) {
+      // TODO(binji): This is not quite right. The condition may be exited
+      // prematurely by another signal firing. What is the correct condition
+      // here to loop waiting for?
       context_.step_cond->Lock();
       context_.step_cond->Wait();
       context_.step_cond->Unlock();

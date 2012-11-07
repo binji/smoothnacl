@@ -7,6 +7,7 @@
 #include <functional>
 #include <memory>
 #include <string.h>
+#include <stdio.h>
 #include "gpu/gl_task.h"
 #include "gpu/task_functions.h"
 
@@ -22,6 +23,9 @@ struct ArrayDeleter {
 
 template <typename T>
 std::shared_ptr<T> CloneData(const void* data, size_t size) {
+  if (data == NULL)
+    return std::shared_ptr<T>();
+
   T* new_data = new T[size];
   memcpy(new_data, data, size * sizeof(T));
   return std::shared_ptr<T>(new_data, ArrayDeleter<T>());
@@ -178,7 +182,10 @@ void glTexImage2D(GLenum target, GLint level, GLint internalformat,
   switch (format) {
     case GL_LUMINANCE: bpp = 4; break;
     case GL_RGBA: bpp = 16; break;
-    default: assert(0); break;
+    default:
+      printf("Unknown format: %d\n", format);
+      assert(0);
+      break;
   }
   size_t size = width * height * bpp;
 

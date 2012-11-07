@@ -9,6 +9,7 @@
 #include <ppapi/cpp/size.h>
 #include <ppapi/utility/completion_callback_factory.h>
 #include "gpu/locked_queue.h"
+#include "view_base.h"
 
 namespace pp {
 class Graphics3D;
@@ -20,7 +21,7 @@ namespace gpu {
 
 class GLTaskList;
 
-class View {
+class View : public ViewBase {
  public:
   explicit View(LockedQueue* locked_queue);
   ~View();

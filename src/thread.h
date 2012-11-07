@@ -13,8 +13,8 @@
 #include "thread_options.h"
 
 class DrawStrategyBase;
+class InitializerFactoryBase;
 class SimulationBase;
-class SimulationFactoryBase;
 
 struct ThreadContext {
   SimulationConfig config;
@@ -23,8 +23,7 @@ struct ThreadContext {
   LockedObject<TaskQueue>* queue;  // Weak.
   LockedObject<int>* frames_drawn;  // Weak.
   CondVar* step_cond;  // Weak.
-  SimulationFactoryBase* factory;  // Weak.
-  DrawStrategyBase* draw_strategy;  // Weak.
+  InitializerFactoryBase* initializer_factory;  // Weak.
 };
 
 class Thread {
@@ -47,6 +46,7 @@ class Thread {
   void ProcessQueue();
 
   ThreadContext context_;
+  DrawStrategyBase* draw_strategy_;
   SimulationBase* simulation_;
   pthread_t thread_;
   int thread_create_result_;

@@ -18,16 +18,14 @@
 #include "task_queue.h"
 
 
+class InitializerFactoryBase;
 class SmoothlifeInstance;
 class Thread;
 class ThreadContext;
+class ViewBase;
 typedef std::vector<std::string> ParamList;
 typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
 typedef std::map<std::string, MessageFunc> MessageMap;
-
-namespace cpu {
-class View;
-}
 
 
 class SmoothlifeInstance : public pp::Instance {
@@ -57,12 +55,12 @@ class SmoothlifeInstance : public pp::Instance {
   void UpdateCallback(int32_t result);
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
-  cpu::View* view_;
+  ViewBase* view_;
   Thread* thread_;
   pp::Size sim_size_;
-  LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
   LockedObject<int>* frames_drawn_;
+  InitializerFactoryBase* initializer_factory_;
   CondVar* step_cond_;
   MessageMap message_map_;
   pp::Fullscreen fullscreen_;
