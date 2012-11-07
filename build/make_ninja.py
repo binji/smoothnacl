@@ -99,6 +99,7 @@ SOURCE_FILES = [
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
   'src/thread.cc',
+  'src/view_base.cc',
   OUT_SHADER_CC,
 ]
 

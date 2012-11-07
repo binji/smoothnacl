@@ -25,8 +25,8 @@ class View {
   explicit View(LockedQueue* locked_queue);
   ~View();
 
-  bool DidChangeView(pp::Instance* instance, const pp::View& view);
-  pp::Point ScreenToSim(const pp::Point& p, const pp::Size& sim_size) const;
+  virtual bool DidChangeView(pp::Instance* instance, const pp::View& view);
+  virtual pp::Size GetSize() const;
 
  private:
   void GetScreenToSimScale(const pp::Size& sim_size, double* out_scale,

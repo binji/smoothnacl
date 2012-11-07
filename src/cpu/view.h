@@ -10,6 +10,7 @@
 #include <ppapi/utility/completion_callback_factory.h>
 #include "fft_allocation.h"
 #include "locked_object.h"
+#include "view_base.h"
 
 namespace pp {
 class Graphics2D;
@@ -21,18 +22,15 @@ class View;
 
 namespace cpu {
 
-class View {
+class View : public ViewBase {
  public:
   explicit View(LockedObject<AlignedReals>* buffer);
   ~View();
 
-  bool DidChangeView(pp::Instance* instance, const pp::View& view);
-  pp::Size GetSize() const;
-  pp::Point ScreenToSim(const pp::Point& p, const pp::Size& sim_size) const;
+  virtual bool DidChangeView(pp::Instance* instance, const pp::View& view);
+  virtual pp::Size GetSize() const;
 
  private:
-  void GetScreenToSimScale(const pp::Size& sim_size, double* out_scale,
-                           int* out_xoffset, int* out_yoffset) const;
   void DrawCallback(int32_t result);
   void DrawRect(const pp::Rect& rect, uint32_t color);
   void PaintRectToGraphics2D(const pp::Rect& rect);
