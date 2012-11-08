@@ -14,6 +14,7 @@ namespace gpu {
 
 typedef std::shared_ptr<uint8_t> UniqueData;
 typedef std::shared_ptr<float> UniqueMatrix;
+typedef std::shared_ptr<const char*> UniqueStrings;
 
 // Wrapped functions.
 void task_glAttachShader(ID program, ID shader);
@@ -40,7 +41,7 @@ void task_glGetAttribLocation(Location out_location, ID program,
 void task_glGetUniformLocation(Location out_location, ID program,
                                const GLchar* name);
 void task_glLinkProgram(ID program);
-void task_glShaderSource(ID shader, GLsizei count, const GLchar** string,
+void task_glShaderSource(ID shader, GLsizei count, UniqueStrings strings,
                          const GLint* length);
 void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,
                        GLsizei width, GLsizei height, GLint border,

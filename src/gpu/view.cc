@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <ppapi/cpp/graphics_3d.h>
 #include <ppapi/cpp/instance.h>
+#include <ppapi/lib/gl/gles2/gl2ext_ppapi.h>
 #include "gpu/gl_task.h"
 
 namespace gpu {
@@ -59,6 +60,8 @@ bool View::DidChangeView(pp::Instance* instance, const pp::View& view) {
     size_ = pp::Size();
     return false;
   }
+
+  glSetCurrentContextPPAPI(graphics_3d_->pp_resource());
 
   if (!draw_loop_running_) {
     SwapBuffersCallback(0);  // Start the render loop.

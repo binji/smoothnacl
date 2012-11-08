@@ -12,6 +12,7 @@
 #include <ppapi/cpp/module.h>
 #include <ppapi/cpp/input_event.h>
 #include <ppapi/cpp/var.h>
+#include <ppapi/lib/gl/gles2/gl2ext_ppapi.h>
 
 #include "cpu/initializer_factory.h"
 #include "gpu/initializer_factory.h"
@@ -57,6 +58,7 @@ SmoothlifeInstance::~SmoothlifeInstance() {
 
 bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
+  glInitializePPAPI(pp::Module::Get()->get_browser_interface());
   InitMessageMap();
   SimulationConfig config;
   config.size = sim_size_;

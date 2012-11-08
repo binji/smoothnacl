@@ -104,9 +104,9 @@ void task_glLinkProgram(ID program) {
   ::glLinkProgram(program.value());
 }
 
-void task_glShaderSource(ID shader, GLsizei count, const GLchar** string,
+void task_glShaderSource(ID shader, GLsizei count, UniqueStrings strings,
                          const GLint* length) {
-  ::glShaderSource(shader.value(), count, string, length);
+  ::glShaderSource(shader.value(), count, strings.get(), length);
 }
 
 void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,

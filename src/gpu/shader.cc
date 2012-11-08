@@ -13,8 +13,8 @@ Shader::Shader() {
 Shader::~Shader() {
 }
 
-void Shader::Init(const char* vertex_shader, const char* frag_shader) {
-  id_ = MakeProgram(vertex_shader, frag_shader);
+void Shader::Init(const char* frag_shader, const char* vertex_shader) {
+  id_ = MakeProgram(frag_shader, vertex_shader);
 }
 
 Location Shader::GetAttribLocation(const char* name) {
@@ -78,7 +78,7 @@ ID Shader::CompileShader(GLenum type, const char* data) {
   return shader;
 }
 
-ID Shader::MakeProgram(const char* vertex_shader, const char* frag_shader) {
+ID Shader::MakeProgram(const char* frag_shader, const char* vertex_shader) {
   ID vert = CompileShader(GL_VERTEX_SHADER, vertex_shader);
   ID frag = CompileShader(GL_FRAGMENT_SHADER, frag_shader);
   ID prog = glCreateProgram();

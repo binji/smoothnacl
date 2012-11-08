@@ -170,8 +170,10 @@ void glLinkProgram(ID program) {
 
 void glShaderSource(ID shader, GLsizei count, const GLchar** string,
                     const GLint* length) {
+  assert(length == NULL);
   g_task_list.Enqueue(new FunctionGLTask(
-      std::bind(&task_glShaderSource, shader, count, string, length)));
+      std::bind(&task_glShaderSource, shader, count,
+                std::move(CloneData<const char*>(string, count)), length)));
 }
 
 void glTexImage2D(GLenum target, GLint level, GLint internalformat,

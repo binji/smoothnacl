@@ -18,7 +18,7 @@ class Shader {
   Shader();
   ~Shader();
 
-  void Init(const char* vertex_shader, const char* frag_shader);
+  void Init(const char* frag_shader, const char* vertex_shader);
 
   Location GetAttribLocation(const char* name);
   Location GetUniformLocation(const char* name);
@@ -31,7 +31,7 @@ class Shader {
 
  private:
   ID CompileShader(GLenum type, const char* data);
-  ID MakeProgram(const char* vertex_shader, const char* frag_shader);
+  ID MakeProgram(const char* frag_shader, const char* vertex_shader);
 
   ID id_;
   typedef std::map<std::string, Location> NameLocationMap;

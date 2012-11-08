@@ -33,7 +33,7 @@ Texture::Texture(GLsizei width, GLsizei height, TextureFormat format,
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-  glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format_, GL_FLOAT,
+  glTexImage2D(GL_TEXTURE_2D, 0, format_, width, height, 0, format_, GL_FLOAT,
                NULL);
 
   if (options == TEXTURE_FRAMEBUFFER) {

@@ -8,24 +8,56 @@
 #include <assert.h>
 #include <GLES2/gl2.h>
 #include <memory>
+#include <utility>
 
 namespace gpu {
 
 template<typename T>
 class Future {
  public:
-  Future() {}
+  Future();
 
   // Allow implicit conversion.
-  Future(const T& value) : p_(new T(value)) {}
+  Future(const T& value);
 
-  const T& value() const { assert(p_); return *p_; }
-  void set_value(const T& value) { assert(!has_value()); *p_ = value; }
-  bool has_value() const { return p_; }
+  const T& value() const;
+  void set_value(const T& value);
+  bool has_value() const;
 
  private:
-  std::shared_ptr<T> p_;
+  // Pair of T and whether T has been set.
+  typedef std::pair<T, bool> Data;
+  std::shared_ptr<Data> p_;
 };
+
+
+template<typename T>
+Future<T>::Future()
+    : p_(new Data(T(), false)) {
+}
+
+template<typename T>
+Future<T>::Future(const T& value)
+    : p_(new Data(T(value), true)) {
+}
+
+template<typename T>
+const T& Future<T>::value() const {
+  assert(has_value());
+  return p_->first;
+}
+
+template<typename T>
+void Future<T>::set_value(const T& value) {
+  assert(!has_value());
+  p_->first = value;
+  p_->second = true;
+}
+
+template<typename T>
+bool Future<T>::has_value() const {
+  return p_->second;
+}
 
 typedef Future<GLuint> ID;
 typedef Future<GLint> Location;

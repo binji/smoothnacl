@@ -55,6 +55,7 @@ void VertexBuffer::SetAttribs(Location loc_pos, Location loc_tex0) {
                         reinterpret_cast<void*>(offsetof(Vertex, pos)));
   glVertexAttribPointer(loc_tex0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<void*>(offsetof(Vertex, tex[0])));
+  glEnableVertexAttribArray(loc_pos);
   glEnableVertexAttribArray(loc_tex0);
 }
 

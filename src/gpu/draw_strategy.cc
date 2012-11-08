@@ -15,6 +15,7 @@ DrawStrategy::DrawStrategy(const pp::Size& size,
                            LockedQueue* locked_queue)
     : size_(size),
       locked_queue_(locked_queue) {
+  InitShader();
 }
 
 void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
