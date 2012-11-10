@@ -32,8 +32,11 @@ class Texture {
 
   void BindFramebuffer();
   void Load(const float4* buffer, size_t width, size_t height);
+  void Load(const AlignedFloats& buffer);
   void Load(const AlignedReals& buffer);
   void Load(const AlignedComplexes& buffer);
+  size_t width() const { return width_; }
+  size_t height() const { return height_; }
 
   ID id() const { return id_; }
 

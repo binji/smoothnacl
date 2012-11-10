@@ -4,9 +4,38 @@
 
 #include "gpu/simulation.h"
 #include <math.h>
+#include "fft_allocation.h"
 #include "gpu/wrap_gl.h"
 
 namespace gpu {
+
+namespace {
+
+void initan(Texture* buf) {
+  int width = buf->width();
+  int height = buf->height();
+  AlignedFloats floats(pp::Size(width, height));
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      floats[y*width+x] = (double)x/width;
+    }
+  }
+  buf->Load(floats);
+}
+
+void initam(Texture* buf) {
+  int width = buf->width();
+  int height = buf->height();
+  AlignedFloats floats(pp::Size(width, height));
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      floats[y*width+x] = (double)y/height;
+    }
+  }
+  buf->Load(floats);
+}
+
+}  // namespace
 
 Simulation::Simulation(const SimulationConfig& config)
     : size_(config.size),
@@ -35,6 +64,8 @@ void Simulation::SetSmoother(const SmootherConfig& config) {
 
 void Simulation::ViewSmoother() {
   Clear(0);
+  initan(&an_);
+  initam(&am_);
   smoother_.Apply(an_, am_, aa_);
 }
 
@@ -60,8 +91,46 @@ void Simulation::DrawFilledCircle(double x, double y, double radius,
   // TODO(binji): implement
 }
 
+static double RND(double x) {
+  return x * (double)rand()/((double)RAND_MAX + 1);
+}
+
 void Simulation::Splat() {
   // TODO(binji): implement
+  double mx, my;
+  int width = aa_.width();
+  int height = aa_.height();
+  AlignedFloats fs(pp::Size(width, height));
+
+  double ring_radius = kernel_.config().ring_radius;
+
+  mx = 2 * ring_radius; if (mx>width) mx=width;
+  my = 2 * ring_radius; if (my>height) my=height;
+
+  for (int t=0; t<=(int)(width*height/(mx*my)); t++) {
+    double x = RND(width);
+    double y = RND(height);
+    double radius = ring_radius * (RND(0.5) + 0.5);
+
+    int width = aa_.width();
+    int height = aa_.height();
+    int left = std::max(0, static_cast<int>(x - radius));
+    int right = std::min(width, static_cast<int>(x + radius + 1));
+    int top = std::max(0, static_cast<int>(y - radius));
+    int bottom = std::min(height, static_cast<int>(y + radius + 1));
+
+    for (int j = top; j < bottom; ++j) {
+      for (int i = left; i < right; ++i) {
+        double dx = x - i;
+        double dy = y - j;
+        double length = sqrt(dx * dx + dy * dy);
+        if (length < radius)
+          fs[j * width + i] = 1.0;
+      }
+    }
+  }
+
+  aa_.Load(fs);
 }
 
 }  // namespace gpu

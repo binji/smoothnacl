@@ -20,10 +20,12 @@ class GLTask {
 class FunctionGLTask : public GLTask {
  public:
   typedef void FunctionType();
-  explicit FunctionGLTask(const std::function<FunctionType>& function);
+  explicit FunctionGLTask(const char* name, const std::function<FunctionType>& function);
+  ~FunctionGLTask();
   virtual void Run();
 
  private:
+  const char* name_;
   std::function<FunctionType> function_;
 };
 

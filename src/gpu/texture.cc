@@ -60,24 +60,42 @@ void Texture::BindFramebuffer() {
                          id_, 0);
 }
 
+void Texture::Load(const AlignedFloats& buffer) {
+  assert(buffer.size().width() == width_);
+  assert(buffer.size().height() == height_);
+  assert(GL_LUMINANCE == format_);
+  glBindTexture(GL_TEXTURE_2D, id_);
+  glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_,
+               GL_FLOAT, &buffer[0]);
+}
+
 void Texture::Load(const AlignedReals& buffer) {
   assert(buffer.size().width() == width_);
   assert(buffer.size().height() == height_);
   assert(GL_LUMINANCE == format_);
+  float* temp = new float [width_ * height_];
+  std::fill(temp, temp + width_ * height_, 0);
+  for (int y = 0; y < height_; ++y)
+  for (int x = 0; x < width_; ++x) {
+    temp[y * width_ + x] = static_cast<float>(buffer[y * width_ + x]);
+  }
+  glBindTexture(GL_TEXTURE_2D, id_);
   glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_,
-               GL_FLOAT, &buffer[0]);
+               GL_FLOAT, temp);
+  delete [] temp;
 }
 
 void Texture::Load(const float4* buffer, size_t width, size_t height) {
   assert(width == width_);
   assert(height == height_);
   assert(GL_RGBA == format_);
+  glBindTexture(GL_TEXTURE_2D, id_);
   glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_,
                GL_FLOAT, &buffer[0]);
 }
 
 void Texture::Load(const AlignedComplexes& buffer) {
-  assert(buffer.size().width() == width_);
+  assert(buffer.size().width()/2 + 1 == width_);
   assert(buffer.size().height() == height_);
   assert(GL_RGBA == format_);
   float* temp = new float [width_ * height_ * 4];
@@ -88,6 +106,7 @@ void Texture::Load(const AlignedComplexes& buffer) {
     pixel[0] = buffer[y * width_ + x][0];
     pixel[1] = buffer[y * width_ + x][1];
   }
+  glBindTexture(GL_TEXTURE_2D, id_);
   glTexImage2D(GL_TEXTURE_2D, 0, format_, width_, height_, 0, format_,
                GL_FLOAT, temp);
   delete [] temp;

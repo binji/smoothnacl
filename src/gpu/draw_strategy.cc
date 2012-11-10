@@ -28,15 +28,16 @@ void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
       break;
 
     case kDrawOptions_KernelDisc:
-      // TODO(binji): implement.
+      Apply(gpu_sim->kernel().kd());
       break;
 
     case kDrawOptions_KernelRing:
-      // TODO(binji): implement.
+      Apply(gpu_sim->kernel().kr());
       break;
 
     case kDrawOptions_Smoother:
-      // TODO(binji): implement.
+      gpu_sim->ViewSmoother();
+      Apply(gpu_sim->aa());
       break;
   }
 

@@ -51,6 +51,7 @@ class FftAllocation {
 };
 
 typedef FftAllocation<double> AlignedReals;
+typedef FftAllocation<float> AlignedFloats;
 typedef FftAllocation<fftw_complex> AlignedComplexes;
 
 #endif  // FFT_ALLOCATION_H_

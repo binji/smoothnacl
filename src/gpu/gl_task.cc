@@ -4,13 +4,19 @@
 
 #include "gpu/gl_task.h"
 #include <algorithm>
+#include <stdio.h>
 
 namespace gpu {
 
 GLTaskList g_task_list;
 
-FunctionGLTask::FunctionGLTask(const std::function<FunctionType>& function)
-    : function_(function) {
+FunctionGLTask::FunctionGLTask(const char* name, const std::function<FunctionType>& function)
+    : name_(name),
+      function_(function) {
+}
+
+FunctionGLTask::~FunctionGLTask() {
+  //printf("Destroying: %s\n", name_);
 }
 
 void FunctionGLTask::Run() {

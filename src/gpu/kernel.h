@@ -21,6 +21,8 @@ class Kernel {
   const KernelConfig& config() const { return kernel_.config(); }
   void SetConfig(const KernelConfig& config);
 
+  const Texture& kr() const { return kr_; }
+  const Texture& kd() const { return kd_; }
   const Texture& krf() const { return krf_; }
   const Texture& kdf() const { return kdf_; }
   double kflr() const { return kernel_.kflr(); }
@@ -28,6 +30,8 @@ class Kernel {
 
  private:
   cpu::Kernel kernel_;
+  Texture kr_;
+  Texture kd_;
   Texture krf_;
   Texture kdf_;
 

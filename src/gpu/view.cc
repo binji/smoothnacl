@@ -44,6 +44,13 @@ bool View::DidChangeView(pp::Instance* instance, const pp::View& view) {
     };
 
     graphics_3d_ = new pp::Graphics3D(instance, attribs);
+
+    if (!instance->BindGraphics(*graphics_3d_)) {
+      delete graphics_3d_;
+      graphics_3d_ = NULL;
+      size_ = pp::Size();
+      return false;
+    }
   } else {
     result = graphics_3d_->ResizeBuffers(new_size.width(), new_size.height());
     if (result != PP_OK) {
@@ -52,13 +59,6 @@ bool View::DidChangeView(pp::Instance* instance, const pp::View& view) {
       size_ = pp::Size();
       return false;
     }
-  }
-
-  if (!instance->BindGraphics(*graphics_3d_)) {
-    delete graphics_3d_;
-    graphics_3d_ = NULL;
-    size_ = pp::Size();
-    return false;
   }
 
   glSetCurrentContextPPAPI(graphics_3d_->pp_resource());
@@ -84,6 +84,9 @@ void View::SwapBuffersCallback(int32_t result) {
   }
 
   // Run all commands from the front of the task queue.
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0.5, 0.5, 0.5, 1);
+  glClear(GL_COLOR_BUFFER_BIT);
   locked_queue_->PopFront().RunAndClear();
 
   graphics_3d_->SwapBuffers(factory_.NewCallback(&View::SwapBuffersCallback));

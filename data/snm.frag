@@ -109,22 +109,22 @@ void main() {
   n = texture2D (tex0, v_texcoord0.xy).r;
   m = texture2D (tex1, v_texcoord1.xy).r;
 
-  if (sigmode==1.0)
+  if (sigmode==0.0)
     f = mix (sigmoid_ab (n, b1, b2), sigmoid_ab (n, d1, d2), m);
-  else if (sigmode==2.0)
+  else if (sigmode==1.0)
     f = sigmoid_mix (sigmoid_ab (n, b1, b2), sigmoid_ab (n, d1, d2), m);
-  else if (sigmode==3.0)
+  else if (sigmode==2.0)
     f = sigmoid_ab (n, mix (b1, d1, m), mix (b2, d2, m));
-  else  /*sigmode==4.0*/
+  else  /*sigmode==3.0*/
     f = sigmoid_ab (n, sigmoid_mix (b1, d1, m), sigmoid_mix (b2, d2, m));
 
   if (mode>0.0) {
     float g = texture2D (tex2, v_texcoord2.xy).r;
 
-         if (mode==1.0) f = g + dt*(2.0*f-1.0);
-    else if (mode==2.0) f = g + dt*(f-g);
-    else if (mode==3.0) f = m + dt*(2.0*f-1.0);
-    else if (mode==4.0) f = m + dt*(f-m);
+         if (mode==0.0) f = g + dt*(2.0*f-1.0);
+    else if (mode==1.0) f = g + dt*(f-g);
+    else if (mode==2.0) f = m + dt*(2.0*f-1.0);
+    else if (mode==3.0) f = m + dt*(f-m);
   }
 
   gl_FragColor.r = clamp (f, 0.0, 1.0);
