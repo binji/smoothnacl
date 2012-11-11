@@ -288,7 +288,6 @@ function makeMainEmbed() {
     msg4: 'Splat',
     msg5: 'SetRunOptions:continuous',
     msg6: 'SetDrawOptions:simulation',
-//    msg6: 'SetDrawOptions:kernelRing',
   });
 
   // Listen for messages from this embed -- they're only fps updates.
