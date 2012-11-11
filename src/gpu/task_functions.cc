@@ -6,7 +6,7 @@
 #include "gpu/future.h"
 #include <stdio.h>
 
-#define printf(...)
+//#define printf(...)
 
 namespace gpu {
 

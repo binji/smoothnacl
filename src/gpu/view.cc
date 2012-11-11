@@ -84,10 +84,13 @@ void View::SwapBuffersCallback(int32_t result) {
   }
 
   // Run all commands from the front of the task queue.
+  printf("**************** FRAME ***************************************\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
   locked_queue_->PopFront().RunAndClear();
+
+  printf("**************** FRAME ***************************************\n");
 
   graphics_3d_->SwapBuffers(factory_.NewCallback(&View::SwapBuffersCallback));
 }

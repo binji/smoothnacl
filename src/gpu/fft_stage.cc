@@ -84,7 +84,7 @@ void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
 
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
-  shader_.Uniform1f("dim", 0);
+  shader_.Uniform1f("dim", 1);
   shader_.Uniform1i("tang", tang);
   shader_.Uniform1f("tangsc", tangsc);
   shader_.UniformTexture("tex0", 0, in);
@@ -104,7 +104,7 @@ void FFTStage::ApplyY(int index, FFTSign sign, const Texture& in, Texture& out) 
   int h = size_.height();
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
-  shader_.Uniform1f("dim", 1);
+  shader_.Uniform1f("dim", 2);
   shader_.Uniform1f("tang", 0);
   shader_.Uniform1f("tangsc", 0);
   shader_.UniformTexture("tex0", 0, in);
