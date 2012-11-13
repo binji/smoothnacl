@@ -121,10 +121,10 @@ void main() {
   if (mode>0.0) {
     float g = texture2D (tex2, v_texcoord2.xy).r;
 
-         if (mode==0.0) f = g + dt*(2.0*f-1.0);
-    else if (mode==1.0) f = g + dt*(f-g);
-    else if (mode==2.0) f = m + dt*(2.0*f-1.0);
-    else if (mode==3.0) f = m + dt*(f-m);
+         if (mode==1.0) f = g + dt*(2.0*f-1.0);
+    else if (mode==2.0) f = g + dt*(f-g);
+    else if (mode==3.0) f = m + dt*(2.0*f-1.0);
+    else if (mode==4.0) f = m + dt*(f-m);
   }
 
   gl_FragColor.r = clamp (f, 0.0, 1.0);

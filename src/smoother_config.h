@@ -31,9 +31,9 @@ enum SigmoidMode {
   SIGMOID_MODE_1,
   // sigmoid_mix(sigmoid_ab(n, b1, b2), sigmoid_ab(n, d1, d2), m)
   SIGMOID_MODE_2,
-  // sigmoid_ab(n, mix(b1, d1, m), mix(b1, b2, m))
+  // sigmoid_ab(n, mix(b1, d1, m), mix(b2, d2, m))
   SIGMOID_MODE_3,
-  // sigmoid_ab(n, sigmoid_mix(b1, d1, m), sigmoid_mix(b1, b2, m))
+  // sigmoid_ab(n, sigmoid_mix(b1, d1, m), sigmoid_mix(b2, d2, m))
   SIGMOID_MODE_4
 };
 
