@@ -39,7 +39,7 @@ void initam(Texture* buf) {
 
 Simulation::Simulation(const SimulationConfig& config)
     : size_(config.size),
-      kernel_(config.size, config.kernel_config),
+      kernel_(config.size, config.kernel_config, &fft_),
       kernel_mul_(config.size),
       smoother_(config.size, config.smoother_config),
       fft_(config.size),
@@ -70,14 +70,13 @@ void Simulation::ViewSmoother() {
 }
 
 void Simulation::Step() {
-  float area = size_.width() * size_.height();
+  float sqrt_area = sqrt(size_.width() * size_.height());
   fft_.ApplyRC(aa_, aaf_);
-  //kernel_mul_.Apply(aaf_, kernel_.krf(), anf_, area / kernel_.kflr());
-  //kernel_mul_.Apply(aaf_, kernel_.kdf(), amf_, area / kernel_.kfld());
-  //fft_.ApplyCR(anf_, an_);
-  fft_.ApplyCR(amf_, aa_);
-  //initan(&an_);
-  //smoother_.Apply(an_, am_, aa_);
+  kernel_mul_.Apply(aaf_, kernel_.krf(), anf_, sqrt_area / kernel_.kflr());
+  kernel_mul_.Apply(aaf_, kernel_.kdf(), amf_, sqrt_area / kernel_.kfld());
+  fft_.ApplyCR(anf_, an_);
+  fft_.ApplyCR(amf_, am_);
+  smoother_.Apply(an_, am_, aa_);
 }
 
 void Simulation::Clear(double color) {

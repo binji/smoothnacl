@@ -15,9 +15,9 @@ CopyBufferCR::CopyBufferCR(const pp::Size& size)
   int h = size_.height();
   shader_.Init(shader_source_copybuffercr_frag,
                shader_source_copybuffercr_vert);
-  vb_.SetSize(w/2, h);
-  vb_.SetTex(0, -1.0f/w, 0, 1 - 1.0f/w, 1);
-  vb_.SetTex(1, 0, 0, 1, 1);
+  vb_.SetSize(w, h);
+  vb_.SetTex(0, 0, 0, 1-1.f/(w/2+1), 1);
+  vb_.SetTex(1, 0, 0, w, 1);
   vb_.LoadData();
 }
 
@@ -28,14 +28,14 @@ void CopyBufferCR::Apply(const Texture& in, Texture& out) {
   int w = size_.width();
   int h = size_.height();
   shader_.Use();
-  shader_.UniformMatrixOrtho("u_mat", 0, w/2+1, 0, h, -1, 1);
+  shader_.UniformMatrixOrtho("u_mat", 0, w, 0, h, -1, 1);
   shader_.UniformTexture("tex0", 0, in);
-  shader_.UniformTexture("tex1", 1, out);
+  shader_.UniformTexture("tex1", 1, in);
   vb_.SetAttribs(shader_.GetAttribLocation("a_position"),
                  shader_.GetAttribLocation("a_texcoord0"),
                  shader_.GetAttribLocation("a_texcoord1"));
   out.BindFramebuffer();
-  glViewport(0, 0, w/2+1, h);
+  glViewport(0, 0, w, h);
   vb_.Draw();
   glUseProgram(0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

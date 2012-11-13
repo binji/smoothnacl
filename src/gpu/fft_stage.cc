@@ -21,6 +21,7 @@ uint32_t IsPowerOf2(uint32_t x) {
 uint32_t Log2(uint32_t x) {
   assert(IsPowerOf2(x));
   uint32_t result = 0;
+  --x;
   while (x) {
     result++;
     x >>= 1;
@@ -59,7 +60,6 @@ FFTStage::FFTStage(const pp::Size& size)
 FFTStage::~FFTStage() {
 }
 
-
 void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
                       Texture& out) {
   int w = size_.width();
@@ -84,7 +84,7 @@ void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
 
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
-  shader_.Uniform1f("dim", 1);
+  shader_.Uniform1i("dim", 1);
   shader_.Uniform1i("tang", tang);
   shader_.Uniform1f("tangsc", tangsc);
   shader_.UniformTexture("tex0", 0, in);
@@ -99,13 +99,14 @@ void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void FFTStage::ApplyY(int index, FFTSign sign, const Texture& in, Texture& out) {
+void FFTStage::ApplyY(int index, FFTSign sign, const Texture& in,
+                      Texture& out) {
   int w = size_.width();
   int h = size_.height();
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
-  shader_.Uniform1f("dim", 2);
-  shader_.Uniform1f("tang", 0);
+  shader_.Uniform1i("dim", 2);
+  shader_.Uniform1i("tang", 0);
   shader_.Uniform1f("tangsc", 0);
   shader_.UniformTexture("tex0", 0, in);
   shader_.UniformTexture("tex1", 1, *plany_[index][sign]);
@@ -138,13 +139,14 @@ void FFTStage::MakeAllPlanX() {
 }
 
 void FFTStage::MakePlanX(float sign, int index, float4* buffer) {
-  const float w = size_.width();
+  const size_t w = size_.width();
+  const float fw = size_.width();
 
-  for (int x = 0; x < size_.width()/2 + 1; x++) {
+  for (int x = 0; x < w/2 + 1; x++) {
     if (sign == 1 && index == 0) {
-      buffer[x][0] = (      x + 0.5f) / (w/2 + 1);
-      buffer[x][1] = (w/2 - x + 0.5f) / (w/2 + 1);
-      double angle = 2 * sign * kPi * (x / w + 0.25);
+      buffer[x][0] = (       x + 0.5f) / (fw/2 + 1);
+      buffer[x][1] = (fw/2 - x + 0.5f) / (fw/2 + 1);
+      double angle = 2 * sign * kPi * (x / fw + 0.25);
       buffer[x][2] = cos(angle);
       buffer[x][3] = sin(angle);
     }
@@ -153,33 +155,33 @@ void FFTStage::MakePlanX(float sign, int index, float4* buffer) {
         buffer[x][0] = 0;
         buffer[x][1] = 0;
       } else {
-        buffer[x][0] = (      x) / (w/2);
-        buffer[x][1] = (w/2 - x) / (w/2);
+        buffer[x][0] = (       x) / (fw/2);
+        buffer[x][1] = (fw/2 - x) / (fw/2);
       }
-      double angle = 2 * sign * kPi * (x / w + 0.25);
+      double angle = 2 * sign * kPi * (x / fw + 0.25);
       buffer[x][2] = cos(angle);
       buffer[x][3] = sin(angle);
     }
-    else if (x < size_.width()/2) {
+    else if (x < w/2) {
       int l = 1 << index;
       int j = x % l;
       float angle = 2 * sign * kPi * j / l;
 
       if (j < l/2) {
         if (index == 1) {
-          buffer[x][0] = BitReverse(x      , log2w_ - 1) / (w/2);
-          buffer[x][1] = BitReverse(x + l/2, log2w_ - 1) / (w/2);
+          buffer[x][0] = BitReverse(x      , log2w_ - 1) / (fw/2);
+          buffer[x][1] = BitReverse(x + l/2, log2w_ - 1) / (fw/2);
         } else {
-          buffer[x][0] = (x      ) / (w/2);
-          buffer[x][1] = (x + l/2) / (w/2);
+          buffer[x][0] = (x      ) / (fw/2);
+          buffer[x][1] = (x + l/2) / (fw/2);
         }
       } else {
         if (index == 1) {
-          buffer[x][0] = BitReverse(x - l/2, log2w_ - 1) / (w/2);
-          buffer[x][1] = BitReverse(x      , log2w_ - 1) / (w/2);
+          buffer[x][0] = BitReverse(x - l/2, log2w_ - 1) / (fw/2);
+          buffer[x][1] = BitReverse(x      , log2w_ - 1) / (fw/2);
         } else {
-          buffer[x][0] = (x - l/2) / (w/2);
-          buffer[x][1] = (x      ) / (w/2);
+          buffer[x][0] = (x - l/2) / (fw/2);
+          buffer[x][1] = (x      ) / (fw/2);
         }
       }
       buffer[x][2] = cos(angle);
@@ -190,6 +192,7 @@ void FFTStage::MakePlanX(float sign, int index, float4* buffer) {
       buffer[x][2] = 0;
       buffer[x][3] = 0;
     }
+
   }
 }
 
@@ -212,26 +215,26 @@ void FFTStage::MakeAllPlanY() {
 }
 
 void FFTStage::MakePlanY(float sign, int index, float4* buffer) {
-  const float h = size_.height();
+  const float fh = size_.height();
 
   for (int x = 0; x < size_.height(); x++) {
     int l = 1 << index;
     int j = x % l;
     if (j < l/2) {
       if (index == 1) {
-        buffer[x][0] = BitReverse(x      , log2h_) / h;
-        buffer[x][1] = BitReverse(x + l/2, log2h_) / h;
+        buffer[x][0] = BitReverse(x      , log2h_) / fh;
+        buffer[x][1] = BitReverse(x + l/2, log2h_) / fh;
       } else {
-        buffer[x][0] = (x      ) / h;
-        buffer[x][1] = (x + l/2) / h;
+        buffer[x][0] = (x      ) / fh;
+        buffer[x][1] = (x + l/2) / fh;
       }
     } else {
       if (index == 1) {
-        buffer[x][0] = BitReverse(x - l/2, log2h_) / h;
-        buffer[x][1] = BitReverse(x      , log2h_) / h;
+        buffer[x][0] = BitReverse(x - l/2, log2h_) / fh;
+        buffer[x][1] = BitReverse(x      , log2h_) / fh;
       } else {
-        buffer[x][0] = (x - l/2) / h;
-        buffer[x][1] = (x      ) / h;
+        buffer[x][0] = (x - l/2) / fh;
+        buffer[x][1] = (x      ) / fh;
       }
     }
     float angle = 2 * sign * kPi * j / l;

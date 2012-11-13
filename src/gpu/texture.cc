@@ -99,7 +99,7 @@ void Texture::Load(const AlignedComplexes& buffer) {
   assert(buffer.size().height() == height_);
   assert(GL_RGBA == format_);
   float* temp = new float [width_ * height_ * 4];
-  std::fill(temp, temp + width_ * height_, 0);
+  std::fill(temp, temp + width_ * height_ * 4, 0);
   for (int y = 0; y < height_; ++y)
   for (int x = 0; x < width_; ++x) {
     float* pixel = &temp[y * (width_ * 4) + x];

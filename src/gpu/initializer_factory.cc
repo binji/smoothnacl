@@ -11,7 +11,7 @@
 namespace gpu {
 namespace {
 
-const int MAX_QUEUED_FRAMES = 2;
+const int MAX_QUEUED_FRAMES = 3;
 
 }  // namespace
 

@@ -10,6 +10,8 @@
 #include <ppapi/lib/gl/gles2/gl2ext_ppapi.h>
 #include "gpu/gl_task.h"
 
+#define printf(...)
+
 namespace gpu {
 
 View::View(LockedQueue* locked_queue)

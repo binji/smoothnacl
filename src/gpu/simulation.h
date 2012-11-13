@@ -27,6 +27,7 @@ class Simulation : public SimulationBase {
   virtual void SetSmoother(const SmootherConfig& config);
   const Kernel& kernel() const { return kernel_; }
   const Texture& aa() const { return aa_; }
+  const Texture& aaf() const { return aaf_; }
 
   virtual void ViewSmoother();
   virtual void Step();
@@ -37,10 +38,10 @@ class Simulation : public SimulationBase {
 
  private:
   pp::Size size_;
+  FFT fft_;
   Kernel kernel_;
   KernelMul kernel_mul_;
   Smoother smoother_;
-  FFT fft_;
   Texture aa_;
   Texture an_;
   Texture am_;

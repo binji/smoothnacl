@@ -21,13 +21,12 @@ KernelMul::KernelMul(const pp::Size& size)
 KernelMul::~KernelMul() {
 }
 
-
 void KernelMul::Apply(const Texture& in0, const Texture& in1, Texture& out,
                       double scale) {
   int w = size_.width();
   int h = size_.height();
   shader_.Use();
-  shader_.UniformMatrixOrtho("u_mat", 0, w/2+1, 0, h, -1, 1);
+  shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
   shader_.Uniform1f("sc", scale);
   shader_.UniformTexture("tex0", 0, in0);
   shader_.UniformTexture("tex1", 1, in1);
@@ -35,7 +34,7 @@ void KernelMul::Apply(const Texture& in0, const Texture& in1, Texture& out,
                  shader_.GetAttribLocation("a_texcoord0"),
                  shader_.GetAttribLocation("a_texcoord1"));
   out.BindFramebuffer();
-  glViewport(0, 0, w/2+1, h);
+  glViewport(0, 0, w/2 + 1, h);
   vb_.Draw();
   glUseProgram(0);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -29,17 +29,21 @@ void FFT::ApplyRC(const Texture& in, Texture& out) {
   Texture* src = &tex_;
   Texture* dst = &tex2_;
 
+#if 1
   copybufferrc_.Apply(in, *src);
   for (int index = 1; index <= fft_stage_.log2w(); ++index) {
-    fft_stage_.ApplyX(index, FFT_SIGN_POSITIVE, *src, *dst);
+    fft_stage_.ApplyX(index, FFT_SIGN_NEGATIVE, *src, *dst);
     std::swap(src, dst);
   }
   for (int index = 1; index <= fft_stage_.log2h(); ++index) {
     if (index == fft_stage_.log2h())
       dst = &out;
-    fft_stage_.ApplyY(index, FFT_SIGN_POSITIVE, *src, *dst);
+    fft_stage_.ApplyY(index, FFT_SIGN_NEGATIVE, *src, *dst);
     std::swap(src, dst);
   }
+#else
+  copybufferrc_.Apply(in, out);
+#endif
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
@@ -47,15 +51,19 @@ void FFT::ApplyCR(const Texture& in, Texture& out) {
   Texture* src = &tex_;
   Texture* dst = &tex2_;
 
+#if 1
   for (int index = 1; index <= fft_stage_.log2h(); ++index) {
-    fft_stage_.ApplyY(index, FFT_SIGN_NEGATIVE, index == 1 ? in : *src, *dst);
+    fft_stage_.ApplyY(index, FFT_SIGN_POSITIVE, (index == 1 ? in : *src), *dst);
     std::swap(src, dst);
   }
-  for (int index = 1; index <= fft_stage_.log2w(); ++index) {
-    fft_stage_.ApplyX(index, FFT_SIGN_NEGATIVE, *src, *dst);
+  for (int index = 0; index <= fft_stage_.log2w() - 1; ++index) {
+    fft_stage_.ApplyX(index, FFT_SIGN_POSITIVE, *src, *dst);
     std::swap(src, dst);
   }
   copybuffercr_.Apply(*src, out);
+#else
+  copybuffercr_.Apply(in, out);
+#endif
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
