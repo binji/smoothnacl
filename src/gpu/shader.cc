@@ -14,7 +14,12 @@ Shader::~Shader() {
 }
 
 void Shader::Init(const char* frag_shader, const char* vertex_shader) {
-  id_ = MakeProgram(frag_shader, vertex_shader);
+  vert_id_ = CompileShader(GL_VERTEX_SHADER, vertex_shader);
+  frag_id_ = CompileShader(GL_FRAGMENT_SHADER, frag_shader);
+  id_ = glCreateProgram();
+  glAttachShader(id_, vert_id_);
+  glAttachShader(id_, frag_id_);
+  glLinkProgram(id_);
 }
 
 Location Shader::GetAttribLocation(const char* name) {
@@ -22,7 +27,7 @@ Location Shader::GetAttribLocation(const char* name) {
   if (iter != attribs_.end())
     return iter->second;
 
-  Location location = glGetAttribLocation(id_, name);
+  PassLocation location = glGetAttribLocation(id_, name);
   attribs_[name] = location;
   return location;
 }
@@ -32,7 +37,7 @@ Location Shader::GetUniformLocation(const char* name) {
   if (iter != uniforms_.end())
     return iter->second;
 
-  Location location = glGetUniformLocation(id_, name);
+  PassLocation location = glGetUniformLocation(id_, name);
   uniforms_[name] = location;
   return location;
 }
@@ -69,23 +74,13 @@ void Shader::UniformMatrixOrtho(const char* name, float l, float r, float b,
   glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &matrix[0]);
 }
 
-ID Shader::CompileShader(GLenum type, const char* data) {
+PassID Shader::CompileShader(GLenum type, const char* data) {
   const char* shader_strings[1];
   shader_strings[0] = data;
   ID shader = glCreateShader(type);
   glShaderSource(shader, 1, shader_strings, NULL);
   glCompileShader(shader);
   return shader;
-}
-
-ID Shader::MakeProgram(const char* frag_shader, const char* vertex_shader) {
-  ID vert = CompileShader(GL_VERTEX_SHADER, vertex_shader);
-  ID frag = CompileShader(GL_FRAGMENT_SHADER, frag_shader);
-  ID prog = glCreateProgram();
-  glAttachShader(prog, vert);
-  glAttachShader(prog, frag);
-  glLinkProgram(prog);
-  return prog;
 }
 
 }  // namespace gpu

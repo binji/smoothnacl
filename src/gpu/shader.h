@@ -30,10 +30,11 @@ class Shader {
                           float near, float far);
 
  private:
-  ID CompileShader(GLenum type, const char* data);
-  ID MakeProgram(const char* frag_shader, const char* vertex_shader);
+  PassID CompileShader(GLenum type, const char* data);
 
   ID id_;
+  ID vert_id_;
+  ID frag_id_;
   typedef std::map<std::string, Location> NameLocationMap;
   NameLocationMap attribs_;
   NameLocationMap uniforms_;

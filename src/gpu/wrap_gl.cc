@@ -82,13 +82,13 @@ void wrap_glCompileShader(ID shader) {
       std::bind(&task_glCompileShader, shader)));
 }
 
-ID wrap_glCreateProgram(void) {
+PassID wrap_glCreateProgram(void) {
   ID id;
   g_task_list.Enqueue(new FUNCTION_GL_TASK(std::bind(&task_glCreateProgram, id)));
   return id;
 }
 
-ID wrap_glCreateShader(GLenum type) {
+PassID wrap_glCreateShader(GLenum type) {
   ID id;
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
       std::bind(&task_glCreateShader, id, type)));
@@ -152,14 +152,14 @@ void wrap_glGenTextures(GLsizei n, ID* textures) {
       std::bind(&task_glGenTexture, textures[0])));
 }
 
-Location wrap_glGetAttribLocation(ID program, const GLchar* name) {
+PassLocation wrap_glGetAttribLocation(ID program, const GLchar* name) {
   Location loc;
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
       std::bind(&task_glGetAttribLocation, loc, program, name)));
   return loc;
 }
 
-Location wrap_glGetUniformLocation(ID program, const GLchar* name) {
+PassLocation wrap_glGetUniformLocation(ID program, const GLchar* name) {
   Location loc;
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
       std::bind(&task_glGetUniformLocation, loc, program, name)));

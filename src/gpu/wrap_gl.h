@@ -31,8 +31,8 @@ void wrap_glClear(GLbitfield mask);
 void wrap_glClearColor(GLclampf red, GLclampf green, GLclampf blue,
                        GLclampf alpha);
 void wrap_glCompileShader(ID shader);
-ID wrap_glCreateProgram(void);
-ID wrap_glCreateShader(GLenum type);
+PassID wrap_glCreateProgram(void);
+PassID wrap_glCreateShader(GLenum type);
 void wrap_glDeleteProgram(ID program);
 void wrap_glDeleteFramebuffers(GLsizei n, const ID* renderbuffers);
 void wrap_glDeleteShader(ID shader);
@@ -44,8 +44,8 @@ void wrap_glFramebufferTexture2D(GLenum target, GLenum attachment,
 void wrap_glGenBuffers(GLsizei n, ID* buffers);
 void wrap_glGenFramebuffers(GLsizei n, ID* framebuffers);
 void wrap_glGenTextures(GLsizei n, ID* textures);
-Location wrap_glGetAttribLocation(ID program, const GLchar* name);
-Location wrap_glGetUniformLocation(ID program, const GLchar* name);
+PassLocation wrap_glGetAttribLocation(ID program, const GLchar* name);
+PassLocation wrap_glGetUniformLocation(ID program, const GLchar* name);
 void wrap_glLinkProgram(ID program);
 void wrap_glShaderSource(ID shader, GLsizei count, const GLchar** string,
                          const GLint* length);
