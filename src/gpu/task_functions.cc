@@ -3,10 +3,13 @@
 // found in the LICENSE file.
 
 #include "gpu/task_functions.h"
-#include "gpu/future.h"
+#include <GLES2/gl2.h>
 #include <stdio.h>
+#include "gpu/future.h"
 
 #define LOG_GL(...)
+//#define LOG_GL printf
+
 #if 1
 #define CHECK_ERROR
 #else
@@ -19,6 +22,12 @@
 #endif
 
 namespace gpu {
+
+void task_glActiveTexture(GLenum texture) {
+  LOG_GL("glActiveTexture(%d)\n", texture);
+  ::glActiveTexture(texture);
+  CHECK_ERROR;
+}
 
 void task_glAttachShader(ID program, ID shader) {
   LOG_GL("glAttachShader(%d, %d)\n", program.value(), shader.value());
@@ -53,6 +62,18 @@ void task_glBufferData(GLenum target, GLsizeiptr size, UniqueData data,
     LOG_GL("%.2f,", fdata[i]);
   LOG_GL("  }\n");
   ::glBufferData(target, size, data.get(), usage);
+  CHECK_ERROR;
+}
+
+void task_glClear(GLbitfield mask) {
+  LOG_GL("glClear(%d)\n", mask);
+  glClear(mask);
+  CHECK_ERROR;
+}
+
+void task_glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha) {
+  LOG_GL("glClearColor(%.3f, %.3f, %.3f, %.3f)\n", red, green, blue, alpha);
+  glClearColor(red, green, blue, alpha);
   CHECK_ERROR;
 }
 
@@ -99,6 +120,12 @@ void task_glDeleteTexture(ID texture) {
   LOG_GL("glDeleteTexture(%d)\n", texture.value());
   GLuint id = texture.value();
   ::glDeleteTextures(1, &id);
+  CHECK_ERROR;
+}
+
+void task_glDrawArrays(GLenum mode, GLint first, GLsizei count) {
+  LOG_GL("glDrawArrays(%d, %d, %d)\n", mode, first, count);
+  ::glDrawArrays(mode, first, count);
   CHECK_ERROR;
 }
 
@@ -197,6 +224,12 @@ void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,
   CHECK_ERROR;
 }
 
+void task_glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
+  LOG_GL("glTexParameterf(%d, %d, %.3f)\n", target, pname, param);
+  ::glTexParameterf(target, pname, param);
+  CHECK_ERROR;
+}
+
 void task_glUniform1f(Location location, GLfloat x) {
   LOG_GL("glUniform1f(%d, %.3f)\n", location.value(), x);
   ::glUniform1f(location.value(), x);
@@ -232,6 +265,12 @@ void task_glVertexAttribPointer(Location indx, GLint size, GLenum type,
                                 const GLvoid* ptr) {
   LOG_GL("glVertexAttribPointer(%d, %d, %d, %d, %d, %p)\n", indx.value(), size, type, normalized, stride, ptr);
   ::glVertexAttribPointer(indx.value(), size, type, normalized, stride, ptr);
+  CHECK_ERROR;
+}
+
+void task_glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
+  LOG_GL("glViewport(%d, %d, %d, %d)\n", x, y, width, height);
+  ::glViewport(x, y, width, height);
   CHECK_ERROR;
 }
 

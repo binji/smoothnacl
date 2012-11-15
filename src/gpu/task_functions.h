@@ -17,12 +17,15 @@ typedef std::shared_ptr<float> UniqueMatrix;
 typedef std::shared_ptr<const char*> UniqueStrings;
 
 // Wrapped functions.
+void task_glActiveTexture(GLenum texture);
 void task_glAttachShader(ID program, ID shader);
 void task_glBindBuffer(GLenum target, ID buffer);
 void task_glBindFramebuffer(GLenum target, ID framebuffer);
 void task_glBindTexture(GLenum target, ID texture);
 void task_glBufferData(GLenum target, GLsizeiptr size, UniqueData data,
                        GLenum usage);
+void task_glClear(GLbitfield mask);
+void task_glClearColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 void task_glCompileShader(ID shader);
 void task_glCreateProgram(ID out_program);
 void task_glCreateShader(ID out_shader, GLenum type);
@@ -30,6 +33,7 @@ void task_glDeleteProgram(ID program);
 void task_glDeleteShader(ID shader);
 void task_glDeleteFramebuffer(ID framebuffer);
 void task_glDeleteTexture(ID texture);
+void task_glDrawArrays(GLenum mode, GLint first, GLsizei count);
 void task_glEnableVertexAttribArray(Location index);
 void task_glFramebufferTexture2D(GLenum target, GLenum attachment,
                                  GLenum textarget, ID texture, GLint level);
@@ -46,6 +50,7 @@ void task_glShaderSource(ID shader, GLsizei count, UniqueStrings strings,
 void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,
                        GLsizei width, GLsizei height, GLint border,
                        GLenum format, GLenum type, UniqueData pixels);
+void task_glTexParameterf(GLenum target, GLenum pname, GLfloat param);
 void task_glUniform1f(Location location, GLfloat x);
 void task_glUniform1i(Location location, GLint x);
 void task_glUniformMatrix4fv(Location location, GLsizei count,

@@ -11,12 +11,6 @@
 #include "gpu/gl_task.h"
 #include "gpu/task_functions.h"
 
-// Allow use of real gl symbols.
-#include "gpu/undef_gl.h"
-#undef GLES2_GET_FUN
-#define GLES2_GET_FUN(F) GLES2 ## F
-#include "gpu/define_gl.h"
-
 #define FUNCTION_GL_TASK(f) FunctionGLTask(#f, f)
 
 namespace gpu {
@@ -43,7 +37,7 @@ std::shared_ptr<T> CloneData(const void* data, size_t size) {
 
 void wrap_glActiveTexture(GLenum texture) {
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
-      std::bind(&::glActiveTexture, texture)));
+      std::bind(&task_glActiveTexture, texture)));
 }
 
 void wrap_glAttachShader(ID program, ID shader) {
@@ -74,13 +68,13 @@ void wrap_glBufferData(GLenum target, GLsizeiptr size, const GLvoid* data,
 }
 
 void wrap_glClear(GLbitfield mask) {
-  g_task_list.Enqueue(new FUNCTION_GL_TASK(std::bind(&::glClear, mask)));
+  g_task_list.Enqueue(new FUNCTION_GL_TASK(std::bind(&task_glClear, mask)));
 }
 
 void wrap_glClearColor(GLclampf red, GLclampf green, GLclampf blue,
                        GLclampf alpha) {
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
-      std::bind(&::glClearColor, red, green, blue, alpha)));
+      std::bind(&task_glClearColor, red, green, blue, alpha)));
 }
 
 void wrap_glCompileShader(ID shader) {
@@ -125,7 +119,7 @@ void wrap_glDeleteTextures(GLsizei n, const ID* textures) {
 
 void wrap_glDrawArrays(GLenum mode, GLint first, GLsizei count) {
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
-      std::bind(&::glDrawArrays, mode, first, count)));
+      std::bind(&task_glDrawArrays, mode, first, count)));
 }
 
 void wrap_glEnableVertexAttribArray(Location index) {
@@ -208,7 +202,7 @@ void wrap_glTexImage2D(GLenum target, GLint level, GLint internalformat,
 
 void wrap_glTexParameterf(GLenum target, GLenum pname, GLfloat param) {
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
-      std::bind(&::glTexParameterf, target, pname, param)));
+      std::bind(&task_glTexParameterf, target, pname, param)));
 }
 
 void wrap_glUniform1f(Location location, GLfloat x) {
@@ -244,7 +238,7 @@ void wrap_glVertexAttribPointer(Location indx, GLint size, GLenum type,
 
 void wrap_glViewport(GLint x, GLint y, GLsizei width, GLsizei height) {
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
-      std::bind(&::glViewport, x, y, width, height)));
+      std::bind(&task_glViewport, x, y, width, height)));
 }
 
 }  // namespace gpu

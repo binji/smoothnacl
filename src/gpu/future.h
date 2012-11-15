@@ -6,7 +6,6 @@
 #define GPU_FUTURE_H_
 
 #include <assert.h>
-#include <GLES2/gl2.h>
 #include <memory>
 #include <utility>
 
@@ -58,6 +57,10 @@ template<typename T>
 bool Future<T>::has_value() const {
   return p_->second;
 }
+
+// Copied from GLES2/gl2.h
+typedef int              GLint;
+typedef unsigned int     GLuint;
 
 typedef Future<GLuint> ID;
 typedef Future<GLint> Location;

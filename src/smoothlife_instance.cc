@@ -332,6 +332,7 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
   // This is the game loop; UpdateCallback schedules another call to itself to
   // occur kUpdateInterval milliseconds later.
   ScheduleUpdate();
+  static PP_TimeTicks first_time;
   static PP_TimeTicks last_time = 0;
   if (last_time) {
     PP_TimeTicks this_time = GetTimeTicks();
@@ -346,8 +347,11 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
     sprintf(&buffer[0], "FPS: %.3f", fps);
     PostMessage(pp::Var(buffer));
 
+    printf("Time: %.3f seconds.\n", this_time - first_time);
+
     last_time = this_time;
   } else {
+    first_time = GetTimeTicks();
     last_time = GetTimeTicks();
   }
 }

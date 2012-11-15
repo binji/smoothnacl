@@ -62,6 +62,9 @@ FFTStage::~FFTStage() {
 
 void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
                       Texture& out) {
+  assert(index >= 0 && index <= log2w_);
+  assert(sign == FFT_SIGN_NEGATIVE || sign == FFT_SIGN_POSITIVE);
+
   int w = size_.width();
   int h = size_.height();
   int tang;
@@ -101,6 +104,9 @@ void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
 
 void FFTStage::ApplyY(int index, FFTSign sign, const Texture& in,
                       Texture& out) {
+  assert(index >= 0 && index <= log2h_);
+  assert(sign == FFT_SIGN_NEGATIVE || sign == FFT_SIGN_POSITIVE);
+
   int w = size_.width();
   int h = size_.height();
   shader_.Use();
