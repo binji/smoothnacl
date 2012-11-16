@@ -7,7 +7,6 @@
 
 #include <assert.h>
 #include <utility>
-#include <stdio.h>
 
 namespace gpu {
 
@@ -70,13 +69,11 @@ template <typename T>
 Future<T>::Future()
     : p_(new Data(T(), false)),
       state_(IS_OWNED_POINTER) {
-  printf("Future<T>::Future(%p): new\n", this);
 }
 
 template <typename T>
 Future<T>::~Future() {
   if (state_ == IS_OWNED_POINTER) {
-    printf("Future<T>::~Future(%p): deleted\n", this);
     delete p_;
   }
 }
