@@ -33,6 +33,9 @@ class VertexBuffer {
  private:
   ID id_;
   Vertex verts_[4];  // Always a quad.
+
+  VertexBuffer(const VertexBuffer&);  // undefined
+  VertexBuffer& operator =(const VertexBuffer&);  // undefined
 };
 
 }  // namespace gpu

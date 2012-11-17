@@ -47,6 +47,9 @@ class Texture {
   GLsizei height_;
   GLenum format_;
   TextureOptions options_;
+
+  Texture(const Texture&);  // undefined
+  Texture& operator =(const Texture&);  // undefined
 };
 
 }  // namespace gpu

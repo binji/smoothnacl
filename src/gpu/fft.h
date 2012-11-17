@@ -28,6 +28,9 @@ class FFT {
   FFTStage fft_stage_;
   Texture tex_;
   Texture tex2_;
+
+  FFT(const FFT&);  // undefined
+  FFT& operator =(const FFT&);  // undefined
 };
 
 }  // namespace gpu

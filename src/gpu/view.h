@@ -38,6 +38,9 @@ class View : public ViewBase {
   pp::Size sim_size_;
   bool draw_loop_running_;
   LockedQueue* locked_queue_;  // Weak.
+
+  View(const View&);  // undefined
+  View& operator =(const View&);  // undefined
 };
 
 }  // namespace gpu

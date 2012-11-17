@@ -38,6 +38,9 @@ class Shader {
   typedef std::map<std::string, Location> NameLocationMap;
   NameLocationMap attribs_;
   NameLocationMap uniforms_;
+
+  Shader(const Shader&);  // undefined
+  Shader& operator =(const Shader&);  // undefined
 };
 
 }  // namespace gpu

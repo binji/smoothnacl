@@ -84,7 +84,8 @@ void wrap_glCompileShader(ID shader) {
 
 PassID wrap_glCreateProgram(void) {
   ID id;
-  g_task_list.Enqueue(new FUNCTION_GL_TASK(std::bind(&task_glCreateProgram, id)));
+  g_task_list.Enqueue(new FUNCTION_GL_TASK(
+      std::bind(&task_glCreateProgram, id)));
   return id;
 }
 
