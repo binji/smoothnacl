@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+#include "smoothlife_instance.h"
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -9,16 +10,19 @@
 #include <ppapi/c/pp_time.h>
 #include <ppapi/cpp/core.h>
 #include <ppapi/cpp/module.h>
-#include "ppapi/cpp/input_event.h"
-#include "ppapi/cpp/var.h"
+#include <ppapi/cpp/input_event.h>
+#include <ppapi/cpp/var.h>
+#include <ppapi/lib/gl/gles2/gl2ext_ppapi.h>
 
-#include "kernel.h"
-#include "simulation.h"
-#include "smoother.h"
-#include "smoothlife_instance.h"
-#include "smoothlife_thread.h"
-#include "smoothlife_view.h"
+#include "cpu/initializer_factory.h"
+#include "gpu/initializer_factory.h"
+#include "kernel_config.h"
+#include "simulation_config.h"
+#include "smoother_config.h"
 #include "task.h"
+#include "thread.h"
+#include "thread_options.h"
+#include "view_base.h"
 
 namespace {
 
@@ -38,7 +42,6 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
       view_(NULL),
       thread_(NULL),
       sim_size_(512, 512),
-      locked_buffer_(NULL),
       task_queue_(NULL),
       frames_drawn_(NULL),
       fullscreen_(this),
@@ -49,36 +52,36 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
 
 SmoothlifeInstance::~SmoothlifeInstance() {
   delete task_queue_;
-  delete locked_buffer_;
   delete thread_;
   delete view_;
 }
 
 bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
+  glInitializePPAPI(pp::Module::Get()->get_browser_interface());
   InitMessageMap();
   SimulationConfig config;
   config.size = sim_size_;
 
-  AlignedReals* buffer = new AlignedReals(config.size);
-  locked_buffer_ = new LockedObject<AlignedReals>(buffer);
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
   frames_drawn_ = new LockedObject<int>(new int(0));
+  //initializer_factory_ = new cpu::InitializerFactory(config.size);
+  initializer_factory_ = new gpu::InitializerFactory(config.size);
   step_cond_ = new CondVar;
 
   ThreadContext context;
   context.config = config;
   context.run_options = kRunOptions_Continuous;
   context.draw_options = kDrawOptions_Simulation;
-  context.buffer = locked_buffer_;
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
   context.step_cond = step_cond_;
+  context.initializer_factory = initializer_factory_;
 
   ParseInitMessages(argc, argn, argv, &context);
 
-  thread_ = new SmoothlifeThread(context);
-  view_ = new SmoothlifeView(locked_buffer_);
+  thread_ = new Thread(context);
+  view_ = initializer_factory_->CreateView();
 
   return true;
 }
@@ -139,11 +142,12 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
       if (left_down_) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
-        EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskDrawFilledCircle,
-                                     sim_point.x(),
-                                     sim_point.y(),
-                                     10,
-                                     1.0));
+        EnqueueTask(MakeFunctionTask(
+              &Thread::TaskDrawFilledCircle,
+              sim_point.x(),
+              sim_point.y(),
+              10,
+              1.0));
       }
       return true;
     }
@@ -220,7 +224,7 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
   config.disc_radius = strtod(params[0].c_str(), NULL);
   config.ring_radius = strtod(params[1].c_str(), NULL);
   config.blend_radius = strtod(params[2].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetKernel, config));
+  EnqueueTask(MakeFunctionTask(&Thread::TaskSetKernel, config));
 }
 
 void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
@@ -239,7 +243,7 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
   config.mix = static_cast<Sigmoid>(atoi(params[8].c_str()));
   config.sn = strtod(params[9].c_str(), NULL);
   config.sm = strtod(params[10].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetSmoother, config));
+  EnqueueTask(MakeFunctionTask(&Thread::TaskSetSmoother, config));
 }
 
 void SmoothlifeInstance::MessageClear(const ParamList& params) {
@@ -247,14 +251,14 @@ void SmoothlifeInstance::MessageClear(const ParamList& params) {
     return;
 
   double color = strtod(params[0].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskClear, color));
+  EnqueueTask(MakeFunctionTask(&Thread::TaskClear, color));
 }
 
 void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSplat));
+  EnqueueTask(MakeFunctionTask(&Thread::TaskSplat));
 }
 
 void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
@@ -273,8 +277,7 @@ void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetRunOptions,
-                               run_options));
+  EnqueueTask(MakeFunctionTask(&Thread::TaskSetRunOptions, run_options));
 
   step_cond_->Lock();
   step_cond_->Signal();
@@ -299,8 +302,7 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&SmoothlifeThread::TaskSetDrawOptions,
-                               draw_options));
+  EnqueueTask(MakeFunctionTask(&Thread::TaskSetDrawOptions, draw_options));
 }
 
 void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
@@ -317,7 +319,7 @@ void SmoothlifeInstance::EnqueueTask(Task* task) {
     return;
   }
 
-  locker.object()->push_back(task);
+  locker.object()->push_back(std::shared_ptr<Task>(task));
 }
 
 void SmoothlifeInstance::ScheduleUpdate() {
@@ -330,6 +332,7 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
   // This is the game loop; UpdateCallback schedules another call to itself to
   // occur kUpdateInterval milliseconds later.
   ScheduleUpdate();
+  static PP_TimeTicks first_time;
   static PP_TimeTicks last_time = 0;
   if (last_time) {
     PP_TimeTicks this_time = GetTimeTicks();
@@ -346,6 +349,7 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
 
     last_time = this_time;
   } else {
+    first_time = GetTimeTicks();
     last_time = GetTimeTicks();
   }
 }

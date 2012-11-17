@@ -1,24 +1,28 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef TASK_H_
 #define TASK_H_
 
 #include <functional>
 
-class SmoothlifeThread;
+class Thread;
 
 class Task {
  public:
   virtual ~Task() {}
-  virtual void Run(SmoothlifeThread* thread) = 0;
+  virtual void Run(Thread* thread) = 0;
 };
 
 class FunctionTask : public Task {
  public:
-  typedef void FunctionType(SmoothlifeThread*);
-  FunctionTask(const std::function<FunctionType>& function)
+  typedef void FunctionType(Thread*);
+  explicit FunctionTask(const std::function<FunctionType>& function)
       : function_(function) {
   }
 
-  virtual void Run(SmoothlifeThread* thread) {
+  virtual void Run(Thread* thread) {
     function_(thread);
   }
 

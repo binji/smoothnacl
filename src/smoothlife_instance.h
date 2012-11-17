@@ -8,20 +8,21 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "ppapi/cpp/size.h"
-#include "ppapi/cpp/fullscreen.h"
-#include "ppapi/cpp/instance.h"
-#include "ppapi/utility/completion_callback_factory.h"
+#include <ppapi/cpp/size.h>
+#include <ppapi/cpp/fullscreen.h>
+#include <ppapi/cpp/instance.h>
+#include <ppapi/utility/completion_callback_factory.h>
 #include "condvar.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "task_queue.h"
 
 
+class InitializerFactoryBase;
 class SmoothlifeInstance;
-class SmoothlifeThread;
-class SmoothlifeView;
+class Thread;
 class ThreadContext;
+class ViewBase;
 typedef std::vector<std::string> ParamList;
 typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
 typedef std::map<std::string, MessageFunc> MessageMap;
@@ -54,12 +55,12 @@ class SmoothlifeInstance : public pp::Instance {
   void UpdateCallback(int32_t result);
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
-  SmoothlifeView* view_;
-  SmoothlifeThread* thread_;
+  ViewBase* view_;
+  Thread* thread_;
   pp::Size sim_size_;
-  LockedObject<AlignedReals>* locked_buffer_;
   LockedObject<TaskQueue>* task_queue_;
   LockedObject<int>* frames_drawn_;
+  InitializerFactoryBase* initializer_factory_;
   CondVar* step_cond_;
   MessageMap message_map_;
   pp::Fullscreen fullscreen_;

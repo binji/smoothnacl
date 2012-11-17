@@ -1,3 +1,7 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+// found in the LICENSE file.
+
 #ifndef FFT_ALLOCATION_H_
 #define FFT_ALLOCATION_H_
 
@@ -47,6 +51,7 @@ class FftAllocation {
 };
 
 typedef FftAllocation<double> AlignedReals;
+typedef FftAllocation<float> AlignedFloats;
 typedef FftAllocation<fftw_complex> AlignedComplexes;
 
 #endif  // FFT_ALLOCATION_H_
