@@ -14,9 +14,10 @@
 
 namespace gpu {
 
-View::View(LockedQueue* locked_queue)
+View::View(const pp::Size& sim_size, LockedQueue* locked_queue)
     : factory_(this),
       graphics_3d_(NULL),
+      sim_size_(sim_size),
       draw_loop_running_(false),
       locked_queue_(locked_queue) {
 }
@@ -85,14 +86,18 @@ void View::SwapBuffersCallback(int32_t result) {
     return;
   }
 
+  double scale;
+  int xoffset, yoffset;
+  GetScreenToSimScale(sim_size_, &scale, &xoffset, &yoffset);
+  int vp_width = static_cast<int>(sim_size_.width() / scale);
+  int vp_height = static_cast<int>(sim_size_.height() / scale);
+
   // Run all commands from the front of the task queue.
-  printf("**************** FRAME ***************************************\n");
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(0.5, 0.5, 0.5, 1);
   glClear(GL_COLOR_BUFFER_BIT);
+  glViewport(xoffset, yoffset, vp_width, vp_height);
   locked_queue_->PopFront().RunAndClear();
-
-  printf("**************** FRAME ***************************************\n");
 
   graphics_3d_->SwapBuffers(factory_.NewCallback(&View::SwapBuffersCallback));
 }

@@ -347,8 +347,6 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
     sprintf(&buffer[0], "FPS: %.3f", fps);
     PostMessage(pp::Var(buffer));
 
-    printf("Time: %.3f seconds.\n", this_time - first_time);
-
     last_time = this_time;
   } else {
     first_time = GetTimeTicks();

@@ -34,7 +34,7 @@ SimulationBase* InitializerFactory::CreateSimulation(
 }
 
 ViewBase* InitializerFactory::CreateView() {
-  return new gpu::View(locked_queue_);
+  return new gpu::View(size_, locked_queue_);
 }
 
 }  // namespace gpu

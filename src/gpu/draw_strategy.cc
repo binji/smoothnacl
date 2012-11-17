@@ -21,6 +21,11 @@ DrawStrategy::DrawStrategy(const pp::Size& size,
 void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
   Simulation* gpu_sim = static_cast<Simulation*>(simulation);
 
+  locked_queue_->PushBack(g_task_list.Take());
+
+  // view.cc sets the viewport to its full size before it runs commands from
+  // the task list. Ensure the draw call is the first render we perform for
+  // this frame.
   switch (options) {
     default:
     case kDrawOptions_Simulation:
@@ -40,8 +45,6 @@ void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
       Apply(gpu_sim->aa());
       break;
   }
-
-  locked_queue_->PushBack(g_task_list.Take());
 }
 
 void DrawStrategy::InitShader() {
@@ -62,7 +65,6 @@ void DrawStrategy::Apply(const Texture& in) {
   vb_.SetAttribs(shader_.GetAttribLocation("a_position"),
                  shader_.GetAttribLocation("a_texcoord0"));
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glViewport(0, 0, w, h);  // TODO(binji): get real w/h from view...?
   vb_.Draw();
   glUseProgram(0);
 }
