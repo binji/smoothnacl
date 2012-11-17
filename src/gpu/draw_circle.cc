@@ -36,4 +36,24 @@ void DrawCircle::Apply(Texture& inout, float x, float y, float radius) {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void DrawCircle::Apply(Texture& inout, const Circles& circles) {
+  int w = size_.width();
+  int h = size_.height();
+  shader_.Use();
+  shader_.UniformMatrixOrtho("u_mat", 0, w, 0, h, -1, 1);
+  shader_.Uniform2f("u_window_size", w, h);
+  shader_.UniformTexture("u_tex0", 0, inout);
+  vb_.SetAttribs(shader_.GetAttribLocation("a_position"));
+  inout.BindFramebuffer();
+  glViewport(0, 0, w, h);
+  for (int i = 0; i < circles.size(); ++i) {
+    const Circle& circle = circles[i];
+    shader_.Uniform2f("u_pos", circle.x, circle.y);
+    shader_.Uniform1f("u_radius", circle.radius);
+    vb_.Draw();
+  }
+  glUseProgram(0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 }  // namespace gpu

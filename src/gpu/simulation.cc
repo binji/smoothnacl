@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "gpu/simulation.h"
+#include <algorithm>
 #include <math.h>
 #include "fft_allocation.h"
 #include "gpu/wrap_gl.h"
@@ -10,6 +11,12 @@
 namespace gpu {
 
 namespace {
+
+const int kMaxSplatCircles = 5000;
+
+double RND(double x) {
+  return x * (double)rand() / ((double)RAND_MAX + 1);
+}
 
 void initan(Texture* buf) {
   int width = buf->width();
@@ -92,27 +99,25 @@ void Simulation::DrawFilledCircle(double x, double y, double radius,
   draw_circle_.Apply(aa_, x, y, radius);
 }
 
-static double RND(double x) {
-  return x * (double)rand() / ((double)RAND_MAX + 1);
-}
-
 void Simulation::Splat() {
-  double mx, my;
   int width = aa_.width();
   int height = aa_.height();
-
   double ring_radius = kernel_.config().ring_radius;
+  double mx = std::min<double>(2 * ring_radius, width);
+  double my = std::min<double>(2 * ring_radius, height);
+  int num_circles = static_cast<int>(width * height / (mx * my));
+  num_circles = std::min(num_circles, kMaxSplatCircles);
 
-  mx = 2 * ring_radius; if (mx > width) mx = width;
-  my = 2 * ring_radius; if (my > height) my = height;
-
-  for (int t = 0; t <= (int)(width * height / (mx * my)); t++) {
-    double x = RND(width);
-    double y = RND(height);
-    double radius = ring_radius * (RND(0.5) + 0.5);
-
-    draw_circle_.Apply(aa_, x, y, radius);
+  Circles circles;
+  for (int t = 0; t <= num_circles; t++) {
+    Circle c;
+    c.x = RND(width);
+    c.y = RND(height);
+    c.radius = ring_radius * (RND(0.5) + 0.5);
+    circles.push_back(c);
   }
+
+  draw_circle_.Apply(aa_, circles);
 }
 
 }  // namespace gpu
