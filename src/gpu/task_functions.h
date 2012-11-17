@@ -52,6 +52,7 @@ void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,
                        GLenum format, GLenum type, UniqueData pixels);
 void task_glTexParameterf(GLenum target, GLenum pname, GLfloat param);
 void task_glUniform1f(Location location, GLfloat x);
+void task_glUniform2f(Location location, GLfloat x, GLfloat y);
 void task_glUniform1i(Location location, GLint x);
 void task_glUniformMatrix4fv(Location location, GLsizei count,
                              GLboolean transpose, UniqueMatrix value);

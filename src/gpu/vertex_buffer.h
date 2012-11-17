@@ -24,6 +24,7 @@ class VertexBuffer {
   void SetSize(float width, float height);
   void SetTex(size_t index, float left, float top, float right, float bottom);
   void LoadData();
+  void SetAttribs(Location loc_pos);
   void SetAttribs(Location loc_pos, Location loc_tex0);
   void SetAttribs(Location loc_pos, Location loc_tex0, Location loc_tex1);
   void SetAttribs(Location loc_pos,

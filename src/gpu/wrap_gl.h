@@ -54,6 +54,7 @@ void wrap_glTexImage2D(GLenum target, GLint level, GLint internalformat,
                        GLenum format, GLenum type, const GLvoid* pixels);
 void wrap_glTexParameterf(GLenum target, GLenum pname, GLfloat param);
 void wrap_glUniform1f(Location location, GLfloat x);
+void wrap_glUniform2f(Location location, GLfloat x, GLfloat y);
 void wrap_glUniform1i(Location location, GLint x);
 void wrap_glUniformMatrix4fv(Location location, GLsizei count,
                              GLboolean transpose, const GLfloat* value);

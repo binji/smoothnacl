@@ -50,6 +50,10 @@ void Shader::Uniform1f(const char* name, GLfloat value) {
   glUniform1f(GetUniformLocation(name), value);
 }
 
+void Shader::Uniform2f(const char* name, GLfloat value0, GLfloat value1) {
+  glUniform2f(GetUniformLocation(name), value0, value1);
+}
+
 void Shader::Uniform1i(const char* name, GLint value) {
   glUniform1i(GetUniformLocation(name), value);
 }

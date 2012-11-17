@@ -24,6 +24,7 @@ class Shader {
   Location GetUniformLocation(const char* name);
   void Use();
   void Uniform1f(const char* name, GLfloat value);
+  void Uniform2f(const char* name, GLfloat value0, GLfloat value1);
   void Uniform1i(const char* name, GLint value);
   void UniformTexture(const char* name, int index, const Texture& texture);
   void UniformMatrixOrtho(const char* name, float l, float r, float b, float t,

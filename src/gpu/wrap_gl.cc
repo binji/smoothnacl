@@ -211,6 +211,11 @@ void wrap_glUniform1f(Location location, GLfloat x) {
       std::bind(&task_glUniform1f, location, x)));
 }
 
+void wrap_glUniform2f(Location location, GLfloat x, GLfloat y) {
+  g_task_list.Enqueue(new FUNCTION_GL_TASK(
+      std::bind(&task_glUniform2f, location, x, y)));
+}
+
 void wrap_glUniform1i(Location location, GLint x) {
   g_task_list.Enqueue(new FUNCTION_GL_TASK(
       std::bind(&task_glUniform1i, location, x)));

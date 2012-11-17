@@ -49,13 +49,17 @@ void VertexBuffer::LoadData() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(verts_), &verts_[0], GL_STATIC_DRAW);
 }
 
-void VertexBuffer::SetAttribs(Location loc_pos, Location loc_tex0) {
+void VertexBuffer::SetAttribs(Location loc_pos) {
   glBindBuffer(GL_ARRAY_BUFFER, id_);
   glVertexAttribPointer(loc_pos, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<void*>(offsetof(Vertex, pos)));
+  glEnableVertexAttribArray(loc_pos);
+}
+
+void VertexBuffer::SetAttribs(Location loc_pos, Location loc_tex0) {
+  SetAttribs(loc_pos);
   glVertexAttribPointer(loc_tex0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                         reinterpret_cast<void*>(offsetof(Vertex, tex[0])));
-  glEnableVertexAttribArray(loc_pos);
   glEnableVertexAttribArray(loc_tex0);
 }
 

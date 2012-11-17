@@ -235,6 +235,12 @@ void task_glUniform1f(Location location, GLfloat x) {
   CHECK_ERROR;
 }
 
+void task_glUniform2f(Location location, GLfloat x, GLfloat y) {
+  LOG_GL("glUniform2f(%d, %.3f, %.3f)\n", location.value(), x, y);
+  ::glUniform2f(location.value(), x, y);
+  CHECK_ERROR;
+}
+
 void task_glUniform1i(Location location, GLint x) {
   LOG_GL("glUniform1i(%d, %d)\n", location.value(), x);
   ::glUniform1i(location.value(), x);

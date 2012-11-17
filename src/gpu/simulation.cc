@@ -42,6 +42,7 @@ Simulation::Simulation(const SimulationConfig& config)
       kernel_(config.size, config.kernel_config, &fft_),
       kernel_mul_(config.size),
       smoother_(config.size, config.smoother_config),
+      draw_circle_(config.size),
       fft_(config.size),
       aa_(config.size.width(), config.size.height(), FORMAT_REAL, TEXTURE_FRAMEBUFFER),
       an_(config.size.width(), config.size.height(), FORMAT_REAL, TEXTURE_FRAMEBUFFER),
@@ -88,49 +89,30 @@ void Simulation::Clear(double color) {
 
 void Simulation::DrawFilledCircle(double x, double y, double radius,
                                   double color) {
-  // TODO(binji): implement
+  draw_circle_.Apply(aa_, x, y, radius);
 }
 
 static double RND(double x) {
-  return x * (double)rand()/((double)RAND_MAX + 1);
+  return x * (double)rand() / ((double)RAND_MAX + 1);
 }
 
 void Simulation::Splat() {
-  // TODO(binji): implement
   double mx, my;
   int width = aa_.width();
   int height = aa_.height();
-  AlignedFloats fs(pp::Size(width, height));
 
   double ring_radius = kernel_.config().ring_radius;
 
-  mx = 2 * ring_radius; if (mx>width) mx=width;
-  my = 2 * ring_radius; if (my>height) my=height;
+  mx = 2 * ring_radius; if (mx > width) mx = width;
+  my = 2 * ring_radius; if (my > height) my = height;
 
-  for (int t=0; t<=(int)(width*height/(mx*my)); t++) {
+  for (int t = 0; t <= (int)(width * height / (mx * my)); t++) {
     double x = RND(width);
     double y = RND(height);
     double radius = ring_radius * (RND(0.5) + 0.5);
 
-    int width = aa_.width();
-    int height = aa_.height();
-    int left = std::max(0, static_cast<int>(x - radius));
-    int right = std::min(width, static_cast<int>(x + radius + 1));
-    int top = std::max(0, static_cast<int>(y - radius));
-    int bottom = std::min(height, static_cast<int>(y + radius + 1));
-
-    for (int j = top; j < bottom; ++j) {
-      for (int i = left; i < right; ++i) {
-        double dx = x - i;
-        double dy = y - j;
-        double length = sqrt(dx * dx + dy * dy);
-        if (length < radius)
-          fs[j * width + i] = 1.0;
-      }
-    }
+    draw_circle_.Apply(aa_, x, y, radius);
   }
-
-  aa_.Load(fs);
 }
 
 }  // namespace gpu

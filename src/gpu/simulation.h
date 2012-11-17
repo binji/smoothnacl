@@ -6,6 +6,7 @@
 #define GPU_SIMULATION_H_
 
 #include <ppapi/cpp/size.h>
+#include "gpu/draw_circle.h"
 #include "gpu/fft.h"
 #include "gpu/kernel.h"
 #include "gpu/kernel_mul.h"
@@ -42,6 +43,7 @@ class Simulation : public SimulationBase {
   Kernel kernel_;
   KernelMul kernel_mul_;
   Smoother smoother_;
+  DrawCircle draw_circle_;
   Texture aa_;
   Texture an_;
   Texture am_;
