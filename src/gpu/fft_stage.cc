@@ -44,7 +44,7 @@ FFTStage::FFTStage(const pp::Size& size)
       log2h_(Log2(size.height())) {
   int w = size_.width();
   int h = size_.height();
-  shader_.Init(shader_source_fft_frag, shader_source_fft_vert);
+  shader_.Init(shader_source_fft_frag, shader_source_2tex_vert);
   vb_.SetSize(w/2 + 1, h);
   vb_.SetTex(0, 0, 0, 1, 1);
   vb_.SetTex(1, 0, 0, 1, 1);
@@ -87,11 +87,11 @@ void FFTStage::ApplyX(int index, FFTSign sign, const Texture& in,
 
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
-  shader_.Uniform1i("dim", 1);
-  shader_.Uniform1i("tang", tang);
-  shader_.Uniform1f("tangsc", tangsc);
-  shader_.UniformTexture("tex0", 0, in);
-  shader_.UniformTexture("tex1", 1, *planx_[index][sign]);
+  shader_.Uniform1i("u_dim", 1);
+  shader_.Uniform1i("u_tang", tang);
+  shader_.Uniform1f("u_tangsc", tangsc);
+  shader_.UniformTexture("u_tex0", 0, in);
+  shader_.UniformTexture("u_tex1", 1, *planx_[index][sign]);
   fft_vb->SetAttribs(shader_.GetAttribLocation("a_position"),
                      shader_.GetAttribLocation("a_texcoord0"),
                      shader_.GetAttribLocation("a_texcoord1"));
@@ -111,11 +111,11 @@ void FFTStage::ApplyY(int index, FFTSign sign, const Texture& in,
   int h = size_.height();
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, w/2 + 1, 0, h, -1, 1);
-  shader_.Uniform1i("dim", 2);
-  shader_.Uniform1i("tang", 0);
-  shader_.Uniform1f("tangsc", 0);
-  shader_.UniformTexture("tex0", 0, in);
-  shader_.UniformTexture("tex1", 1, *plany_[index][sign]);
+  shader_.Uniform1i("u_dim", 2);
+  shader_.Uniform1i("u_tang", 0);
+  shader_.Uniform1f("u_tangsc", 0);
+  shader_.UniformTexture("u_tex0", 0, in);
+  shader_.UniformTexture("u_tex1", 1, *plany_[index][sign]);
   vb_.SetAttribs(shader_.GetAttribLocation("a_position"),
                  shader_.GetAttribLocation("a_texcoord0"),
                  shader_.GetAttribLocation("a_texcoord1"));

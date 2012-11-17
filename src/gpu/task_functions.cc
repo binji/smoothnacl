@@ -81,6 +81,12 @@ void task_glCompileShader(ID shader) {
   LOG_GL("glCompileShader(%d)\n", shader.value());
   ::glCompileShader(shader.value());
   CHECK_ERROR;
+
+  char buffer[4096];
+  GLsizei length;
+  ::glGetShaderInfoLog(shader.value(), 4096, &length, &buffer[0]);
+  buffer[length] = 0;
+  printf("shaderLog: %s\n", buffer);
 }
 
 void task_glCreateProgram(ID out_program) {
@@ -199,13 +205,6 @@ void task_glShaderSource(ID shader, GLsizei count, UniqueStrings strings,
                          const GLint* length) {
   LOG_GL("glShaderSource(%d, %d, %p, %p)\n", shader.value(), count, strings.get(), length);
   ::glShaderSource(shader.value(), count, strings.get(), length);
-
-  char buffer[4096];
-  GLsizei buflen;
-  glGetShaderInfoLog(shader.value(), 4096, &buflen, &buffer[0]);
-  buffer[buflen] = 0;
-  LOG_GL("shaderLog: %s\n", buffer);
-  CHECK_ERROR;
 }
 
 void task_glTexImage2D(GLenum target, GLint level, GLint internalformat,
