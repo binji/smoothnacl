@@ -48,7 +48,7 @@ void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
 }
 
 void DrawStrategy::InitShader() {
-  shader_.Init(shader_source_draw_frag, shader_source_draw_vert);
+  shader_.Init(shader_source_draw_frag, shader_source_1tex_vert);
   vb_.SetSize(1, 1);
   vb_.SetTex(0, 0, 0, 1, 1);
   vb_.LoadData();
@@ -59,9 +59,7 @@ void DrawStrategy::Apply(const Texture& in) {
   int h = size_.height();
   shader_.Use();
   shader_.UniformMatrixOrtho("u_mat", 0, 1, 1, 0, -1, 1);
-  shader_.UniformTexture("tex0", 0, in);
-  shader_.Uniform1f("colscheme", 2);  // TODO(binji): real value...?
-  shader_.Uniform1f("phase", 0);  // TODO(binji): real value...?
+  shader_.UniformTexture("u_tex0", 0, in);
   vb_.SetAttribs(shader_.GetAttribLocation("a_position"),
                  shader_.GetAttribLocation("a_texcoord0"));
   glBindFramebuffer(GL_FRAMEBUFFER, 0);

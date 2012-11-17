@@ -53,19 +53,15 @@ def Repath(prefix, seq):
 
 
 SHADER_FILES = [
+  'data/1tex.vert',
   'data/2tex.vert',
   'data/3tex.vert',
-  'data/fft.frag',
-  'data/smoother.frag',
-
   'data/copybuffercr.frag',
-  'data/copybuffercr.vert',
   'data/copybufferrc.frag',
-  'data/copybufferrc.vert',
   'data/draw.frag',
-  'data/draw.vert',
+  'data/fft.frag',
   'data/kernelmul.frag',
-  'data/kernelmul.vert',
+  'data/smoother.frag',
 ]
 OUT_SHADER_CC = 'out/gen/shader_source.cc'
 OUT_SHADER_H = 'out/gen/shader_source.h'
