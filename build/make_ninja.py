@@ -53,15 +53,15 @@ def Repath(prefix, seq):
 
 
 SHADER_FILES = [
-  'data/1tex.vert',
-  'data/2tex.vert',
-  'data/3tex.vert',
-  'data/copybuffercr.frag',
-  'data/copybufferrc.frag',
-  'data/draw.frag',
-  'data/fft.frag',
-  'data/kernelmul.frag',
-  'data/smoother.frag',
+  'data/shaders/1tex.vert',
+  'data/shaders/2tex.vert',
+  'data/shaders/3tex.vert',
+  'data/shaders/complex_real.frag',
+  'data/shaders/real_complex.frag',
+  'data/shaders/draw.frag',
+  'data/shaders/fft.frag',
+  'data/shaders/kernelmul.frag',
+  'data/shaders/smoother.frag',
 ]
 OUT_SHADER_CC = 'out/gen/shader_source.cc'
 OUT_SHADER_H = 'out/gen/shader_source.h'
@@ -77,8 +77,7 @@ SOURCE_FILES = [
   'src/cpu/smoother.cc',
   'src/cpu/view.cc',
   'src/functions.cc',
-  'src/gpu/copybuffercr.cc',
-  'src/gpu/copybufferrc.cc',
+  'src/gpu/complex_to_real.cc',
   'src/gpu/draw_strategy.cc',
   'src/gpu/fft.cc',
   'src/gpu/fft_stage.cc',
@@ -87,6 +86,7 @@ SOURCE_FILES = [
   'src/gpu/kernel.cc',
   'src/gpu/kernel_mul.cc',
   'src/gpu/locked_queue.cc',
+  'src/gpu/real_to_complex.cc',
   'src/gpu/shader.cc',
   'src/gpu/simulation.cc',
   'src/gpu/smoother.cc',

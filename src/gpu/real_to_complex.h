@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef GPU_COPYBUFFERCR_H_
-#define GPU_COPYBUFFERCR_H_
+#ifndef GPU_REAL_TO_COMPLEX_H_
+#define GPU_REAL_TO_COMPLEX_H_
 
 #include <ppapi/cpp/size.h>
 #include "gpu/shader.h"
@@ -13,10 +13,10 @@ namespace gpu {
 
 class Texture;
 
-class CopyBufferCR {
+class RealToComplex {
  public:
-  explicit CopyBufferCR(const pp::Size& size);
-  ~CopyBufferCR();
+  explicit RealToComplex(const pp::Size& size);
+  ~RealToComplex();
 
   void Apply(const Texture& in, Texture& out);
 
@@ -25,10 +25,10 @@ class CopyBufferCR {
   Shader shader_;
   VertexBuffer vb_;
 
-  CopyBufferCR(const CopyBufferCR&);  // Undefined.
-  CopyBufferCR& operator =(const CopyBufferCR&);  // Undefined.
+  RealToComplex(const RealToComplex&);  // Undefined.
+  RealToComplex& operator =(const RealToComplex&);  // Undefined.
 };
 
 }  // namespace gpu
 
-#endif  // GPU_COPYBUFFERCR_H_
+#endif  // GPU_REAL_TO_COMPLEX_H_

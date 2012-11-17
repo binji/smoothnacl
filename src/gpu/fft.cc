@@ -13,8 +13,8 @@ namespace gpu {
 
 FFT::FFT(const pp::Size& size)
     : size_(size),
-      copybuffercr_(size),
-      copybufferrc_(size),
+      complex_to_real_(size),
+      real_to_complex_(size),
       fft_stage_(size),
       tex_(size.width()/2 + 1, size.height(), FORMAT_COMPLEX,
            TEXTURE_FRAMEBUFFER),
@@ -29,7 +29,7 @@ void FFT::ApplyRC(const Texture& in, Texture& out) {
   Texture* src = &tex_;
   Texture* dst = &tex2_;
 
-  copybufferrc_.Apply(in, *src);
+  real_to_complex_.Apply(in, *src);
   for (int index = 1; index <= fft_stage_.log2w(); ++index) {
     fft_stage_.ApplyX(index, FFT_SIGN_NEGATIVE, *src, *dst);
     std::swap(src, dst);
@@ -55,7 +55,7 @@ void FFT::ApplyCR(const Texture& in, Texture& out) {
     fft_stage_.ApplyX(index, FFT_SIGN_POSITIVE, *src, *dst);
     std::swap(src, dst);
   }
-  copybuffercr_.Apply(*src, out);
+  complex_to_real_.Apply(*src, out);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

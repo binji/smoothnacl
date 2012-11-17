@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef GPU_COPYBUFFERRC_H_
-#define GPU_COPYBUFFERRC_H_
+#ifndef GPU_COMPLEX_TO_REAL_H_
+#define GPU_COMPLEX_TO_REAL_H_
 
 #include <ppapi/cpp/size.h>
 #include "gpu/shader.h"
@@ -13,10 +13,10 @@ namespace gpu {
 
 class Texture;
 
-class CopyBufferRC {
+class ComplexToReal {
  public:
-  explicit CopyBufferRC(const pp::Size& size);
-  ~CopyBufferRC();
+  explicit ComplexToReal(const pp::Size& size);
+  ~ComplexToReal();
 
   void Apply(const Texture& in, Texture& out);
 
@@ -25,10 +25,10 @@ class CopyBufferRC {
   Shader shader_;
   VertexBuffer vb_;
 
-  CopyBufferRC(const CopyBufferRC&);  // Undefined.
-  CopyBufferRC& operator =(const CopyBufferRC&);  // Undefined.
+  ComplexToReal(const ComplexToReal&);  // Undefined.
+  ComplexToReal& operator =(const ComplexToReal&);  // Undefined.
 };
 
 }  // namespace gpu
 
-#endif  // GPU_COPYBUFFERRC_H_
+#endif  // GPU_COMPLEX_TO_REAL_H_

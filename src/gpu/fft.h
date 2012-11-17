@@ -6,9 +6,9 @@
 #define GPU_FFT_H_
 
 #include <ppapi/cpp/size.h>
-#include "gpu/copybuffercr.h"
-#include "gpu/copybufferrc.h"
+#include "gpu/complex_to_real.h"
 #include "gpu/fft_stage.h"
+#include "gpu/real_to_complex.h"
 #include "gpu/texture.h"
 
 namespace gpu {
@@ -23,8 +23,8 @@ class FFT {
 
  private:
   pp::Size size_;
-  CopyBufferCR copybuffercr_;
-  CopyBufferRC copybufferrc_;
+  ComplexToReal complex_to_real_;
+  RealToComplex real_to_complex_;
   FFTStage fft_stage_;
   Texture tex_;
   Texture tex2_;
