@@ -6,43 +6,30 @@
 
 class PaletteGenerator;
 
+enum PaletteType {
+  PALETTE_WHITE_ON_BLACK,
+  PALETTE_BLACK_ON_WHITE,
+  PALETTE_LAB,
+};
+
+struct PaletteConfig {
+  PaletteConfig();
+
+  PaletteType type;
+  double a;
+  double b;
+};
+
 class Palette {
  public:
-  // Takes ownership of |generator|.
-  explicit Palette(const PaletteGenerator& generator);
+  explicit Palette(const PaletteConfig& config);
   uint32_t GetColor(double value) const;
 
-  void SetGenerator(const PaletteGenerator& generator);
+  void SetConfig(const PaletteConfig& config);
 
  private:
-  void MakeLookupTable(const PaletteGenerator& generator);
-
   static const size_t kColorMapSize = 512;
   uint32_t value_color_map_[kColorMapSize];
-};
-
-class PaletteGenerator {
- public:
-  virtual uint32_t GetColor(double value) const = 0;
-};
-
-class WhiteOnBlackPaletteGenerator : public PaletteGenerator {
- public:
-  virtual uint32_t GetColor(double value) const;
-};
-
-class BlackOnWhitePaletteGenerator : public PaletteGenerator {
- public:
-  virtual uint32_t GetColor(double value) const;
-};
-
-class LabPaletteGenerator : public PaletteGenerator {
- public:
-  explicit LabPaletteGenerator(double c);
-  virtual uint32_t GetColor(double value) const;
-
- private:
-  double c_;
 };
 
 #endif  // PALETTE_H_

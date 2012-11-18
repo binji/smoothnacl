@@ -31,6 +31,10 @@ void Thread::TaskSetSmoother(const SmootherConfig& config) {
   simulation_->SetSmoother(config);
 }
 
+void Thread::TaskSetPalette(const PaletteConfig& config) {
+  draw_strategy_->SetPalette(config);
+}
+
 void Thread::TaskClear(double color) {
   simulation_->Clear(color);
 }

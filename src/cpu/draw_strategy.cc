@@ -4,18 +4,12 @@
 
 #include "cpu/draw_strategy.h"
 #include "cpu/simulation.h"
-#include "palette.h"
 
 namespace cpu {
 
 DrawStrategy::DrawStrategy(LockedObject<AlignedUint32>* locked_buffer)
     : locked_buffer_(locked_buffer),
-      palette_(new Palette(LabPaletteGenerator(0.3))) {
-      //palette_(new Palette(WhiteOnBlackPaletteGenerator)) {
-}
-
-DrawStrategy::~DrawStrategy() {
-  delete palette_;
+      palette_(PaletteConfig()) {
 }
 
 void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
@@ -39,7 +33,23 @@ void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
       cpu_sim->ViewSmoother();
       CopyBuffer(cpu_sim->buffer());
       break;
+
+    case kDrawOptions_Palette: {
+      ScopedLocker<AlignedUint32> locker(*locked_buffer_);
+      AlignedUint32* dst = locker.object();
+
+      int width = dst->size().width();
+      int height = dst->size().height();
+      for (int y = 0; y < height; ++y)
+      for (int x = 0; x < width; ++x)
+        (*dst)[y * width + x] = palette_.GetColor(x / (double)width);
+      break;
+    }
   }
+}
+
+void DrawStrategy::SetPalette(const PaletteConfig& config) {
+  palette_.SetConfig(config);
 }
 
 void DrawStrategy::CopyBuffer(const AlignedReals& src) {
@@ -48,7 +58,7 @@ void DrawStrategy::CopyBuffer(const AlignedReals& src) {
   assert(src.count() == dst->count());
 
   for (int i = 0; i < src.count(); ++i)
-    (*dst)[i] = palette_->GetColor(src[i]);
+    (*dst)[i] = palette_.GetColor(src[i]);
 }
 
 }  // namespace cpu

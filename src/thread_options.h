@@ -19,6 +19,7 @@ enum ThreadDrawOptions {
   kDrawOptions_KernelDisc,
   kDrawOptions_KernelRing,
   kDrawOptions_Smoother,
+  kDrawOptions_Palette,
 };
 
 #endif  // THREAD_OPTIONS_H_

@@ -40,7 +40,7 @@ void xyz2rgb(unsigned char* r, unsigned char* g, unsigned char* b, double x, dou
     bl = (bl<0.0)?0.0:((bl>1.0)?1.0:bl);
   }
   //Uncomment the below to detect clipping by making clipped zones red.
-  //if(clip) {rl=1.0;gl=bl=0.0;}
+  if(clip) {rl=1.0;gl=bl=0.0;}
   *r = (unsigned char)(255.0*correct(rl));
   *g = (unsigned char)(255.0*correct(gl));
   *b = (unsigned char)(255.0*correct(bl));
@@ -55,28 +55,30 @@ void lab2rgb(uint8_t* R, uint8_t* G, uint8_t* B, double l, double a, double b) {
   xyz2rgb(R,G,B,x,y,z);
 }
 
-}  // namespace
+class PaletteGenerator {
+ public:
+  virtual uint32_t GetColor(double value) const = 0;
+};
 
-Palette::Palette(const PaletteGenerator& generator) {
-  MakeLookupTable(generator);
-}
+class WhiteOnBlackPaletteGenerator : public PaletteGenerator {
+ public:
+  virtual uint32_t GetColor(double value) const;
+};
 
-uint32_t Palette::GetColor(double value) const {
-  size_t index = static_cast<size_t>(value * kColorMapSize);
-  index = std::max<size_t>(0, std::min(kColorMapSize - 1, index));
-  return value_color_map_[index];
-}
+class BlackOnWhitePaletteGenerator : public PaletteGenerator {
+ public:
+  virtual uint32_t GetColor(double value) const;
+};
 
-void Palette::SetGenerator(const PaletteGenerator& generator) {
-  MakeLookupTable(generator);
-}
+class LabPaletteGenerator : public PaletteGenerator {
+ public:
+  LabPaletteGenerator(double a, double b);
+  virtual uint32_t GetColor(double value) const;
 
-void Palette::MakeLookupTable(const PaletteGenerator& generator) {
-  for (size_t i = 0; i < kColorMapSize; ++i) {
-    value_color_map_[i] =
-        generator.GetColor(static_cast<double>(i) / kColorMapSize);
-  }
-}
+ private:
+  double a_;
+  double b_;
+};
 
 uint32_t WhiteOnBlackPaletteGenerator::GetColor(double value) const {
   uint8_t v = 255 * value;
@@ -90,11 +92,13 @@ uint32_t BlackOnWhitePaletteGenerator::GetColor(double value) const {
   return color;
 }
 
-LabPaletteGenerator::LabPaletteGenerator(double c)
-    : c_(c) {
+LabPaletteGenerator::LabPaletteGenerator(double a, double b)
+    : a_(a),
+      b_(b) {
 }
 
 uint32_t LabPaletteGenerator::GetColor(double value) const {
+#if 0
   // also known as "two pi" to the unenlightened
   const double TAU = 6.283185307179586476925287;
 
@@ -108,10 +112,57 @@ uint32_t LabPaletteGenerator::GetColor(double value) const {
   double r = value*0.311+0.125; //~chroma
   double a = sin(angle)*r;
   double b = cos(angle)*r;
+#else
+  double L = value;
+  double a = 2 * a_ - 1;
+  double b = 2 * b_ - 1;
+#endif
   uint8_t r8;
   uint8_t g8;
   uint8_t b8;
   lab2rgb(&r8,&g8,&b8,L,a,b);
-  uint32_t color = 0xff000000 | (b8<<16) | (g8<<8) | r8;
+  uint32_t color = 0xff000000 | (r8<<16) | (g8<<8) | b8;
   return color;
+}
+
+template <size_t size>
+void MakeLookupTable(const PaletteGenerator& generator,
+                     uint32_t (*color_map)[size]) {
+  for (size_t i = 0; i < size; ++i) {
+    (*color_map)[i] = generator.GetColor(static_cast<double>(i) / size);
+  }
+}
+
+}  // namespace
+
+PaletteConfig::PaletteConfig()
+    : type(PALETTE_WHITE_ON_BLACK),
+      a(0),
+      b(0) {
+}
+
+Palette::Palette(const PaletteConfig& config) {
+  SetConfig(config);
+}
+
+uint32_t Palette::GetColor(double value) const {
+  size_t index = static_cast<size_t>(value * kColorMapSize);
+  index = std::max<size_t>(0, std::min(kColorMapSize - 1, index));
+  return value_color_map_[index];
+}
+
+void Palette::SetConfig(const PaletteConfig& config) {
+  switch (config.type) {
+    default:
+    case PALETTE_WHITE_ON_BLACK:
+      MakeLookupTable(WhiteOnBlackPaletteGenerator(), &value_color_map_);
+      break;
+    case PALETTE_BLACK_ON_WHITE:
+      MakeLookupTable(BlackOnWhitePaletteGenerator(), &value_color_map_);
+      break;
+    case PALETTE_LAB:
+      MakeLookupTable(LabPaletteGenerator(config.a, config.b),
+                      &value_color_map_);
+      break;
+  }
 }

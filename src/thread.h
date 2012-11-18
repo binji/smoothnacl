@@ -8,6 +8,7 @@
 #include <pthread.h>
 #include "condvar.h"
 #include "locked_object.h"
+#include "palette.h"
 #include "simulation_config.h"
 #include "task_queue.h"
 #include "thread_options.h"
@@ -34,6 +35,7 @@ class Thread {
   // Tasks: Do not call these directly, use MakeFunctionTask(...) instead.
   void TaskSetKernel(const KernelConfig& config);
   void TaskSetSmoother(const SmootherConfig& config);
+  void TaskSetPalette(const PaletteConfig& config);
   void TaskClear(double color);
   void TaskSplat();
   void TaskDrawFilledCircle(double x, double y, double radius, double color);

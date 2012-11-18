@@ -44,6 +44,7 @@ class SmoothlifeInstance : public pp::Instance {
   void InitMessageMap();
   void MessageSetKernel(const ParamList& params);
   void MessageSetSmoother(const ParamList& params);
+  void MessageSetPalette(const ParamList& params);
   void MessageClear(const ParamList& params);
   void MessageSplat(const ParamList& params);
   void MessageSetRunOptions(const ParamList& params);

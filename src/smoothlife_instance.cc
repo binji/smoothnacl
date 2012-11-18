@@ -17,6 +17,7 @@
 #include "cpu/initializer_factory.h"
 #include "gpu/initializer_factory.h"
 #include "kernel_config.h"
+#include "palette.h"
 #include "simulation_config.h"
 #include "smoother_config.h"
 #include "task.h"
@@ -102,6 +103,8 @@ void SmoothlifeInstance::InitMessageMap() {
         "SetKernel", &SmoothlifeInstance::MessageSetKernel));
   message_map_.insert(MessageMap::value_type(
         "SetSmoother", &SmoothlifeInstance::MessageSetSmoother));
+  message_map_.insert(MessageMap::value_type(
+        "SetPalette", &SmoothlifeInstance::MessageSetPalette));
   message_map_.insert(MessageMap::value_type(
         "Clear", &SmoothlifeInstance::MessageClear));
   message_map_.insert(MessageMap::value_type(
@@ -246,6 +249,17 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
   EnqueueTask(MakeFunctionTask(&Thread::TaskSetSmoother, config));
 }
 
+void SmoothlifeInstance::MessageSetPalette(const ParamList& params) {
+  if (params.size() != 3)
+    return;
+
+  PaletteConfig config;
+  config.type = static_cast<PaletteType>(atoi(params[0].c_str()));
+  config.a = strtod(params[1].c_str(), NULL);
+  config.b = strtod(params[2].c_str(), NULL);
+  EnqueueTask(MakeFunctionTask(&Thread::TaskSetPalette, config));
+}
+
 void SmoothlifeInstance::MessageClear(const ParamList& params) {
   if (params.size() != 1)
     return;
@@ -297,6 +311,8 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
     draw_options = kDrawOptions_KernelRing;
   else if (params[0] == "smoother")
     draw_options = kDrawOptions_Smoother;
+  else if (params[0] == "palette")
+    draw_options = kDrawOptions_Palette;
   else {
     printf("Unknown value for SetDrawOptions, ignoring.\n");
     return;
