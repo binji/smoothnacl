@@ -9,15 +9,15 @@ class PaletteGenerator;
 class Palette {
  public:
   // Takes ownership of |generator|.
-  explicit Palette(PaletteGenerator* generator);
-  ~Palette();
+  explicit Palette(const PaletteGenerator& generator);
   uint32_t GetColor(double value) const;
 
+  void SetGenerator(const PaletteGenerator& generator);
+
  private:
-  void MakeLookupTable();
+  void MakeLookupTable(const PaletteGenerator& generator);
 
   static const size_t kColorMapSize = 512;
-  PaletteGenerator* generator_;
   uint32_t value_color_map_[kColorMapSize];
 };
 

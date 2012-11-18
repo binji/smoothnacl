@@ -9,17 +9,21 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 
+class Palette;
+
 namespace cpu {
 
 class DrawStrategy : public DrawStrategyBase {
  public:
-  explicit DrawStrategy(LockedObject<AlignedReals>* locked_buffer);
+  explicit DrawStrategy(LockedObject<AlignedUint32>* locked_buffer);
+  ~DrawStrategy();
   virtual void Draw(ThreadDrawOptions options, SimulationBase* simulation);
 
  private:
   void CopyBuffer(const AlignedReals& src);
 
-  LockedObject<AlignedReals>* locked_buffer_;  // Weak.
+  LockedObject<AlignedUint32>* locked_buffer_;  // Weak.
+  Palette* palette_;
 
   DrawStrategy(const DrawStrategy&);  // Undefined.
   DrawStrategy& operator =(const DrawStrategy&);  // Undefined.

@@ -6,6 +6,7 @@
 #define FFT_ALLOCATION_H_
 
 #include <fftw3.h>
+#include <stdint.h>
 #include "ppapi/cpp/size.h"
 
 struct ReduceSizeForComplex {};
@@ -50,6 +51,7 @@ class FftAllocation {
   size_t count_;
 };
 
+typedef FftAllocation<uint32_t> AlignedUint32;
 typedef FftAllocation<double> AlignedReals;
 typedef FftAllocation<float> AlignedFloats;
 typedef FftAllocation<fftw_complex> AlignedComplexes;

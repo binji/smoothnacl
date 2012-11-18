@@ -3,13 +3,19 @@
 // found in the LICENSE file.
 
 #include "cpu/draw_strategy.h"
-#include <algorithm>
 #include "cpu/simulation.h"
+#include "palette.h"
 
 namespace cpu {
 
-DrawStrategy::DrawStrategy(LockedObject<AlignedReals>* locked_buffer)
-    : locked_buffer_(locked_buffer) {
+DrawStrategy::DrawStrategy(LockedObject<AlignedUint32>* locked_buffer)
+    : locked_buffer_(locked_buffer),
+      palette_(new Palette(LabPaletteGenerator(0.3))) {
+      //palette_(new Palette(WhiteOnBlackPaletteGenerator)) {
+}
+
+DrawStrategy::~DrawStrategy() {
+  delete palette_;
 }
 
 void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
@@ -37,8 +43,12 @@ void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
 }
 
 void DrawStrategy::CopyBuffer(const AlignedReals& src) {
-  ScopedLocker<AlignedReals> locker(*locked_buffer_);
-  std::copy(src.begin(), src.end(), locker.object()->begin());
+  ScopedLocker<AlignedUint32> locker(*locked_buffer_);
+  AlignedUint32* dst = locker.object();
+  assert(src.count() == dst->count());
+
+  for (int i = 0; i < src.count(); ++i)
+    (*dst)[i] = palette_->GetColor(src[i]);
 }
 
 }  // namespace cpu

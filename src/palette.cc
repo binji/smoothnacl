@@ -57,13 +57,8 @@ void lab2rgb(uint8_t* R, uint8_t* G, uint8_t* B, double l, double a, double b) {
 
 }  // namespace
 
-Palette::Palette(PaletteGenerator* generator)
-    : generator_(generator) {
-  MakeLookupTable();
-}
-
-Palette::~Palette() {
-  delete generator_;
+Palette::Palette(const PaletteGenerator& generator) {
+  MakeLookupTable(generator);
 }
 
 uint32_t Palette::GetColor(double value) const {
@@ -72,10 +67,14 @@ uint32_t Palette::GetColor(double value) const {
   return value_color_map_[index];
 }
 
-void Palette::MakeLookupTable() {
+void Palette::SetGenerator(const PaletteGenerator& generator) {
+  MakeLookupTable(generator);
+}
+
+void Palette::MakeLookupTable(const PaletteGenerator& generator) {
   for (size_t i = 0; i < kColorMapSize; ++i) {
     value_color_map_[i] =
-        generator_->GetColor(static_cast<double>(i) / kColorMapSize);
+        generator.GetColor(static_cast<double>(i) / kColorMapSize);
   }
 }
 

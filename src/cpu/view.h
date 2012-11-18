@@ -26,7 +26,7 @@ namespace cpu {
 
 class View : public ViewBase {
  public:
-  explicit View(LockedObject<AlignedReals>* buffer);
+  explicit View(LockedObject<AlignedUint32>* buffer);
   ~View();
 
   virtual bool DidChangeView(pp::Instance* instance, const pp::View& view);
@@ -36,13 +36,12 @@ class View : public ViewBase {
   void DrawCallback(int32_t result);
   void DrawRect(const pp::Rect& rect, uint32_t color);
   void PaintRectToGraphics2D(const pp::Rect& rect);
-  void DrawBuffer(const FftAllocation<double>& a);
+  void DrawBuffer(const AlignedUint32& a);
 
   pp::CompletionCallbackFactory<View> factory_;
   pp::Graphics2D* graphics_2d_;
   pp::ImageData* pixel_buffer_;
-  LockedObject<AlignedReals>* locked_buffer_;  // Weak.
-  Palette* palette_;
+  LockedObject<AlignedUint32>* locked_buffer_;  // Weak.
   bool draw_loop_running_;
 };
 

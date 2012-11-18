@@ -11,8 +11,8 @@
 namespace cpu {
 
 InitializerFactory::InitializerFactory(const pp::Size& size) {
-  AlignedReals* buffer = new AlignedReals(size);
-  locked_buffer_ = new LockedObject<AlignedReals>(buffer);
+  AlignedUint32* buffer = new AlignedUint32(size);
+  locked_buffer_ = new LockedObject<AlignedUint32>(buffer);
 }
 
 InitializerFactory::~InitializerFactory() {

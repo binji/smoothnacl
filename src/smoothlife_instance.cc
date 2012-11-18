@@ -65,8 +65,8 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
   frames_drawn_ = new LockedObject<int>(new int(0));
-  //initializer_factory_ = new cpu::InitializerFactory(config.size);
-  initializer_factory_ = new gpu::InitializerFactory(config.size);
+  initializer_factory_ = new cpu::InitializerFactory(config.size);
+  //initializer_factory_ = new gpu::InitializerFactory(config.size);
   step_cond_ = new CondVar;
 
   ThreadContext context;

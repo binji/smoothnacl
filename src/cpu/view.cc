@@ -18,18 +18,15 @@
 
 namespace cpu {
 
-View::View(LockedObject<AlignedReals>* buffer)
+View::View(LockedObject<AlignedUint32>* buffer)
     : factory_(this),
       graphics_2d_(NULL),
       pixel_buffer_(NULL),
       locked_buffer_(buffer),
-      draw_loop_running_(false),
-      //palette_(new Palette(new LabPaletteGenerator(0.9))) {
-      palette_(new Palette(new WhiteOnBlackPaletteGenerator)) {
+      draw_loop_running_(false) {
 }
 
 View::~View() {
-  delete palette_;
   delete graphics_2d_;
   delete pixel_buffer_;
 }
@@ -79,7 +76,7 @@ void View::DrawCallback(int32_t result) {
   }
   assert(pixel_buffer_);
 
-  AlignedReals* data = locked_buffer_->Lock();
+  AlignedUint32* data = locked_buffer_->Lock();
   DrawBuffer(*data);
   locked_buffer_->Unlock();
 
@@ -97,7 +94,7 @@ void View::PaintRectToGraphics2D(const pp::Rect& rect) {
   graphics_2d_->PaintImageData(*pixel_buffer_, top_left, rect);
 }
 
-void View::DrawBuffer(const AlignedReals& a) {
+void View::DrawBuffer(const AlignedUint32& a) {
   uint32_t* pixels = static_cast<uint32_t*>(pixel_buffer_->data());
   if (!pixels)
     return;
@@ -116,8 +113,8 @@ void View::DrawBuffer(const AlignedReals& a) {
   for (int y = y_offset; y < image_height - y_offset; ++y) {
     buffer_x = 0;
     for (int x = x_offset; x < image_width - x_offset; ++x) {
-      double dv = a[(int)buffer_y * buffer_width + (int)buffer_x];
-      pixels[y * image_width + x] = palette_->GetColor(dv);
+      uint32_t v = a[(int)buffer_y * buffer_width + (int)buffer_x];
+      pixels[y * image_width + x] = v;
       buffer_x += scale;
     }
     buffer_y += scale;

@@ -24,7 +24,7 @@ class InitializerFactory : public InitializerFactoryBase {
   virtual ViewBase* CreateView();
 
  private:
-  LockedObject<AlignedReals>* locked_buffer_;
+  LockedObject<AlignedUint32>* locked_buffer_;
 };
 
 }  // namespace cpu
