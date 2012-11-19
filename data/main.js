@@ -188,26 +188,74 @@ function makePrecSlider(group, el) {
   return slider;
 };
 
+function updateGradient() {
+  var gradient = '-webkit-linear-gradient(left';
+  $('.palette > .color').each(function () {
+    var color = $(this).children('input[type="hidden"]').eq(0).val();
+    var stop = $(this).children('.has-value').eq(0).data('textValue')();
+    gradient += ', ' + color + ' ' + stop + '%';
+  });
+
+  gradient += ')';
+
+  $('#gradient').css('background', gradient);
+}
+
+function makeColorstopSlider(group, el) {
+  var slider = $('<div/>').addClass('has-value').slider({
+    value: el.data('stop'),
+    min: 0,
+    max: 100,
+    range: 'min',
+  });
+  var sliderWidget = slider.data('slider');
+
+  slider.bind('slide', function (e, ui) {
+    updateGradient();
+    //updateGroup(group);
+  });
+  slider.data('realValue', function () {
+    return sliderWidget.value();
+  });
+  slider.data('textValue', function () {
+    return sliderWidget.value().toString();
+  });
+  return slider;
+}
+
 function makeUIForGroup(group) {
   $('.' + group + ' > div').each(function () {
     var el = $(this);
+    var name = el.text();
 
-    if (el.data('values')) {
+    if (el.data('color')) {
+      var slider = makeColorstopSlider(group, el);
+      el.empty().addClass('color');
+      el.append($('<label/>').text(name));
+      el.append(slider);
+      var input = $('<input type="hidden">').val(el.data('value'));
+      el.append(input);
+      input.miniColors({
+        change: function (hex, rgba) { updateGradient(); }
+      });
+      /*
+      el.append($('<div/>')
+          .addClass('swatch')
+          .css('background-color', el.data('value')));
+      */
+    } else if (el.data('values')) {
       var buttonset = makeButtonset(group, el);
-      var name = el.text();
       el.empty().addClass('buttonset');
       el.append('<label>' + name + '</label>');
       el.append(buttonset);
       el.append($('<div>').addClass('clearfix'));
     } else {
       var slider = makePrecSlider(group, el);
-      var name = el.text();
       el.empty().addClass('range');
       el.append('<label>' + name + '</label>');
       el.append('<span>' + slider.data('textValue')() + '</span>');
       el.append(slider);
     }
-
   });
 };
 
@@ -251,15 +299,10 @@ function setupUI() {
     addPreset(presetName, getValues());
   });
 
-  var groups = ['kernel', 'smoother'];
+  var groups = ['palette', 'kernel', 'smoother'];
   for (var i = 0; i < groups.length; ++i) {
     makeUIForGroup(groups[i]);
   }
-
-  $('.color-picker').iris({
-    hide: false,
-    palettes: true
-  });
 }
 
 function makeEmbed(appendChildTo, attrs) {

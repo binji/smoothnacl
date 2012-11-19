@@ -10,11 +10,13 @@ found in the LICENSE file.
   <meta http-equiv="Expires" content="-1">
   <title>Smoothlife</title>
   <link rel="stylesheet" href="jquery-ui-1.9.0.custom.min.css">
+  <link rel="stylesheet" href="jquery.miniColors.css">
   <link rel="stylesheet" href="main.css">
   <script type="text/javascript" src="jquery-1.8.2.min.js"></script>
   <script type="text/javascript" src="jquery-ui-1.9.0.custom.min.js"></script>
   <script type="text/javascript" src="jquery.layout-latest.min.js"></script>
-  <script type="text/javascript" src="iris.min.js"></script>
+  <!--<script type="text/javascript" src="iris.min.js"></script>-->
+  <script type="text/javascript" src="jquery.miniColors.min.js"></script>
   <script type="text/javascript" src="main.js"></script>
 </head>
 <body>
@@ -40,10 +42,18 @@ found in the LICENSE file.
           </ul>
         </p>
       </div>
+      <h3>Colors</h3>
+      <div>
+        <div id="gradient"></div>
+        <div class='palette'>
+          <div data-color="true" data-stop="30" data-value="#a363cf">c0</div>
+          <div data-color="true" data-stop="20" data-value="#ffffff">c1</div>
+          <div data-color="true" data-stop="70" data-value="#cf0202">c2</div>
+          <div data-color="true" data-stop="60" data-value="#000000">c3</div>
+        </div>
+      </div>
       <h3>Advanced</h3>
       <div>
-        <div class='color-picker'>
-        </div>
         <div class='kernel'>
           <div data-min="0" data-max="50" data-value="4.0" data-prec="1"
               title="Radius of the 'disc' part of a cell.">

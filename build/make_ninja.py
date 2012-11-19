@@ -31,19 +31,19 @@ def SplitPath(path):
 def NoRepath(seq):
   result = []
   for path in seq:
-    if path[0] == '<':
-      result.append(path[1:])
-    else:
-      result.append(path)
+    result.append(path.replace('<', '').replace('>', ''))
   return result
 
 def Repath(prefix, seq):
   result = []
   for path in seq:
-    if path[0] == '<':
-      path = os.path.basename(path[1:])
+    if '<' in path:
+      strip_start = path.find('<')
+      strip_end = path.find('>')
+      path = path[:strip_start] + path[strip_end+1:]
     else:
       path = os.path.join(*SplitPath(path)[1:])
+
     if type(prefix) is list:
       args = prefix + [path]
       result.append(os.path.join(*args))
@@ -110,25 +110,29 @@ DATA_FILES = [
   'data/index.html',
   'data/main.css',
   'data/main.js',
-  'data/images/ui-bg_flat_0_aaaaaa_40x100.png',
-  'data/images/ui-bg_flat_75_ffffff_40x100.png',
-  'data/images/ui-bg_glass_55_fbf9ee_1x400.png',
-  'data/images/ui-bg_glass_65_ffffff_1x400.png',
-  'data/images/ui-bg_glass_75_dadada_1x400.png',
-  'data/images/ui-bg_glass_75_e6e6e6_1x400.png',
-  'data/images/ui-bg_glass_95_fef1ec_1x400.png',
-  'data/images/ui-bg_highlight-soft_75_cccccc_1x100.png',
-  'data/images/ui-icons_222222_256x240.png',
-  'data/images/ui-icons_2e83ff_256x240.png',
-  'data/images/ui-icons_454545_256x240.png',
-  'data/images/ui-icons_888888_256x240.png',
-  'data/images/ui-icons_cd0a0a_256x240.png',
-  # Strip paths that start with < when repathing.
-  '<third_party/Iris/iris.min.js',
-  '<third_party/jquery/jquery-1.8.2.min.js',
-  '<third_party/jquery.layout/jquery.layout-latest.min.js',
-  '<third_party/jquery-ui/jquery-ui-1.9.0.custom.min.css',
-  '<third_party/jquery-ui/jquery-ui-1.9.0.custom.min.js',
+  # Strip everything between < and > when repathing.
+  #'<third_party/Iris/iris.min.js',
+  '<third_party/jquery/>jquery-1.8.2.min.js',
+  '<third_party/jquery.layout/>jquery.layout-latest.min.js',
+  '<third_party/jquery-miniColors/>images/colors.png',
+  '<third_party/jquery-miniColors/>images/trigger.png',
+  '<third_party/jquery-miniColors/>jquery.miniColors.css',
+  '<third_party/jquery-miniColors/>jquery.miniColors.min.js',
+  '<third_party/jquery-ui/>images/ui-bg_flat_0_aaaaaa_40x100.png',
+  '<third_party/jquery-ui/>images/ui-bg_flat_75_ffffff_40x100.png',
+  '<third_party/jquery-ui/>images/ui-bg_glass_55_fbf9ee_1x400.png',
+  '<third_party/jquery-ui/>images/ui-bg_glass_65_ffffff_1x400.png',
+  '<third_party/jquery-ui/>images/ui-bg_glass_75_dadada_1x400.png',
+  '<third_party/jquery-ui/>images/ui-bg_glass_75_e6e6e6_1x400.png',
+  '<third_party/jquery-ui/>images/ui-bg_glass_95_fef1ec_1x400.png',
+  '<third_party/jquery-ui/>images/ui-bg_highlight-soft_75_cccccc_1x100.png',
+  '<third_party/jquery-ui/>images/ui-icons_222222_256x240.png',
+  '<third_party/jquery-ui/>images/ui-icons_2e83ff_256x240.png',
+  '<third_party/jquery-ui/>images/ui-icons_454545_256x240.png',
+  '<third_party/jquery-ui/>images/ui-icons_888888_256x240.png',
+  '<third_party/jquery-ui/>images/ui-icons_cd0a0a_256x240.png',
+  '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.css',
+  '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.js',
 ]
 SRC_DATA_FILES = NoRepath(DATA_FILES)
 DST_DATA_FILES = Repath('out', DATA_FILES)

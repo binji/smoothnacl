@@ -68,18 +68,26 @@
   float: right;
 }
 
+#gradient {
+  border: 1px solid #ccc;
+  border-radius: 2px;
+  height: 32px;
+  margin: 0 16px;
+  width: auto;
+}
+
 .range {
   border-bottom: 1px solid #ccc;
   font-family: "Courier New", monospace;
   padding: 15px 0;
 }
 
-.range label {
+.range > label {
   display: inline-block;
   width: 20%;
 }
 
-.range span {
+.range > span {
   color: #03c;
   display: inline-block;
   padding-right: 6px;
@@ -87,7 +95,7 @@
   width: 20%;
 }
 
-.range div {
+.range > .ui-slider {
   display: inline-block;
   width: 55%;
 }
@@ -113,6 +121,49 @@
 .buttonset span.ui-button-text {
   padding: .4em .6em;
 }
+
+.color {
+  border-bottom: 1px solid #ccc;
+  font-family: "Courier New", monospace;
+  padding: 15px 0;
+}
+
+.color > label {
+  display: inline-block;
+  width: 20%;
+}
+
+/*
+.color > input {
+  border-radius: 2px;
+  float: right;
+  margin-right: 6px;
+  position: relative;
+  top: -4px;
+  width: auto;
+}
+*/
+
+.color > .ui-slider {
+  display: inline-block;
+  float: right;
+  padding-right: 6px;
+  width: 230px;
+}
+
+.color > .miniColors-triggerWrap {
+  border: 1px solid #ccc;
+  display: inline-block;
+  float: right;
+  margin-right: 6px;
+}
+
+/*
+.color > .picker {
+  float: right;
+  margin-right: 6px;
+}
+*/
 
 .clearfix {
   clear: both;
