@@ -132,3 +132,17 @@
 #fps {
   font-size: 10px;
 }
+
+.iris-picker .iris-slider-offset {
+  background: 0;
+  border: 0;
+  bottom: 5px !important;
+  height: auto;
+  top: 5px !important;
+  width: auto;
+}
+
+.iris-picker .iris-square-value {
+  background: 0;
+  border: 0;
+}

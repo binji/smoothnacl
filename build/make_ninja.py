@@ -124,6 +124,7 @@ DATA_FILES = [
   'data/images/ui-icons_888888_256x240.png',
   'data/images/ui-icons_cd0a0a_256x240.png',
   # Strip paths that start with < when repathing.
+  '<third_party/Iris/iris.min.js',
   '<third_party/jquery/jquery-1.8.2.min.js',
   '<third_party/jquery.layout/jquery.layout-latest.min.js',
   '<third_party/jquery-ui/jquery-ui-1.9.0.custom.min.css',

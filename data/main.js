@@ -255,6 +255,11 @@ function setupUI() {
   for (var i = 0; i < groups.length; ++i) {
     makeUIForGroup(groups[i]);
   }
+
+  $('.color-picker').iris({
+    hide: false,
+    palettes: true
+  });
 }
 
 function makeEmbed(appendChildTo, attrs) {
