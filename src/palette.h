@@ -3,21 +3,21 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <vector>
 
-class PaletteGenerator;
+struct ColorStop {
+  ColorStop(uint32_t color, double pos);
 
-enum PaletteType {
-  PALETTE_WHITE_ON_BLACK,
-  PALETTE_BLACK_ON_WHITE,
-  PALETTE_LAB,
+  uint32_t color;
+  double pos;
 };
+typedef std::vector<ColorStop> ColorStops;
 
 struct PaletteConfig {
   PaletteConfig();
 
-  PaletteType type;
-  double a;
-  double b;
+  std::vector<ColorStop> stops;
+  bool repeating;
 };
 
 class Palette {

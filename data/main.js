@@ -251,7 +251,7 @@ function setupUI() {
     addPreset(presetName, getValues());
   });
 
-  var groups = ['palette', 'kernel', 'smoother'];
+  var groups = ['kernel', 'smoother'];
   for (var i = 0; i < groups.length; ++i) {
     makeUIForGroup(groups[i]);
   }
@@ -306,6 +306,7 @@ function makeMainEmbed(groupMessages) {
     msg5: 'SetRunOptions:continuous',
     msg6: 'SetDrawOptions:simulation',
 //    msg6: 'SetDrawOptions:palette',
+    msg7: 'SetPalette',
   });
 
   // Listen for messages from this embed -- they're only fps updates.

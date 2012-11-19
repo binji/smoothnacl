@@ -4,55 +4,30 @@
 
 namespace {
 
-/* Copyright (c) David Dalrymple 2011 */
+const uint32_t kBlack = 0xff000000;
+const uint32_t kWhite = 0xffffffff;
 
-double finv(double t) {
-  return (t>(6.0/29.0))?(t*t*t):(3*(6.0/29.0)*(6.0/29.0)*(t-4.0/29.0));
+void Uint32ToRGB(uint32_t c, uint8_t* r, uint8_t* g, uint8_t* b) {
+  *r = (c >> 16) & 0xff;
+  *g = (c >> 8) & 0xff;
+  *b = (c >> 0) & 0xff;
 }
 
-/* Convert from L*a*b* doubles to XYZ doubles
- * Formulas drawn from http://en.wikipedia.org/wiki/Lab_color_space
- */
-void lab2xyz(double* x, double* y, double* z, double l, double a, double b) {
-  double sl = (l+0.16)/1.16;
-  double ill[3] = {0.9643,1.00,0.8251}; //D50
-  *y = ill[1] * finv(sl);
-  *x = ill[0] * finv(sl + (a/5.0));
-  *z = ill[2] * finv(sl - (b/2.0));
+uint32_t RGBToUint32(uint8_t r, uint8_t g, uint8_t b) {
+  return 0xff000000 | (r << 16) | (g << 8) | b;
 }
 
-double correct(double cl) {
-  double a = 0.055;
-  return (cl<=0.0031308)?(12.92*cl):((1+a)*pow(cl,1/2.4)-a);
+template <typename T>
+T Mix(T t0, T t1, double x) {
+  return static_cast<T>(t0 * (1 - x) + t1 * x);
 }
 
-/* Convert from XYZ doubles to sRGB bytes
- * Formulas drawn from http://en.wikipedia.org/wiki/Srgb
- */
-void xyz2rgb(unsigned char* r, unsigned char* g, unsigned char* b, double x, double y, double z) {
-  double rl =  3.2406*x - 1.5372*y - 0.4986*z;
-  double gl = -0.9689*x + 1.8758*y + 0.0415*z;
-  double bl =  0.0557*x - 0.2040*y + 1.0570*z;
-  int clip = (rl < 0.0 || rl > 1.0 || gl < 0.0 || gl > 1.0 || bl < 0.0 || bl > 1.0);
-  if(clip) {
-    rl = (rl<0.0)?0.0:((rl>1.0)?1.0:rl);
-    gl = (gl<0.0)?0.0:((gl>1.0)?1.0:gl);
-    bl = (bl<0.0)?0.0:((bl>1.0)?1.0:bl);
-  }
-  //Uncomment the below to detect clipping by making clipped zones red.
-  if(clip) {rl=1.0;gl=bl=0.0;}
-  *r = (unsigned char)(255.0*correct(rl));
-  *g = (unsigned char)(255.0*correct(gl));
-  *b = (unsigned char)(255.0*correct(bl));
-}
-
-/* Convert from LAB doubles to sRGB bytes
- * (just composing the above transforms)
- */
-void lab2rgb(uint8_t* R, uint8_t* G, uint8_t* B, double l, double a, double b) {
-  double x,y,z;
-  lab2xyz(&x,&y,&z,l,a,b);
-  xyz2rgb(R,G,B,x,y,z);
+uint32_t MixColor(uint32_t c0, uint32_t c1, double x) {
+  uint8_t r0, g0, b0;
+  uint8_t r1, g1, b1;
+  Uint32ToRGB(c0, &r0, &g0, &b0);
+  Uint32ToRGB(c1, &r1, &g1, &b1);
+  return RGBToUint32(Mix(r0, r1, x), Mix(g0, g1, x), Mix(b0, b1, x));
 }
 
 class PaletteGenerator {
@@ -60,69 +35,71 @@ class PaletteGenerator {
   virtual uint32_t GetColor(double value) const = 0;
 };
 
-class WhiteOnBlackPaletteGenerator : public PaletteGenerator {
+class GradientPaletteGenerator : public PaletteGenerator {
  public:
-  virtual uint32_t GetColor(double value) const;
-};
-
-class BlackOnWhitePaletteGenerator : public PaletteGenerator {
- public:
-  virtual uint32_t GetColor(double value) const;
-};
-
-class LabPaletteGenerator : public PaletteGenerator {
- public:
-  LabPaletteGenerator(double a, double b);
+  GradientPaletteGenerator(const ColorStops& stops, bool repeating);
   virtual uint32_t GetColor(double value) const;
 
  private:
-  double a_;
-  double b_;
+  double GetMinStopPos() const;
+  double GetMaxStopPos() const;
+
+  ColorStops stops_;
+  bool repeating_;
+  double min_pos_;
+  double max_pos_;
 };
 
-uint32_t WhiteOnBlackPaletteGenerator::GetColor(double value) const {
-  uint8_t v = 255 * value;
-  uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
-  return color;
+GradientPaletteGenerator::GradientPaletteGenerator(const ColorStops& stops,
+                                                   bool repeating)
+    : stops_(stops),
+      repeating_(repeating),
+      min_pos_(GetMinStopPos()),
+      max_pos_(GetMaxStopPos()) {
 }
 
-uint32_t BlackOnWhitePaletteGenerator::GetColor(double value) const {
-  uint8_t v = 255 * (1 - value);
-  uint32_t color = 0xff000000 | (v<<16) | (v<<8) | v;
-  return color;
+uint32_t GradientPaletteGenerator::GetColor(double value) const {
+  if (stops_.empty())
+    return kBlack;
+
+  if (repeating_) {
+    double pos_width = max_pos_ - min_pos_;
+    value = fmod(value + pos_width - min_pos_, pos_width) + min_pos_;
+  }
+
+  if (value < min_pos_)
+    return stops_[0].color;
+
+  double range_min = 0;
+  for (int i = 0; i < stops_.size() - 1; ++i) {
+    range_min = std::max(range_min, stops_[i].pos);
+    double range_max = stops_[i + 1].pos;
+    if (range_min >= range_max)
+      continue;
+
+    if (value < range_min || value > range_max)
+      continue;
+
+    double mix_fraction = (value - range_min) / (range_max - range_min);
+    return MixColor(stops_[i].color, stops_[i + 1].color, mix_fraction);
+  }
+
+  return stops_[stops_.size() - 1].color;
 }
 
-LabPaletteGenerator::LabPaletteGenerator(double a, double b)
-    : a_(a),
-      b_(b) {
+double GradientPaletteGenerator::GetMinStopPos() const {
+  return stops_.empty() ? 0 : stops_[0].pos;
 }
 
-uint32_t LabPaletteGenerator::GetColor(double value) const {
-#if 0
-  // also known as "two pi" to the unenlightened
-  const double TAU = 6.283185307179586476925287;
+double GradientPaletteGenerator::GetMaxStopPos() const {
+  if (stops_.empty())
+    return 0;
 
-  /* Convert from a qualitative parameter c and a quantitative parameter l to
-   * a 24-bit pixel These formulas were invented by me to obtain maximum
-   * contrast without going out of gamut if the parameters are in the range
-   * 0-1
-   */
-  double L = value*0.61+0.09; //L of L*a*b*
-  double angle = TAU/6.0-c_*TAU;
-  double r = value*0.311+0.125; //~chroma
-  double a = sin(angle)*r;
-  double b = cos(angle)*r;
-#else
-  double L = value;
-  double a = 2 * a_ - 1;
-  double b = 2 * b_ - 1;
-#endif
-  uint8_t r8;
-  uint8_t g8;
-  uint8_t b8;
-  lab2rgb(&r8,&g8,&b8,L,a,b);
-  uint32_t color = 0xff000000 | (r8<<16) | (g8<<8) | b8;
-  return color;
+  double maxpos = stops_[0].pos;
+  for (int i = 1; i < stops_.size(); ++i) {
+    maxpos = std::max(stops_[i].pos, maxpos);
+  }
+  return maxpos;
 }
 
 template <size_t size>
@@ -135,10 +112,13 @@ void MakeLookupTable(const PaletteGenerator& generator,
 
 }  // namespace
 
+ColorStop::ColorStop(uint32_t color, double pos)
+    : color(color),
+      pos(pos) {
+}
+
 PaletteConfig::PaletteConfig()
-    : type(PALETTE_WHITE_ON_BLACK),
-      a(0),
-      b(0) {
+    : repeating(false) {
 }
 
 Palette::Palette(const PaletteConfig& config) {
@@ -152,17 +132,6 @@ uint32_t Palette::GetColor(double value) const {
 }
 
 void Palette::SetConfig(const PaletteConfig& config) {
-  switch (config.type) {
-    default:
-    case PALETTE_WHITE_ON_BLACK:
-      MakeLookupTable(WhiteOnBlackPaletteGenerator(), &value_color_map_);
-      break;
-    case PALETTE_BLACK_ON_WHITE:
-      MakeLookupTable(BlackOnWhitePaletteGenerator(), &value_color_map_);
-      break;
-    case PALETTE_LAB:
-      MakeLookupTable(LabPaletteGenerator(config.a, config.b),
-                      &value_color_map_);
-      break;
-  }
+  MakeLookupTable(GradientPaletteGenerator(config.stops, config.repeating),
+                  &value_color_map_);
 }
