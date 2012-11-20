@@ -140,21 +140,24 @@ function makeButtonset(group, el) {
     if (i === el.data('value'))
       optionEl.attr('checked', 'true');
 
-    optionEl.bind('change', function (e) {
+    optionEl.on('change', function (e) {
       updateGroup(group);
     });
-    var labelEl = $('<label for="'+optionId+'"/>').text(values[i]);
+    var labelEl = $('<label>').attr('for', optionId)
+                              .text(values[i]);
 
     buttonsetEl.append(optionEl).append(labelEl);
   }
   buttonsetEl.buttonset();
-  buttonsetEl.data('realValue', function () {
-    return buttonsetEl.children('input:checked').data('value');
-  });
-  buttonsetEl.data('updateValueForPreset', function (value) {
-    buttonsetEl.children('input').removeAttr('checked');
-    buttonsetEl.children('input').eq(value).attr('checked', 'true');
-    buttonsetEl.buttonset('refresh');
+  buttonsetEl.data({
+    realValue: function () {
+      return buttonsetEl.children('input:checked').data('value');
+    },
+    updateValueForPreset: function (value) {
+      buttonsetEl.children('input').removeAttr('checked');
+      buttonsetEl.children('input').eq(value).attr('checked', 'true');
+      buttonsetEl.buttonset('refresh');
+    }
   });
 
   return buttonsetEl;
@@ -171,34 +174,37 @@ function makePrecSlider(group, el) {
   });
   var sliderWidget = slider.data('slider');
 
-  slider.bind('slide', function (e, ui) {
+  slider.on('slide', function (e, ui) {
     el.children('span').text((ui.value / mult).toFixed(prec));
     updateGroup(group);
   });
-  slider.data('realValue', function () {
-    return sliderWidget.value() / mult;
-  });
-  slider.data('textValue', function () {
-    return (sliderWidget.value() / mult).toFixed(prec);
-  });
-  slider.data('updateValueForPreset', function (value) {
-    sliderWidget.value(value * mult);
-    el.children('span').text(value.toFixed(prec));
+  slider.data({
+    realValue: function () {
+      return sliderWidget.value() / mult;
+    },
+    textValue: function () {
+      return (sliderWidget.value() / mult).toFixed(prec);
+    },
+    updateValueForPreset: function (value) {
+      sliderWidget.value(value * mult);
+      el.children('span').text(value.toFixed(prec));
+    }
   });
   return slider;
 };
 
 function updateGradient() {
   var gradient = '-webkit-linear-gradient(left';
-  $('.palette > .color').each(function () {
-    var color = $(this).children('input[type="hidden"]').eq(0).val();
-    var stop = $(this).children('.has-value').eq(0).data('textValue')();
+  $('.palette .color').each(function () {
+    var color = $(this).children('input.has-value').eq(0).val();
+    var stop = $(this).children('div.has-value').eq(0).data('textValue')();
     gradient += ', ' + color + ' ' + stop + '%';
   });
 
   gradient += ')';
 
   $('#gradient').css('background', gradient);
+  updateGroup('palette');
 }
 
 function makeColorstopSlider(group, el) {
@@ -210,17 +216,38 @@ function makeColorstopSlider(group, el) {
   });
   var sliderWidget = slider.data('slider');
 
-  slider.bind('slide', function (e, ui) {
+  slider.on('slide', function (e, ui) {
     updateGradient();
     //updateGroup(group);
   });
-  slider.data('realValue', function () {
-    return sliderWidget.value();
-  });
-  slider.data('textValue', function () {
-    return sliderWidget.value().toString();
+  slider.data({
+    realValue: function () { return sliderWidget.value(); },
+    textValue: function () { return sliderWidget.value().toString(); }
   });
   return slider;
+}
+
+function makeColorUI(group) {
+  $('#colors > div').each(function () {
+    var el = $(this);
+    var input = $('<input>').addClass('has-value')
+        .attr('type', 'hidden')
+        .val(el.data('value'))
+        .data({ realValue: function () { return $(input).val(); } })
+    var slider = makeColorstopSlider(group, el);
+    el.addClass('color')
+      .append(input)
+      .append(slider);
+    input.miniColors({
+      change: function (hex, rgba) { updateGradient(); }
+    });
+  });
+
+  $('#colors')
+      .sortable()
+      .on('sortupdate', function (e, ui) {
+        updateGradient();
+      });
 }
 
 function makeUIForGroup(group) {
@@ -228,33 +255,18 @@ function makeUIForGroup(group) {
     var el = $(this);
     var name = el.text();
 
-    if (el.data('color')) {
-      var slider = makeColorstopSlider(group, el);
-      el.empty().addClass('color');
-      el.append($('<label/>').text(name));
-      el.append(slider);
-      var input = $('<input type="hidden">').val(el.data('value'));
-      el.append(input);
-      input.miniColors({
-        change: function (hex, rgba) { updateGradient(); }
-      });
-      /*
-      el.append($('<div/>')
-          .addClass('swatch')
-          .css('background-color', el.data('value')));
-      */
-    } else if (el.data('values')) {
+    if (el.data('values')) {
       var buttonset = makeButtonset(group, el);
-      el.empty().addClass('buttonset');
-      el.append('<label>' + name + '</label>');
-      el.append(buttonset);
-      el.append($('<div>').addClass('clearfix'));
+      el.empty().addClass('buttonset')
+        .append($('<label>').text(name))
+        .append(buttonset)
+        .append($('<div>').addClass('clearfix'));
     } else {
       var slider = makePrecSlider(group, el);
-      el.empty().addClass('range');
-      el.append('<label>' + name + '</label>');
-      el.append('<span>' + slider.data('textValue')() + '</span>');
-      el.append(slider);
+      el.empty().addClass('range')
+        .append($('<label>').text(name))
+        .append($('<span>').text(slider.data('textValue')()))
+        .append(slider);
     }
   });
 };
@@ -299,10 +311,11 @@ function setupUI() {
     addPreset(presetName, getValues());
   });
 
-  var groups = ['palette', 'kernel', 'smoother'];
+  var groups = ['kernel', 'smoother'];
   for (var i = 0; i < groups.length; ++i) {
     makeUIForGroup(groups[i]);
   }
+  makeColorUI('palette');
 }
 
 function makeEmbed(appendChildTo, attrs) {

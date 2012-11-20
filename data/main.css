@@ -76,6 +76,10 @@
   width: auto;
 }
 
+#colors {
+  list-style-type: none;
+}
+
 .range {
   border-bottom: 1px solid #ccc;
   font-family: "Courier New", monospace;
@@ -128,11 +132,6 @@
   padding: 15px 0;
 }
 
-.color > label {
-  display: inline-block;
-  width: 20%;
-}
-
 /*
 .color > input {
   border-radius: 2px;
@@ -146,24 +145,14 @@
 
 .color > .ui-slider {
   display: inline-block;
-  float: right;
-  padding-right: 6px;
+  margin: 0 6px;
   width: 230px;
 }
 
 .color > .miniColors-triggerWrap {
-  border: 1px solid #ccc;
   display: inline-block;
-  float: right;
-  margin-right: 6px;
+  margin: 0 6px;
 }
-
-/*
-.color > .picker {
-  float: right;
-  margin-right: 6px;
-}
-*/
 
 .clearfix {
   clear: both;
@@ -182,18 +171,4 @@
 
 #fps {
   font-size: 10px;
-}
-
-.iris-picker .iris-slider-offset {
-  background: 0;
-  border: 0;
-  bottom: 5px !important;
-  height: auto;
-  top: 5px !important;
-  width: auto;
-}
-
-.iris-picker .iris-square-value {
-  background: 0;
-  border: 0;
 }

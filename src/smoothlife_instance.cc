@@ -251,10 +251,19 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
 
 void SmoothlifeInstance::MessageSetPalette(const ParamList& params) {
   PaletteConfig config;
-  config.stops.push_back(ColorStop(0xffa363cf, 0.3));
-  config.stops.push_back(ColorStop(0xffffffff, 0.2));
-  config.stops.push_back(ColorStop(0xffcf0202, 0.7));
-  config.stops.push_back(ColorStop(0xff000000, 0.6));
+  if (params.size() % 2 != 0)
+    return;
+
+  for (int i = 0; i < params.size(); i += 2) {
+    if (params[i].size() < 1)
+      continue;
+
+    const char* color_string = &params[i].c_str()[1];  // Skip the #
+    uint32_t color = static_cast<uint32_t>(strtoul(color_string, NULL, 16));
+    color |= 0xff000000;  // Set alpha to full.
+    double stop = strtod(params[i + 1].c_str(), NULL) / 100.0;
+    config.stops.push_back(ColorStop(color, stop));
+  }
   config.repeating = false;
   EnqueueTask(MakeFunctionTask(&Thread::TaskSetPalette, config));
 }
