@@ -7,6 +7,10 @@ namespace {
 const uint32_t kBlack = 0xff000000;
 const uint32_t kWhite = 0xffffffff;
 
+double NonnegativeFmod(double x, double y) {
+  return fmod(fmod(x, y) + y, y);
+}
+
 void Uint32ToRGB(uint32_t c, uint8_t* r, uint8_t* g, uint8_t* b) {
   *r = (c >> 16) & 0xff;
   *g = (c >> 8) & 0xff;
@@ -62,10 +66,8 @@ uint32_t GradientPaletteGenerator::GetColor(double value) const {
   if (stops_.empty())
     return kBlack;
 
-  if (repeating_) {
-    double pos_width = max_pos_ - min_pos_;
-    value = fmod(value + pos_width - min_pos_, pos_width) + min_pos_;
-  }
+  if (repeating_)
+    value = NonnegativeFmod(value - min_pos_, max_pos_ - min_pos_) + min_pos_;
 
   if (value < min_pos_)
     return stops_[0].color;

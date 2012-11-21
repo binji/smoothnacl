@@ -3,6 +3,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  **/
+"use strict"
 
 var updateTimeoutID = {
   'kernel': null,
@@ -27,10 +28,7 @@ function getUpdateGroupMessage(groupName) {
 }
 
 function getGroupValuesString(groupName) {
-  var values = $('.' + groupName + ' .has-value').map(function () {
-    return $(this).data('realValue')();
-  });
-  return Array.prototype.join.call(values, ',');
+  return getGroupValues(groupName).join(',');
 }
 
 function getGroupValues(groupName) {
@@ -43,41 +41,35 @@ function getValues() {
   return getGroupValues('kernel').concat(getGroupValues('smoother'));
 }
 
-function getValuesString() {
-  return Array.prototype.join.call(getValues(), ',');
-}
-
-
 function updateGroups(groupName) {
   var msg = getUpdateGroupMessage(groupName);
   $('#nacl_module').get(0).postMessage(msg);
   updateTimeoutID[groupName] = null;
-
-  /*
-  if (groupName == 'smoother') {
-    $('#smoother_module').get(0).postMessage(msg);
-    $('#smoother_module').get(0).postMessage('SetRunOptions:none');
-  }
-  */
 }
 
 function updateGroup(groupName) {
+  if (groupName == 'palette')
+    updateGradient();
+
   if (!updateTimeoutID[groupName]) {
     updateTimeoutID[groupName] =
         window.setTimeout(updateGroups, 200, groupName);
   }
 }
 
+function addPreset(index, name) {
+  $('#presetMenu').append(
+      $('<li>').addClass('setting-row')
+               .append(
+                   $('<a>').attr('href', '#')
+                           .data('value', index)
+                           .text(name)));
+}
+
 function loadPresets(array) {
   var menu = $('#presetMenu');
-  for (var i = 0; i < array.length; ++i) {
-    var presetName = array[i][0];
-    menu.append(
-        $('<li>').append(
-            $('<a>').attr('href', '#')
-                    .data('value', i)
-                    .text(presetName)));
-  }
+  for (var i = 0; i < array.length; ++i)
+    addPreset(i, array[i][0]);
 }
 
 function initPresets() {
@@ -97,16 +89,10 @@ function initPresets() {
   });
 }
 
-function addPreset(name, values) {
+function savePreset(name, values) {
   presets.push([name, values]);
   localStorage.setItem('presets', JSON.stringify(presets));
-
-  var menu = $('#presetMenu');
-  menu.append(
-      $('<li>').append(
-          $('<a>').attr('href', '#')
-                  .data('value', presets.length - 1)
-                  .text(name)));
+  addPreset(presets.length - 1, name);
   menu.menu('refresh');
 }
 
@@ -194,7 +180,11 @@ function makePrecSlider(group, el) {
 };
 
 function updateGradient() {
-  var gradient = '-webkit-linear-gradient(left';
+  var repeating = $('.palette .buttonset .has-value').eq(0).data('realValue')();
+  if (repeating)
+    var gradient = '-webkit-repeating-linear-gradient(left';
+  else
+    var gradient = '-webkit-linear-gradient(left';
   $('.palette .color').each(function () {
     var color = $(this).children('input.has-value').eq(0).val();
     var stop = $(this).children('div.has-value').eq(0).data('textValue')();
@@ -204,7 +194,6 @@ function updateGradient() {
   gradient += ')';
 
   $('#gradient').css('background', gradient);
-  updateGroup('palette');
 }
 
 function makeColorstopSlider(group, el) {
@@ -216,10 +205,7 @@ function makeColorstopSlider(group, el) {
   });
   var sliderWidget = slider.data('slider');
 
-  slider.on('slide', function (e, ui) {
-    updateGradient();
-    //updateGroup(group);
-  });
+  slider.on('slide', function (e, ui) { updateGroup('palette'); });
   slider.data({
     realValue: function () { return sliderWidget.value(); },
     textValue: function () { return sliderWidget.value().toString(); }
@@ -227,47 +213,51 @@ function makeColorstopSlider(group, el) {
   return slider;
 }
 
-function makeColorUI(group) {
-  $('#colors > div').each(function () {
-    var el = $(this);
-    var input = $('<input>').addClass('has-value')
-        .attr('type', 'hidden')
-        .val(el.data('value'))
-        .data({ realValue: function () { return $(input).val(); } })
-    var slider = makeColorstopSlider(group, el);
-    el.addClass('color')
-      .append(input)
-      .append(slider);
-    input.miniColors({
-      change: function (hex, rgba) { updateGradient(); }
-    });
+function makeColorUI(group, el) {
+  var input = $('<input>').addClass('has-value')
+      .attr('type', 'hidden')
+      .val(el.data('value'))
+      .data({ realValue: function () { return $(input).val(); } })
+  var slider = makeColorstopSlider(group, el);
+  el.addClass('color setting-row')
+    .append(input)
+    .append(slider);
+  input.miniColors({
+    change: function (hex, rgba) { updateGroup(group); }
   });
+}
 
-  $('#colors')
-      .sortable()
-      .on('sortupdate', function (e, ui) {
-        updateGradient();
-      });
+function makeButtonsetUI(group, el) {
+  var name = el.text();
+  var buttonset = makeButtonset(group, el);
+  el.empty().addClass('buttonset setting-row')
+    .append($('<label>').text(name))
+    .append(buttonset)
+    .append($('<div>').addClass('clearfix'));
+}
+
+function makeRangeUI(group, el) {
+  var name = el.text();
+  var slider = makePrecSlider(group, el);
+  el.empty().addClass('range setting-row')
+    .append($('<label>').text(name))
+    .append($('<span>').text(slider.data('textValue')()))
+    .append(slider);
+}
+
+var UILookup = {
+  color: makeColorUI,
+  buttonset: makeButtonsetUI,
+  range: makeRangeUI
+};
+
+function makeUIElement(group, el) {
+  UILookup[el.data('type')](group, el);
 }
 
 function makeUIForGroup(group) {
   $('.' + group + ' > div').each(function () {
-    var el = $(this);
-    var name = el.text();
-
-    if (el.data('values')) {
-      var buttonset = makeButtonset(group, el);
-      el.empty().addClass('buttonset')
-        .append($('<label>').text(name))
-        .append(buttonset)
-        .append($('<div>').addClass('clearfix'));
-    } else {
-      var slider = makePrecSlider(group, el);
-      el.empty().addClass('range')
-        .append($('<label>').text(name))
-        .append($('<span>').text(slider.data('textValue')()))
-        .append(slider);
-    }
+      makeUIElement(group, $(this));
   });
 };
 
@@ -311,11 +301,13 @@ function setupUI() {
     addPreset(presetName, getValues());
   });
 
-  var groups = ['kernel', 'smoother'];
-  for (var i = 0; i < groups.length; ++i) {
+  var groups = ['kernel', 'smoother', 'palette'];
+  for (var i = 0; i < groups.length; ++i)
     makeUIForGroup(groups[i]);
-  }
-  makeColorUI('palette');
+
+  $('#colors')
+      .sortable()
+      .on('sortupdate', function (e, ui) { updateGroup('palette'); });
 }
 
 function makeEmbed(appendChildTo, attrs) {
@@ -332,6 +324,7 @@ function makeEmbed(appendChildTo, attrs) {
 function getInitialMessages() {
   var kernelMessage;
   var smootherMessage;
+  var paletteMessage;
 
   if (window.location.hash) {
     try {
@@ -348,9 +341,12 @@ function getInitialMessages() {
     smootherMessage = getUpdateGroupMessage('smoother');
   }
 
+  paletteMessage = getUpdateGroupMessage('palette');
+
   return {
     'kernel': kernelMessage,
-    'smoother': smootherMessage
+    'smoother': smootherMessage,
+    'palette': paletteMessage
   };
 }
 
@@ -362,12 +358,12 @@ function makeMainEmbed(groupMessages) {
     height: $('.ui-layout-center').height(),
     msg1: groupMessages.kernel,
     msg2: groupMessages.smoother,
-    msg3: 'Clear:0',
-    msg4: 'Splat',
-    msg5: 'SetRunOptions:continuous',
-    msg6: 'SetDrawOptions:simulation',
-//    msg6: 'SetDrawOptions:palette',
-    msg7: 'SetPalette',
+    msg3: groupMessages.palette,
+    msg4: 'Clear:0',
+    msg5: 'Splat',
+    msg6: 'SetRunOptions:continuous',
+    msg7: 'SetDrawOptions:simulation',
+//    msg7: 'SetDrawOptions:palette',
   });
 
   // Listen for messages from this embed -- they're only fps updates.
@@ -376,23 +372,9 @@ function makeMainEmbed(groupMessages) {
   }, true);
 }
 
-function makeSmootherEmbed(groupMessages) {
-  var smootherEmbed = document.getElementById('smootherEmbed');
-  makeEmbed(smootherEmbed, {
-    id: 'smoother_module',
-    width: 150,
-    height: 150,
-    msg1: groupMessages.smoother,
-    msg2: 'Clear:0',
-    msg3: 'SetRunOptions:none',
-    msg4: 'SetDrawOptions:smoother'
-  });
-}
-
 $(document).ready(function (){
   initPresets();
   setupUI();
   var groupMessages = getInitialMessages();
   makeMainEmbed(groupMessages);
-  //makeSmootherEmbed(groupMessages);
 });

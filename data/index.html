@@ -44,26 +44,29 @@ found in the LICENSE file.
       </div>
       <h3>Colors</h3>
       <div>
-        <div id="gradient"></div>
+        <div class="setting-row">
+          <div id="gradient"></div>
+        </div>
         <div id="colors" class="palette">
-          <div data-stop="30" data-value="#a363cf"></div>
-          <div data-stop="20" data-value="#ffffff"></div>
-          <div data-stop="70" data-value="#cf0202"></div>
-          <div data-stop="60" data-value="#000000"></div>
+          <div data-type="buttonset" data-values="linear repeat" data-value="0">gradient</div>
+          <div data-type="color" data-stop="30" data-value="#a363cf"></div>
+          <div data-type="color" data-stop="20" data-value="#ffffff"></div>
+          <div data-type="color" data-stop="70" data-value="#cf0202"></div>
+          <div data-type="color" data-stop="60" data-value="#000000"></div>
         </div>
       </div>
       <h3>Advanced</h3>
       <div>
         <div class="kernel">
-          <div data-min="0" data-max="50" data-value="4.0" data-prec="1"
+          <div data-type="range" data-min="0" data-max="50" data-value="4.0" data-prec="1"
               title="Radius of the 'disc' part of a cell.">
             disc radius
           </div>
-          <div data-min="0" data-max="50" data-value="12.0" data-prec="1"
+          <div data-type="range" data-min="0" data-max="50" data-value="12.0" data-prec="1"
               title="Radius of the 'ring' part of a cell, surrounding the disc.">
             ring radius
           </div>
-          <div data-min="0" data-max="50" data-value="1.0" data-prec="1"
+          <div data-type="range" data-min="0" data-max="50" data-value="1.0" data-prec="1"
               title="The anti-aliasing radius. The larger this value, the more blended the region between the disc and the ring.">
             anti-alias radius
           </div>
@@ -73,17 +76,17 @@ found in the LICENSE file.
         </div>
         -->
         <div class="smoother">
-          <div data-values="discrete smooth1 smooth2 smooth3" data-value="2">timestep</div>
-          <div data-min="0" data-max="1" data-value="0.115" data-prec="3">dt</div>
-          <div data-min="0" data-max="1" data-value="0.269" data-prec="3">b1</div>
-          <div data-min="0" data-max="1" data-value="0.523" data-prec="3">d1</div>
-          <div data-min="0" data-max="1" data-value="0.340" data-prec="3">b2</div>
-          <div data-min="0" data-max="1" data-value="0.746" data-prec="3">d2</div>
-          <div data-values="mode1 mode2 mode3 mode4" data-value="3">sigmoid mode</div>
-          <div data-values="hard linear hermite sin smooth" data-value="4">sigmoid</div>
-          <div data-values="hard linear hermite sin smooth" data-value="4">mix</div>
-          <div data-min="0" data-max="1" data-value="0.028" data-prec="3">sn</div>
-          <div data-min="0" data-max="1" data-value="0.147" data-prec="3">sm</div>
+          <div data-type="buttonset" data-values="discrete smooth1 smooth2 smooth3" data-value="2">timestep</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.115" data-prec="3">dt</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.269" data-prec="3">b1</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.523" data-prec="3">d1</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.340" data-prec="3">b2</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.746" data-prec="3">d2</div>
+          <div data-type="buttonset" data-values="mode1 mode2 mode3 mode4" data-value="3">sigmoid mode</div>
+          <div data-type="buttonset" data-values="hard linear hermite sin smooth" data-value="4">sigmoid</div>
+          <div data-type="buttonset" data-values="hard linear hermite sin smooth" data-value="4">mix</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.028" data-prec="3">sn</div>
+          <div data-type="range" data-min="0" data-max="1" data-value="0.147" data-prec="3">sm</div>
         </div>
       </div>
       <h3>Presets</h3>
