@@ -7,7 +7,8 @@
 
 var updateTimeoutID = {
   'kernel': null,
-  'smoother': null
+  'smoother': null,
+  'palette': null
 };
 var presets = [
   ['Jellyfish', [4.0, 12.0, 1.0, 2, 0.115, 0.269, 0.523, 0.340, 0.746, 3, 4, 4, 0.028, 0.147]],
@@ -161,7 +162,7 @@ function makePrecSlider(group, el) {
   var sliderWidget = slider.data('slider');
 
   slider.on('slide', function (e, ui) {
-    el.children('span').text((ui.value / mult).toFixed(prec));
+    el.find('span').text((ui.value / mult).toFixed(prec));
     updateGroup(group);
   });
   slider.data({
@@ -186,8 +187,8 @@ function updateGradient() {
   else
     var gradient = '-webkit-linear-gradient(left';
   $('.palette .color').each(function () {
-    var color = $(this).children('input.has-value').eq(0).val();
-    var stop = $(this).children('div.has-value').eq(0).data('textValue')();
+    var color = $(this).find('input.has-value').eq(0).val();
+    var stop = $(this).find('div.has-value').eq(0).data('textValue')();
     gradient += ', ' + color + ' ' + stop + '%';
   });
 
@@ -220,8 +221,9 @@ function makeColorUI(group, el) {
       .data({ realValue: function () { return $(input).val(); } })
   var slider = makeColorstopSlider(group, el);
   el.addClass('color setting-row')
-    .append(input)
-    .append(slider);
+    .append($('<div/>').addClass('value')
+        .append(input)
+        .append(slider));
   input.miniColors({
     change: function (hex, rgba) { updateGroup(group); }
   });
@@ -231,18 +233,18 @@ function makeButtonsetUI(group, el) {
   var name = el.text();
   var buttonset = makeButtonset(group, el);
   el.empty().addClass('buttonset setting-row')
-    .append($('<label>').text(name))
-    .append(buttonset)
-    .append($('<div>').addClass('clearfix'));
+    .append($('<label/>').text(name))
+    .append(buttonset.addClass('value'));
 }
 
 function makeRangeUI(group, el) {
   var name = el.text();
   var slider = makePrecSlider(group, el);
   el.empty().addClass('range setting-row')
-    .append($('<label>').text(name))
-    .append($('<span>').text(slider.data('textValue')()))
-    .append(slider);
+    .append($('<label/>').text(name))
+    .append($('<div/>').addClass('value')
+        .append($('<span/>').text(slider.data('textValue')()))
+        .append(slider));
 }
 
 var UILookup = {
@@ -306,7 +308,9 @@ function setupUI() {
     makeUIForGroup(groups[i]);
 
   $('#colors')
-      .sortable()
+      .sortable({
+        items: '.color',
+      })
       .on('sortupdate', function (e, ui) { updateGroup('palette'); });
 }
 
@@ -377,4 +381,5 @@ $(document).ready(function (){
   setupUI();
   var groupMessages = getInitialMessages();
   makeMainEmbed(groupMessages);
+  updateGradient();
 });

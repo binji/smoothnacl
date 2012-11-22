@@ -13,7 +13,7 @@ clean:
 run: all
 	script/run.py out ${CHROME_PATH} ${NEXE_ARGS}
 
-package:
+package: build.ninja
 	@ninja package
 
 .PHONY: all clean kill run package
