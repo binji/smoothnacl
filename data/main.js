@@ -23,29 +23,40 @@ function upperCaseFirst(s) {
   return s.charAt(0).toUpperCase() + s.substr(1);
 }
 
-function getUpdateGroupMessage(groupName) {
-  return 'Set' + upperCaseFirst(groupName) + ':' +
-      getGroupValuesString(groupName);
+function getUpdateGroupMessageFromValues(groupName, values) {
+  return 'Set' + upperCaseFirst(groupName) + ':' + values.join(',');
 }
 
-function getGroupValuesString(groupName) {
-  return getGroupValues(groupName).join(',');
+function getUpdateGroupMessageFromUI(groupName) {
+  return getUpdateGroupMessageFromValues(groupName, getGroupValuesFromUI(groupName));
 }
 
-function getGroupValues(groupName) {
+function getUpdateMessagesFromPresetValues(values) {
+  return {
+    'kernel': getUpdateGroupMessageFromValues('kernel', values.slice(0, 3)),
+    'smoother': getUpdateGroupMessageFromValues('smoother', values.slice(3, 14))
+  };
+}
+
+function getGroupValuesFromUI(groupName) {
   return $.makeArray($('.' + groupName + ' .has-value').map(function () {
     return $(this).data('realValue')();
   }));
 }
 
-function getValues() {
-  return getGroupValues('kernel').concat(getGroupValues('smoother'));
+function getPresetValuesFromUI() {
+  return getGroupValuesFromUI('kernel').concat(
+      getGroupValuesFromUI('smoother'));
 }
 
-function updateGroups(groupName) {
-  var msg = getUpdateGroupMessage(groupName);
+function updateGroupFromValues(groupName, values) {
+  var msg = getUpdateGroupMessageFromValues(groupName, values);
   $('#nacl_module').get(0).postMessage(msg);
   updateTimeoutID[groupName] = null;
+}
+
+function updateGroupFromUI(groupName) {
+  updateGroupFromValues(groupName, getGroupValuesFromUI(groupName));
 }
 
 function updateGroup(groupName) {
@@ -54,7 +65,7 @@ function updateGroup(groupName) {
 
   if (!updateTimeoutID[groupName]) {
     updateTimeoutID[groupName] =
-        window.setTimeout(updateGroups, 200, groupName);
+        window.setTimeout(updateGroupFromUI, 200, groupName);
   }
 }
 
@@ -81,8 +92,7 @@ function initPresets() {
     loadPresets(presets);
   }
 
-  var menu = $('#presetMenu');
-  menu.menu({
+  $('#presetMenu').menu({
     select: function (e, ui) {
       var presetIndex = ui.item.children('a:first').data('value');
       onPresetChanged(presetIndex);
@@ -94,20 +104,23 @@ function savePreset(name, values) {
   presets.push([name, values]);
   localStorage.setItem('presets', JSON.stringify(presets));
   addPreset(presets.length - 1, name);
-  menu.menu('refresh');
+  $('#presetMenu').menu('refresh');
+}
+
+function updateUIWithValues(values) {
+  $('.kernel .has-value').each(function (i) {
+    $(this).data('updateValueForPreset')(values.slice(0, 3)[i]);
+  });
+  $('.smoother .has-value').each(function (i) {
+    $(this).data('updateValueForPreset')(values.slice(3, 14)[i]);
+  });
 }
 
 function onPresetChanged(index) {
-  var preset = presets[index];
-  $('.kernel .has-value').each(function (i) {
-    $(this).data('updateValueForPreset')(preset[1].slice(0, 3)[i]);
-  });
-  $('.smoother .has-value').each(function (i) {
-    $(this).data('updateValueForPreset')(preset[1].slice(3, 14)[i]);
-  });
+  updateUIWithValues(presets[index][1]);
   // Skip the timeout, if the user wants to spam the button they can.
-  updateGroups('kernel');
-  updateGroups('smoother');
+  updateGroupFromUI('kernel');
+  updateGroupFromUI('smoother');
   var module = $('#nacl_module').get(0);
   // When changing to a preset, reset the screen to make sure it looks
   // interesting.
@@ -174,7 +187,7 @@ function makePrecSlider(group, el) {
     },
     updateValueForPreset: function (value) {
       sliderWidget.value(value * mult);
-      el.children('span').text(value.toFixed(prec));
+      el.find('span').text(value.toFixed(prec));
     }
   });
   return slider;
@@ -286,7 +299,7 @@ function setupUI() {
   $('.accordion').accordion({
     collapsible: true,
     fillSpace: true,
-    active: 2
+    active: 3
   });
 
   $('#clear').button().click(function (e) {
@@ -300,7 +313,7 @@ function setupUI() {
   });
   $('#savePresetButton').button().click(function (e) {
     var presetName = $('#savePresetName').val();
-    addPreset(presetName, getValues());
+    savePreset(presetName, getPresetValuesFromUI());
   });
 
   var groups = ['kernel', 'smoother', 'palette'];
@@ -325,33 +338,16 @@ function makeEmbed(appendChildTo, attrs) {
   appendChildTo.appendChild(embedEl);
 }
 
-function getInitialMessages() {
-  var kernelMessage;
-  var smootherMessage;
-  var paletteMessage;
-
+function getInitialValues() {
   if (window.location.hash) {
     try {
       var valueString = atob(window.location.hash.slice(1));
-      var values = valueString.split(',');
-      kernelMessage = 'SetKernel:'+values.slice(0, 3).join(',');
-      smootherMessage = 'SetSmoother:'+values.slice(3, 14).join(',');
-    } catch (exc) {
-      kernelMessage = getUpdateGroupMessage('kernel');
-      smootherMessage = getUpdateGroupMessage('smoother');
-    }
-  } else {
-    kernelMessage = getUpdateGroupMessage('kernel');
-    smootherMessage = getUpdateGroupMessage('smoother');
+      return valueString.split(',');
+    } catch (exc) {}
   }
 
-  paletteMessage = getUpdateGroupMessage('palette');
-
-  return {
-    'kernel': kernelMessage,
-    'smoother': smootherMessage,
-    'palette': paletteMessage
-  };
+  var initialPreset = 0;
+  return presets[initialPreset][1];
 }
 
 function makeMainEmbed(groupMessages) {
@@ -367,7 +363,6 @@ function makeMainEmbed(groupMessages) {
     msg5: 'Splat',
     msg6: 'SetRunOptions:continuous',
     msg7: 'SetDrawOptions:simulation',
-//    msg7: 'SetDrawOptions:palette',
   });
 
   // Listen for messages from this embed -- they're only fps updates.
@@ -379,7 +374,11 @@ function makeMainEmbed(groupMessages) {
 $(document).ready(function (){
   initPresets();
   setupUI();
-  var groupMessages = getInitialMessages();
-  makeMainEmbed(groupMessages);
+  var initialValues = getInitialValues();
+  updateUIWithValues(initialValues);
+  var messages = getUpdateMessagesFromPresetValues(initialValues);
+  // TODO(binji): Should be getting these values from the presets...
+  messages.palette = getUpdateGroupMessageFromUI('palette');
+  makeMainEmbed(messages);
   updateGradient();
 });
