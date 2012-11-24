@@ -11,12 +11,13 @@ var updateTimeoutID = {
   'palette': null
 };
 var presets = [
-  ['Jellyfish', [4.0, 12.0, 1.0, 2, 0.115, 0.269, 0.523, 0.340, 0.746, 3, 4, 4, 0.028, 0.147]],
-  ['Electric Gliders', [4.0, 12.0, 1.0, 0, 0.100, 0.278, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147]],
-  ['Worms and Donuts', [10.6, 31.8, 1.0, 1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340]],
-  ['Collapsing Tunnels', [7.26, 21.8, 1.0, 1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490]],
-  ['Growing Tube', [7.77, 27.2, 2.64, 3, 0.138, 0.666, 0.056, 0.175, 0.838, 2, 0, 2, 0.132, 0.311]],
-  ['Stitches \'n\' Jitters', [10.4, 12.0, 1, 2, 0.182, 0.27, 0.508, 0.35, 0.749, 2, 3, 4, 0.028, 0.147]]
+  ['Jellyfish', [4.0, 12.0, 1.0], [2, 0.115, 0.269, 0.523, 0.340, 0.746, 3, 4, 4, 0.028, 0.147], [0, '#000000', 0, '#ffffff', 100]],
+  ['Electric Gliders', [4.0, 12.0, 1.0], [0, 0.100, 0.278, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147], [0, '#000000', 0, '#ffffff', 100]],
+  ['Worms and Donuts', [10.6, 31.8, 1.0], [1, 0.157, 0.092, 0.256, 0.098, 0.607, 3, 4, 4, 0.015, 0.340], [0, '#000000', 0, '#ffffff', 100]],
+  ['Collapsing Tunnels', [7.26, 21.8, 1.0], [1, 0.157, 0.192, 0.355, 0.200, 0.600, 3, 4, 4, 0.025, 0.490], [0, '#000000', 0, '#ffffff', 100]],
+  ['Queasy Tube', [7.8, 27.2, 2.60], [3, 0.210, 0.714, 0.056, 0.175, 0.838, 2, 0, 2, 0.132, 0.311], [0, '#000000', 0, '#ffffff', 100]],
+  ['Stitches \'n\' Jitters', [10.4, 12.0, 1], [2, 0.082, 0.302, 0.481, 0.35, 0.749, 2, 3, 4, 0.028, 0.147], [0, '#000000', 0, '#ffffff', 100]],
+  ['Magic Maze', [4.0, 12.0, 1], [3, 0.120, 0.218, 0.267, 0.365, 0.445, 3, 4, 4, 0.028, 0.147], [0, '#000000', 0, '#ffffff', 100]]
 ];
 
 function upperCaseFirst(s) {
@@ -35,8 +36,9 @@ function getUpdateGroupMessageFromUI(groupName) {
 
 function getUpdateMessagesFromPresetValues(values) {
   return {
-    'kernel': getUpdateGroupMessageFromValues('kernel', values.slice(0, 3)),
-    'smoother': getUpdateGroupMessageFromValues('smoother', values.slice(3, 14))
+    'kernel': getUpdateGroupMessageFromValues('kernel', values[0]),
+    'smoother': getUpdateGroupMessageFromValues('smoother', values[1]),
+    'palette': getUpdateGroupMessageFromValues('palette', values[2])
   };
 }
 
@@ -47,8 +49,11 @@ function getGroupValuesFromUI(groupName) {
 }
 
 function getPresetValuesFromUI() {
-  return getGroupValuesFromUI('kernel').concat(
-      getGroupValuesFromUI('smoother'));
+  return [
+    getGroupValuesFromUI('kernel'),
+    getGroupValuesFromUI('smoother'),
+    getGroupValuesFromUI('palette')
+  ]
 }
 
 function updateGroupFromValues(groupName, values) {
@@ -95,7 +100,7 @@ function addPreset(name, values, isUserPreset) {
 function loadPresets(array, isUserPreset) {
   var menu = $('#presetMenu');
   for (var i = 0; i < array.length; ++i)
-    addPreset(array[i][0], array[i][1], isUserPreset);
+    addPreset(array[i][0], array[i].slice(1, 4), isUserPreset);
 }
 
 function initPresets() {
@@ -130,21 +135,33 @@ function savePreset(name, values) {
 function savePresetsToLocalStorage() {
   var presetValues = [];
   $('#presetMenu > li.user-preset > a').each(function () {
-    presetValues.push([$(this).text(), JSON.parse($(this).data('value'))]);
+    var preset = [$(this).text()];
+    preset = preset.concat(JSON.parse($(this).data('value')));
+    presetValues.push(preset);
   });
+  var presetValuesJson = JSON.stringify(presetValues);
   if (chrome !== undefined && chrome.storage !== undefined)
-    chrome.storage.local.set({'presets': JSON.stringify(presetValues)});
+    chrome.storage.local.set({'presets': presetValuesJson});
   else if (window.localStorage !== undefined)
-    window.localStorage.setItem('presets', JSON.stringify(presetValues));
+    window.localStorage.setItem('presets', presetValuesJson);
+
+  $('#presetTextarea').text(presetValuesJson);
 }
 
 function updateUIWithValues(values) {
   $('.kernel .has-value').each(function (i) {
-    $(this).data('updateValueForPreset')(values.slice(0, 3)[i]);
+    $(this).data('updateValueForPreset')(values[0][i]);
   });
   $('.smoother .has-value').each(function (i) {
-    $(this).data('updateValueForPreset')(values.slice(3, 14)[i]);
+    $(this).data('updateValueForPreset')(values[1][i]);
   });
+
+  $('.palette .color').remove();
+  $('.palette .buttonset .has-value')
+      .data('updateValueForPreset')(values[2][0]);
+  for (var i = 1; i < values[2].length; i += 2) {
+    addColorstopUI(values[2][i + 0], values[2][i + 1]);
+  }
 }
 
 function onPresetChanged(values) {
@@ -152,6 +169,7 @@ function onPresetChanged(values) {
   // Skip the timeout, if the user wants to spam the button they can.
   updateGroupFromUI('kernel');
   updateGroupFromUI('smoother');
+  updateGroupFromUI('palette');
   var module = $('#nacl_module').get(0);
   // When changing to a preset, reset the screen to make sure it looks
   // interesting.
@@ -253,7 +271,10 @@ function makeColorstopSlider(stop) {
   slider.on('slide', function (e, ui) { updateGroup('palette'); });
   slider.data({
     realValue: function () { return sliderWidget.value(); },
-    textValue: function () { return sliderWidget.value().toString(); }
+    textValue: function () { return sliderWidget.value().toString(); },
+    updateValueForPreset: function (value) {
+      sliderWidget.value(value);
+    }
   });
   return slider;
 }
@@ -262,7 +283,12 @@ function addColorstopUI(color, stop) {
   var input = $('<input>').addClass('has-value')
       .attr('type', 'hidden')
       .val(color)
-      .data({ realValue: function () { return $(input).val(); } })
+      .data({
+        realValue: function () { return $(input).val(); },
+        updateValueForPreset: function (value) {
+          $(input).val(value);
+        }
+      });
   var slider = makeColorstopSlider(stop);
   var ui = $('<div/>').addClass('color setting-row')
                       .append($('<span/>')
@@ -396,7 +422,7 @@ function getInitialValues() {
   }
 
   var initialPreset = 0;
-  return presets[initialPreset][1];
+  return presets[initialPreset].slice(1, 4);
 }
 
 function makeMainEmbed(groupMessages) {
@@ -426,8 +452,6 @@ $(document).ready(function (){
   var initialValues = getInitialValues();
   updateUIWithValues(initialValues);
   var messages = getUpdateMessagesFromPresetValues(initialValues);
-  // TODO(binji): Should be getting these values from the presets...
-  messages.palette = getUpdateGroupMessageFromUI('palette');
   makeMainEmbed(messages);
   updateGradient();
 });
