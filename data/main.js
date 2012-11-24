@@ -28,7 +28,9 @@ function getUpdateGroupMessageFromValues(groupName, values) {
 }
 
 function getUpdateGroupMessageFromUI(groupName) {
-  return getUpdateGroupMessageFromValues(groupName, getGroupValuesFromUI(groupName));
+  return getUpdateGroupMessageFromValues(
+      groupName,
+      getGroupValuesFromUI(groupName));
 }
 
 function getUpdateMessagesFromPresetValues(values) {
@@ -69,42 +71,60 @@ function updateGroup(groupName) {
   }
 }
 
-function addPreset(index, name) {
-  $('#presetMenu').append(
-      $('<li>').addClass('setting-row')
-               .append(
-                   $('<a>').attr('href', '#')
-                           .data('value', index)
-                           .text(name)));
+function addPreset(name, values, isUserPreset) {
+  var itemEl = $('<li/>')
+      .addClass('setting-row')
+      .append($('<a/>').attr('href', '#')
+                       .data('value', JSON.stringify(values))
+                       .text(name));
+
+  if (isUserPreset) {
+    itemEl.addClass('user-preset').append(
+        $('<div/>').addClass('close-button-div')
+                   .append($('<span/>').addClass('ui-icon ui-icon-closethick'))
+                   .click(function (e) {
+                     itemEl.remove();
+                     savePresetsToLocalStorage();
+                     e.stopPropagation();
+                   }))
+  }
+
+  $('#presetMenu').append(itemEl);
 }
 
-function loadPresets(array) {
+function loadPresets(array, isUserPreset) {
   var menu = $('#presetMenu');
   for (var i = 0; i < array.length; ++i)
-    addPreset(i, array[i][0]);
+    addPreset(array[i][0], array[i][1], isUserPreset);
 }
 
 function initPresets() {
+  loadPresets(presets, false);
+
   var savedPresets = localStorage.getItem('presets');
-  if (savedPresets) {
-    loadPresets(JSON.parse(savedPresets));
-  } else {
-    loadPresets(presets);
-  }
+  if (savedPresets)
+    loadPresets(JSON.parse(savedPresets), true);
 
   $('#presetMenu').menu({
     select: function (e, ui) {
-      var presetIndex = ui.item.children('a:first').data('value');
-      onPresetChanged(presetIndex);
+      var presetValuesJson = ui.item.children('a:first').data('value');
+      onPresetChanged(JSON.parse(presetValuesJson));
     }
   });
 }
 
 function savePreset(name, values) {
-  presets.push([name, values]);
-  localStorage.setItem('presets', JSON.stringify(presets));
-  addPreset(presets.length - 1, name);
+  addPreset(name, values, true);
   $('#presetMenu').menu('refresh');
+  savePresetsToLocalStorage();
+}
+
+function savePresetsToLocalStorage() {
+  var presetValues = [];
+  $('#presetMenu > li.user-preset > a').each(function () {
+    presetValues.push([$(this).text(), JSON.parse($(this).data('value'))]);
+  });
+  localStorage.setItem('presets', JSON.stringify(presetValues));
 }
 
 function updateUIWithValues(values) {
@@ -116,8 +136,8 @@ function updateUIWithValues(values) {
   });
 }
 
-function onPresetChanged(index) {
-  updateUIWithValues(presets[index][1]);
+function onPresetChanged(values) {
+  updateUIWithValues(values);
   // Skip the timeout, if the user wants to spam the button they can.
   updateGroupFromUI('kernel');
   updateGroupFromUI('smoother');
@@ -314,6 +334,7 @@ function setupUI() {
   $('#savePresetButton').button().click(function (e) {
     var presetName = $('#savePresetName').val();
     savePreset(presetName, getPresetValuesFromUI());
+    $('#savePresetName').val('');
   });
 
   var groups = ['kernel', 'smoother', 'palette'];
