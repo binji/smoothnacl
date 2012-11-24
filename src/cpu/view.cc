@@ -110,6 +110,8 @@ void View::DrawBuffer(const AlignedUint32& a) {
   double buffer_x = 0;
   double buffer_y = 0;
 
+  std::fill(pixels, pixels + image_width * image_height, 0xff000000);
+
   for (int y = y_offset; y < image_height - y_offset; ++y) {
     buffer_x = 0;
     for (int x = x_offset; x < image_width - x_offset; ++x) {
