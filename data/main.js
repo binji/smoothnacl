@@ -100,17 +100,25 @@ function loadPresets(array, isUserPreset) {
 
 function initPresets() {
   loadPresets(presets, false);
-
-  var savedPresets = localStorage.getItem('presets');
-  if (savedPresets)
-    loadPresets(JSON.parse(savedPresets), true);
-
   $('#presetMenu').menu({
     select: function (e, ui) {
       var presetValuesJson = ui.item.children('a:first').data('value');
       onPresetChanged(JSON.parse(presetValuesJson));
     }
   });
+
+  if (chrome !== undefined && chrome.storage !== undefined) {
+    chrome.storage.local.get('presets', function (items) {
+      loadPresets(JSON.parse(items['presets']), true);
+      $('#presetMenu').menu('refresh');
+    });
+  } else if (window.localStorage !== undefined) {
+    var savedPresets = window.localStorage.getItem('presets');
+    if (savedPresets) {
+      loadPresets(JSON.parse(savedPresets), true);
+      $('#presetMenu').menu('refresh');
+    }
+  }
 }
 
 function savePreset(name, values) {
@@ -124,7 +132,10 @@ function savePresetsToLocalStorage() {
   $('#presetMenu > li.user-preset > a').each(function () {
     presetValues.push([$(this).text(), JSON.parse($(this).data('value'))]);
   });
-  localStorage.setItem('presets', JSON.stringify(presetValues));
+  if (chrome !== undefined && chrome.storage !== undefined)
+    chrome.storage.local.set({'presets': JSON.stringify(presetValues)});
+  else if (window.localStorage !== undefined)
+    window.localStorage.setItem('presets', JSON.stringify(presetValues));
 }
 
 function updateUIWithValues(values) {
