@@ -50,26 +50,37 @@
   border-radius: 0;
 }
 
-#presetMenu .ui-menu-item .close-button-div {
+.close-button-div {
   margin: 0 6px;
   display: -webkit-flex;
   -webkit-align-self: stretch;
 }
 
-#presetMenu .ui-menu-item .ui-icon {
-  opacity: 0.5;
+.close-button-div > .ui-icon {
+  opacity: 0;
   position: static;
   -webkit-align-self: center;
-  -webkit-transition: width 200ms;
-  width: 0;
+  -webkit-transition: opacity 200ms;
 }
 
-#presetMenu .ui-menu-item:hover .ui-icon {
-  width: 16px;
+*:hover > .close-button-div:not(:hover) > .ui-icon {
+  opacity: 0.5;
 }
 
-#presetMenu .ui-menu-item:hover .close-button-div:hover .ui-icon {
+.close-button-div:hover > .ui-icon {
   opacity: 1.0;
+}
+
+#addColorstop.setting-row {
+  border-bottom: 0;
+}
+
+.plus-button-div {
+  margin: 0 6px;
+}
+
+.plus-button-div > .ui-button-text {
+  padding: 3px;
 }
 
 #savePreset {
@@ -111,9 +122,9 @@
 
 .setting-row > .value {
   display: -webkit-flex;
-  -webkit-flex: 1;
-  -webkit-justify-content: center;
   -webkit-align-items: center;
+  -webkit-flex: 1;
+  -webkit-justify-content: -webkit-flex-start;
 }
 
 .range .value > span {
@@ -133,6 +144,10 @@
 .buttonset > .value span.ui-button-text {
   font-family: "Courier New", monospace;
   padding: .4em .6em;
+}
+
+.color .ui-icon-grip-dotted-vertical {
+  cursor: -webkit-grab;
 }
 
 .color .value > .miniColors-triggerWrap {

@@ -230,9 +230,9 @@ function updateGradient() {
   $('#gradient').css('background', gradient);
 }
 
-function makeColorstopSlider(group, el) {
+function makeColorstopSlider(stop) {
   var slider = $('<div/>').addClass('has-value').slider({
-    value: el.data('stop'),
+    value: stop,
     min: 0,
     max: 100,
     range: 'min',
@@ -247,19 +247,32 @@ function makeColorstopSlider(group, el) {
   return slider;
 }
 
-function makeColorUI(group, el) {
+function addColorstopUI(color, stop) {
   var input = $('<input>').addClass('has-value')
       .attr('type', 'hidden')
-      .val(el.data('value'))
+      .val(color)
       .data({ realValue: function () { return $(input).val(); } })
-  var slider = makeColorstopSlider(group, el);
-  el.addClass('color setting-row')
-    .append($('<div/>').addClass('value')
-        .append(input)
-        .append(slider));
+  var slider = makeColorstopSlider(stop);
+  var ui = $('<div/>').addClass('color setting-row')
+                      .append($('<span/>')
+                          .addClass('ui-icon ui-icon-grip-dotted-vertical'))
+                      .append($('<div/>').addClass('value')
+                                         .append(input)
+                                         .append(slider))
+                      .append($('<div/>')
+                          .addClass('close-button-div')
+                          .append($('<span/>')
+                              .addClass('ui-icon ui-icon-closethick'))
+                          .click(function (e) {
+                            $(ui).remove();
+                            updateGroup('palette');
+                            e.stopPropagation();
+                          }))
   input.miniColors({
-    change: function (hex, rgba) { updateGroup(group); }
+    change: function (hex, rgba) { updateGroup('palette'); }
   });
+
+  $('#colors').append(ui);
 }
 
 function makeButtonsetUI(group, el) {
@@ -281,7 +294,6 @@ function makeRangeUI(group, el) {
 }
 
 var UILookup = {
-  color: makeColorUI,
   buttonset: makeButtonsetUI,
   range: makeRangeUI
 };
@@ -341,10 +353,15 @@ function setupUI() {
   for (var i = 0; i < groups.length; ++i)
     makeUIForGroup(groups[i]);
 
+  addColorstopUI('#000000', 0);
+  addColorstopUI('#ffffff', 100);
+  $('.plus-button-div').button().click(function () {
+    addColorstopUI('#ffffff', 100);
+    updateGroup('palette');
+  });
+
   $('#colors')
-      .sortable({
-        items: '.color',
-      })
+      .sortable({ items: '.color' })
       .on('sortupdate', function (e, ui) { updateGroup('palette'); });
 }
 
