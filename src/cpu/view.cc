@@ -18,6 +18,14 @@
 
 namespace cpu {
 
+namespace {
+
+bool IsPowerOf2(uint32_t x) {
+  return x && (x & (x - 1)) == 0;
+}
+
+}  // namespace
+
 View::View(LockedObject<AlignedUint32>* buffer)
     : factory_(this),
       graphics_2d_(NULL),
@@ -107,19 +115,19 @@ void View::DrawBuffer(const AlignedUint32& a) {
   int image_width = GetSize().width();
   int image_height = GetSize().height();
   int buffer_width = a.size().width();
-  double buffer_x = 0;
-  double buffer_y = 0;
+  int buffer_height = a.size().height();
 
-  std::fill(pixels, pixels + image_width * image_height, 0xff000000);
+  assert(IsPowerOf2(buffer_width));
+  assert(IsPowerOf2(buffer_height));
 
-  for (int y = y_offset; y < image_height - y_offset; ++y) {
-    buffer_x = 0;
-    for (int x = x_offset; x < image_width - x_offset; ++x) {
-      uint32_t v = a[(int)buffer_y * buffer_width + (int)buffer_x];
-      pixels[y * image_width + x] = v;
-      buffer_x += scale;
+  for (int y = 0; y < image_height; ++y) {
+    int buffer_y = static_cast<int>((y - y_offset) * scale);
+    buffer_y = (buffer_y + buffer_height) & (buffer_height - 1);
+    for (int x = 0; x < image_width; ++x) {
+      int buffer_x = static_cast<int>((x - x_offset) * scale);
+      buffer_x = (buffer_x + buffer_width) & (buffer_width - 1);
+      pixels[y * image_width + x] = a[buffer_y * buffer_width + buffer_x];
     }
-    buffer_y += scale;
   }
 }
 

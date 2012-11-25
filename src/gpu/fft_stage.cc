@@ -14,7 +14,7 @@ namespace {
 
 const float kPi = 3.14159265358979323846;
 
-uint32_t IsPowerOf2(uint32_t x) {
+bool IsPowerOf2(uint32_t x) {
   return x && (x & (x - 1)) == 0;
 }
 
