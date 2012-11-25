@@ -156,11 +156,11 @@
 #buttons {
   background: #fff;
   border-radius: 2px;
-  bottom: 0;
   height: 30px;
-  left: 0;
   padding: 6px;
-  /*position: absolute; */
+  position: absolute;
+  right: 0;
+  top: 0;
   width: auto;
 }
 
