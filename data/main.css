@@ -112,7 +112,6 @@
 .setting-row {
   border-bottom: 1px solid #ccc;
   display: -webkit-flex;
-/*  font-family: "Courier New", monospace; */
   padding: 15px 0;
   -webkit-align-items: center;
 }
@@ -153,7 +152,6 @@
 }
 
 .buttonset > .value span.ui-button-text {
-/*  font-family: "Courier New", monospace; */
   padding: .4em .6em;
 }
 

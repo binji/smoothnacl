@@ -77,21 +77,24 @@ function updateGroup(groupName) {
 }
 
 function makePresetElement(name, values, isUserPreset) {
-  var itemEl = $('<li/>')
-      .addClass('setting-row')
-      .append($('<a/>').attr('href', '#')
-                       .data('value', JSON.stringify(values))
-                       .text(name));
+  var itemEl =
+      $('<li/>').addClass('setting-row')
+                .append(
+          $('<a/>').attr('href', '#')
+                   .data('value', JSON.stringify(values))
+                   .text(name));
 
   if (isUserPreset) {
-    itemEl.addClass('user-preset').append(
+    itemEl.addClass('user-preset')
+          .append(
         $('<div/>').addClass('close-button-div')
-                   .append($('<span/>').addClass('ui-icon ui-icon-closethick'))
                    .click(function (e) {
                      itemEl.remove();
                      savePresetsToLocalStorage();
                      e.stopPropagation();
-                   }))
+                   })
+                   .append(
+            $('<span/>').addClass('ui-icon ui-icon-closethick')));
   }
 
   return itemEl;
@@ -287,31 +290,35 @@ function makeColorstopSlider(stop) {
 }
 
 function addColorstopUI(color, stop) {
-  var input = $('<input>').addClass('has-value')
-      .attr('type', 'hidden')
-      .val(color)
-      .data({
-        realValue: function () { return $(input).val(); },
-        updateValueForPreset: function (value) {
-          $(input).val(value);
-        }
-      });
+  var input =
+      $('<input>').addClass('has-value')
+                  .attr('type', 'hidden')
+                  .val(color)
+                  .data({
+                    realValue: function () { return $(input).val(); },
+                    updateValueForPreset: function (value) {
+                      $(input).val(value);
+                    }
+                  });
   var slider = makeColorstopSlider(stop);
-  var ui = $('<div/>').addClass('color setting-row')
-                      .append($('<span/>')
-                          .addClass('ui-icon ui-icon-grip-dotted-vertical'))
-                      .append($('<div/>').addClass('value')
-                                         .append(input)
-                                         .append(slider))
-                      .append($('<div/>')
-                          .addClass('close-button-div')
-                          .append($('<span/>')
-                              .addClass('ui-icon ui-icon-closethick'))
-                          .click(function (e) {
-                            $(ui).remove();
-                            updateGroup('palette');
-                            e.stopPropagation();
-                          }))
+  var ui =
+      $('<div/>').addClass('color setting-row')
+                 .append(
+          $('<span/>').addClass('handle')
+                      .addClass('ui-icon ui-icon-grip-dotted-vertical'))
+                 .append(
+          $('<div/>').addClass('value')
+                     .append(input)
+                     .append(slider))
+                 .append(
+          $('<div/>').addClass('close-button-div')
+                     .click(function (e) {
+                       $(ui).remove();
+                       updateGroup('palette');
+                       e.stopPropagation();
+                     })
+                     .append(
+              $('<span/>').addClass('ui-icon ui-icon-closethick')));
   input.miniColors({
     change: function (hex, rgba) { updateGroup('palette'); }
   });
@@ -334,10 +341,14 @@ function makeRangeUI(group, el) {
   var name = el.text();
   var slider = makePrecSlider(group, el);
   el.empty().addClass('range setting-row')
-    .append($('<label/>').text(name))
-    .append($('<div/>').addClass('value')
-        .append($('<span/>').text(slider.data('textValue')()))
-        .append(slider));
+            .append(
+    $('<label/>').text(name))
+            .append(
+    $('<div/>').addClass('value')
+               .append(
+        $('<span/>').text(slider.data('textValue')()))
+               .append(
+        slider));
 }
 
 var UILookup = {
@@ -395,6 +406,14 @@ function setupUI() {
   for (var i = 0; i < groups.length; ++i)
     makeUIForGroup(groups[i]);
 
+  // Add plus button.
+  /*
+  $('#gradientType').prepend(
+      $('<div/>').addClass('plus-button-div')
+                 .append(
+          $('<span/>').addClass('ui-icon ui-icon-plusthick')));
+          */
+
   addColorstopUI('#000000', 0);
   addColorstopUI('#ffffff', 100);
   $('.plus-button-div').button().click(function () {
@@ -403,7 +422,7 @@ function setupUI() {
   });
 
   $('#colors')
-      .sortable({ items: '.color', handle: 'span' })
+      .sortable({ items: '.color', handle: 'span.handle' })
       .on('sortupdate', function (e, ui) { updateGroup('palette'); });
 }
 
