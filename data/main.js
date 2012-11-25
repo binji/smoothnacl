@@ -199,8 +199,8 @@ function makeButtonset(group, el) {
     optionEl.on('change', function (e) {
       updateGroup(group);
     });
-    var labelEl = $('<label>').attr('for', optionId)
-                              .text(values[i]);
+    var labelEl = $('<label/>').attr('for', optionId)
+                               .text(values[i]);
 
     buttonsetEl.append(optionEl).append(labelEl);
   }
@@ -322,9 +322,12 @@ function addColorstopUI(color, stop) {
 function makeButtonsetUI(group, el) {
   var name = el.text();
   var buttonset = makeButtonset(group, el);
-  el.empty().addClass('buttonset setting-row')
-    .append($('<label/>').text(name))
-    .append(buttonset.addClass('value'));
+  el.empty().addClass('buttonset setting-row');
+
+  if (!el.data('noLabel'))
+    el.append($('<label/>').text(name));
+
+  el.append(buttonset.addClass('value'));
 }
 
 function makeRangeUI(group, el) {
@@ -361,9 +364,6 @@ function setupUI() {
         $('#nacl_module').attr('width', el.width()).attr('height', el.height());
       }
     },
-    north__closable: false,
-    north__resizable: false,
-    north__spacing_open: 2,
     east__minSize: 400,
     east__resizable: true,
     livePaneResizing: true
@@ -403,7 +403,7 @@ function setupUI() {
   });
 
   $('#colors')
-      .sortable({ items: '.color' })
+      .sortable({ items: '.color', handle: 'span' })
       .on('sortupdate', function (e, ui) { updateGroup('palette'); });
 }
 
