@@ -133,6 +133,8 @@ DATA_FILES = [
   '<third_party/jquery-ui/>images/ui-icons_cd0a0a_256x240.png',
   '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.css',
   '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.js',
+  '<third_party/Nunito/>Nunito-Bold.ttf',
+  '<third_party/Nunito/>Nunito-Regular.ttf',
 ]
 SRC_DATA_FILES = NoRepath(DATA_FILES)
 DST_DATA_FILES = Repath('out', DATA_FILES)

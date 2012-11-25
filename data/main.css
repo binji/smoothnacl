@@ -4,9 +4,19 @@
  * found in the LICENSE file.
  **/
 
+@font-face {
+  font-family: 'Nunito400';
+  src: url('Nunito-Regular.ttf');
+}
+
+@font-face {
+  font-family: 'Nunito700';
+  src: url('Nunito-Bold.ttf');
+}
+
 .ui-widget {
   font-size: 0.8em;
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito400', sans-serif;
 }
 
 .ui-tooltip {
@@ -15,13 +25,14 @@
 
 .title {
   background: -webkit-linear-gradient(left, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
-  font-family: 'Nunito', sans-serif;
+  font-family: 'Nunito400', sans-serif;
   font-size: 30px;
   font-weight: 400;
   width: 100%;
 }
 
 .title-bold {
+  font-family: 'Nunito700', sans-serif;
   font-weight: 700;
 }
 
