@@ -416,6 +416,7 @@ function setupUI() {
     var presetName = $('#savePresetName').val();
     savePreset(presetName, getPresetValuesFromUI());
     $('#savePresetName').val('');
+    return false;
   });
 
   var groups = ['kernel', 'smoother', 'palette'];
@@ -430,8 +431,6 @@ function setupUI() {
           $('<span/>').addClass('ui-icon ui-icon-plusthick')));
           */
 
-  addColorstopUI('#000000', 0);
-  addColorstopUI('#ffffff', 100);
   $('.plus-button-div').button().click(function () {
     addColorstopUI('#ffffff', 100, function () {
       updateGroup('palette');
