@@ -20,10 +20,23 @@ found in the LICENSE file.
 </head>
 <body>
   <div class="ui-layout-north">Smoothlife</div>
-  <div class="ui-layout-west">
-    <div class="accordion">
-      <h3>About</h3>
-      <div>
+  <div class="ui-layout-east">
+    <div id="buttons">
+      <input type="submit" id="clear" value="Clear">
+      <input type="submit" id="splat" value="Splat">
+      <!--
+      <input type="submit" id="fullscreen" value="Fullscreen">
+      -->
+      <span id="fps">FPS: 0.000</span>
+    </div>
+    <div class="tabs">
+      <ul>
+        <li><a href="#tabs-about">About</a></li>
+        <li><a href="#tabs-presets">Patterns</a></li>
+        <li><a href="#tabs-colors">Colors</a></li>
+        <li><a href="#tabs-advanced">Advanced</a></li>
+      </ul>
+      <div id="tabs-about">
         <p>
           Smoothlife is an generalization of
           <a href="http://en.wikipedia.org/wiki/Conway's_Game_of_Life">Conway's Game of Life,</a>
@@ -41,8 +54,17 @@ found in the LICENSE file.
           </ul>
         </p>
       </div>
-      <h3>Colors</h3>
-      <div>
+      <div id="tabs-presets">
+        <div id="savePreset" class="setting-row">
+          <input type="text" id="savePresetName" placeholder="Save name">
+          <input type="submit" id="savePresetButton" value="Save">
+        </div>
+        <ul id="presetMenu">
+        </ul>
+        <!-- ugly hack for copying current presets -->
+        <textarea id="presetTextarea"></textarea>
+      </div>
+      <div id="tabs-colors">
         <div class="setting-row">
           <div id="gradient"></div>
         </div>
@@ -55,8 +77,7 @@ found in the LICENSE file.
           </div>
         </div>
       </div>
-      <h3>Advanced</h3>
-      <div>
+      <div id="tabs-advanced">
         <div class="kernel">
           <div data-type="range" data-min="0" data-max="50" data-prec="1"
               title="Radius of the 'disc' part of a cell.">
@@ -85,27 +106,10 @@ found in the LICENSE file.
           <div data-type="range" data-min="0" data-max="1" data-prec="3">sm</div>
         </div>
       </div>
-      <h3>Presets</h3>
-      <div>
-        <ul id="presetMenu">
-        </ul>
-        <div id="savePreset">
-          <input type="text" id="savePresetName" placeholder="Save name">
-          <input type="submit" id="savePresetButton" value="Save">
-        </div>
-        <!-- ugly hack for copying current presets -->
-        <textarea id="presetTextarea"></textarea>
-      </div>
     </div>
   </div>
   <div class="ui-layout-center">
     <div id="listener">
-    </div>
-    <div id="buttons">
-      <input type="submit" id="clear" value="Clear">
-      <input type="submit" id="splat" value="Splat">
-      <input type="submit" id="fullscreen" value="Fullscreen">
-      <span id="fps">FPS: 0.000</span>
     </div>
   </div>
 </body>
