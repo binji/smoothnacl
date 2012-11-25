@@ -9,6 +9,10 @@
   font-family: 'Nunito', sans-serif;
 }
 
+.ui-tooltip {
+  max-width: 300px;
+}
+
 .title {
   background: -webkit-linear-gradient(left, #ffffff 0%,#f6f6f6 47%,#ededed 100%);
   font-family: 'Nunito', sans-serif;
@@ -18,7 +22,7 @@
 }
 
 .title-bold {
-  font-weight: 900;
+  font-weight: 700;
 }
 
 .ui-layout-toggler {
@@ -36,11 +40,9 @@
 }
 
 #presetMenu .ui-menu-item {
-/*  font-size: 20px; */
   font-weight: 400;
   margin: 0;
   padding: 15px 0 !important;
-  position: relative;
 }
 
 #presetMenu .ui-menu-item a {

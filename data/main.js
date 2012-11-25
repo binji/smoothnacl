@@ -89,8 +89,10 @@ function makePresetElement(name, values, isUserPreset) {
           .append(
         $('<div/>').addClass('close-button-div')
                    .click(function (e) {
-                     itemEl.remove();
-                     savePresetsToLocalStorage();
+                     itemEl.hide('blind', 200, function () {
+                       itemEl.remove();
+                       savePresetsToLocalStorage();
+                     });
                      e.stopPropagation();
                    })
                    .append(
@@ -138,7 +140,10 @@ function savePreset(name, values) {
   var presetEl = makePresetElement(name, values, true);
   $('#presetMenu').prepend(presetEl)
                   .menu('refresh');
-  savePresetsToLocalStorage();
+  presetEl.hide();
+  presetEl.show('blind', 200, function () {
+    savePresetsToLocalStorage();
+  });
 }
 
 function savePresetsToLocalStorage() {
@@ -289,7 +294,7 @@ function makeColorstopSlider(stop) {
   return slider;
 }
 
-function addColorstopUI(color, stop) {
+function makeColorstopUI(color, stop) {
   var input =
       $('<input>').addClass('has-value')
                   .attr('type', 'hidden')
@@ -313,8 +318,10 @@ function addColorstopUI(color, stop) {
                  .append(
           $('<div/>').addClass('close-button-div')
                      .click(function (e) {
-                       $(ui).remove();
-                       updateGroup('palette');
+                       $(ui).hide('blind', 200, function () {
+                         $(ui).remove();
+                         updateGroup('palette');
+                       });
                        e.stopPropagation();
                      })
                      .append(
@@ -323,7 +330,16 @@ function addColorstopUI(color, stop) {
     change: function (hex, rgba) { updateGroup('palette'); }
   });
 
+  return ui;
+}
+
+function addColorstopUI(color, stop, animateCallback) {
+  var ui = makeColorstopUI(color, stop);
   $('#colors').append(ui);
+  if (animateCallback) {
+    ui.hide();
+    ui.show('blind', 200, animateCallback);
+  }
 }
 
 function makeButtonsetUI(group, el) {
@@ -367,7 +383,7 @@ function makeUIForGroup(group) {
 };
 
 function setupUI() {
-  $('document').tooltip();
+  $(document).tooltip();
   $('body').layout({
     slidable: false,
     center__onresize: function (name, el) {
@@ -417,8 +433,9 @@ function setupUI() {
   addColorstopUI('#000000', 0);
   addColorstopUI('#ffffff', 100);
   $('.plus-button-div').button().click(function () {
-    addColorstopUI('#ffffff', 100);
-    updateGroup('palette');
+    addColorstopUI('#ffffff', 100, function () {
+      updateGroup('palette');
+    });
   });
 
   $('#colors')
