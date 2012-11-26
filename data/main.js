@@ -11,6 +11,7 @@ var updateTimeoutID = {
   'palette': null
 };
 var presets = [
+  ["Green Hex",[15.2,32.1,5],[3,0.273,0.117,0.288,0.243,0.348,3,2,4,0.269,0.662],[1,"#000000",3,"#f5f5c1",8,"#158a34",17,"#89e681",20]],
   ["Fire Jellies",[4,12,1],[2,0.115,0.269,0.523,0.34,0.746,3,4,4,0.028,0.147],[0,"#36065e",0,"#c24242",77,"#8a19b0",91,"#ff9900",99,"#f5c816",99]],
   ["Magical Maze",[4,12,1],[3,0.12,0.218,0.267,0.365,0.445,3,4,4,0.028,0.147],[0,"#000000",0,"#0f8a84",38,"#f5f5c1",43,"#158a34",70,"#89e681",100]],
   ["Waterbug Gliders",[4,12,1],[0,0.09,0.276,0.27,0.365,0.445,1,4,4,0.028,0.147],[0,"#93afd9",11,"#9cf0ff",92,"#edfdff",100]],
@@ -24,8 +25,22 @@ function upperCaseFirst(s) {
   return s.charAt(0).toUpperCase() + s.substr(1);
 }
 
+function dashesToCamelCase(s) {
+  var result = '';
+  var pos = 0;
+  var dash = s.indexOf('-');
+  while (dash !== -1) {
+    result += upperCaseFirst(s.slice(pos, dash));
+    pos = dash + 1;
+    dash = s.indexOf('-', pos + 1);
+  }
+
+  result += upperCaseFirst(s.slice(pos));
+  return result;
+}
+
 function getUpdateGroupMessageFromValues(groupName, values) {
-  return 'Set' + upperCaseFirst(groupName) + ':' + values.join(',');
+  return 'Set' + dashesToCamelCase(groupName) + ':' + values.join(',');
 }
 
 function getUpdateGroupMessageFromUI(groupName) {
@@ -194,6 +209,7 @@ function onPresetChanged(values) {
 
 function makeButtonset(group, el) {
   var values = el.data('values').split(' ');
+  var valueType = el.data('valueType');
   var buttonsetEl = $('<div/>').addClass('has-value');
   for (var i = 0; i < values.length; ++i) {
     var optionId = el.text().replace(' ', '_') + '_' + i;
@@ -201,7 +217,9 @@ function makeButtonset(group, el) {
                                .attr('id', optionId)
                                .attr('name', el.text())
                                .data('value', i);
-    if (i === el.data('value'))
+    if (valueType === 'string' && values[i] === el.data('value'))
+      optionEl.attr('checked', 'true');
+    else if (i === el.data('value'))
       optionEl.attr('checked', 'true');
 
     optionEl.on('change', function (e) {
@@ -215,7 +233,8 @@ function makeButtonset(group, el) {
   buttonsetEl.buttonset();
   buttonsetEl.data({
     realValue: function () {
-      return buttonsetEl.children('input:checked').data('value');
+      var index = buttonsetEl.children('input:checked').data('value');
+      return valueType === 'string' ? values[index] : index;
     },
     updateValueForPreset: function (value) {
       buttonsetEl.children('input').removeAttr('checked');
@@ -393,6 +412,9 @@ function setupUI() {
     },
     east__minSize: 400,
     east__resizable: true,
+    east__onresize: function () {
+      $('.tabs').tabs('refresh');
+    },
     livePaneResizing: true
   });
 
@@ -419,7 +441,7 @@ function setupUI() {
     return false;
   });
 
-  var groups = ['kernel', 'smoother', 'palette'];
+  var groups = ['kernel', 'smoother', 'palette', 'draw-options'];
   for (var i = 0; i < groups.length; ++i)
     makeUIForGroup(groups[i]);
 
