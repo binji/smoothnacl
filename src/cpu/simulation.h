@@ -33,6 +33,9 @@ class Simulation : public SimulationBase {
   virtual void Splat();
 
  private:
+  void DrawFilledCircleNoWrap(double x, double y, double radius,
+                              double color);
+
   pp::Size size_;
   Kernel kernel_;
   Smoother smoother_;

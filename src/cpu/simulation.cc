@@ -126,6 +126,40 @@ void Simulation::DrawFilledCircle(double x, double y, double radius,
                                   double color) {
   int width = aa_.size().width();
   int height = aa_.size().height();
+  int ix = static_cast<int>(x) % width;
+  int iy = static_cast<int>(y) % height;
+
+  const int kOverlapLeft = 1;
+  const int kOverlapRight = 2;
+  const int kOverlapTop = 1;
+  const int kOverlapBottom = 2;
+  int overlap_x = 0;
+  int overlap_y = 0;
+  if (ix - radius < 0) overlap_x |= kOverlapLeft;
+  if (ix + radius + 1 < width) overlap_x |= kOverlapRight;
+  if (iy - radius < 0) overlap_y |= kOverlapTop;
+  if (iy + radius + 1 < height) overlap_y |= kOverlapBottom;
+
+  for (int ox = 0; ox < 3; ++ox) {
+    int nx = ix;
+    if (ox & kOverlapLeft) nx += width;
+    if (ox & kOverlapRight) nx -= width;
+
+    for (int oy = 0; oy < 3; ++oy) {
+      int ny = iy;
+      if (oy & kOverlapTop) ny += height;
+      if (oy & kOverlapBottom) ny -= height;
+
+      if ((!ox || (overlap_x & ox)) && (!oy || (overlap_y & oy)))
+        DrawFilledCircleNoWrap(nx, ny, radius, color);
+    }
+  }
+}
+
+void Simulation::DrawFilledCircleNoWrap(double x, double y, double radius,
+                                        double color) {
+  int width = aa_.size().width();
+  int height = aa_.size().height();
   int left = std::max(0, static_cast<int>(x - radius));
   int right = std::min(width, static_cast<int>(x + radius + 1));
   int top = std::max(0, static_cast<int>(y - radius));
@@ -135,8 +169,8 @@ void Simulation::DrawFilledCircle(double x, double y, double radius,
     for (int i = left; i < right; ++i) {
       double dx = x - i;
       double dy = y - j;
-      double length = sqrt(dx * dx + dy * dy);
-      if (length < radius)
+      double length = dx * dx + dy * dy;
+      if (length < radius * radius)
         aa_[j * width + i] = color;
     }
   }
