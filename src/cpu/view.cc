@@ -8,10 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ppapi/cpp/completion_callback.h>
+#include <ppapi/cpp/core.h>
 #include <ppapi/cpp/graphics_2d.h>
 #include <ppapi/cpp/image_data.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/instance_handle.h>
+#include <ppapi/cpp/module.h>
 #include <ppapi/cpp/point.h>
 #include "palette.h"
 
@@ -82,6 +84,7 @@ void View::DrawCallback(int32_t result) {
     draw_loop_running_ = false;
     return;
   }
+
   assert(pixel_buffer_);
 
   AlignedUint32* data = locked_buffer_->Lock();

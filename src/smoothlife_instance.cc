@@ -152,7 +152,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
               10,
               1.0));
       }
-      return true;
+      return false;
     }
     case PP_INPUTEVENT_TYPE_KEYUP:
       return true;

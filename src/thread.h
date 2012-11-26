@@ -6,6 +6,7 @@
 #define THREAD_H_
 
 #include <pthread.h>
+#include <sys/time.h>
 #include "condvar.h"
 #include "locked_object.h"
 #include "palette.h"
@@ -52,6 +53,7 @@ class Thread {
   SimulationBase* simulation_;
   pthread_t thread_;
   int thread_create_result_;
+  struct timeval last_time_;
   bool quit_;
 
   Thread(const Thread&);  // Undefined.

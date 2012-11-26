@@ -481,6 +481,14 @@ function setupUI() {
       }, 1000);
     });
   });
+
+  $('#listener').mousedown(function (e) {
+    $('#nacl_module').get(0).postMessage('SetRunOptions:noSimulation,run');
+    e.stopPropagation();
+  }).mouseup(function (e) {
+    $('#nacl_module').get(0).postMessage('SetRunOptions:simulation,run');
+    e.stopPropagation();
+  });
 }
 
 function makeEmbed(appendChildTo, attrs) {
@@ -517,7 +525,7 @@ function makeMainEmbed(groupMessages) {
     msg3: groupMessages.palette,
     msg4: 'Clear:0',
     msg5: 'Splat',
-    msg6: 'SetRunOptions:simulation',
+    msg6: 'SetRunOptions:simulation,run',
     msg7: 'SetDrawOptions:simulation',
   });
 

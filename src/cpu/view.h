@@ -5,6 +5,7 @@
 #ifndef CPU_VIEW_H_
 #define CPU_VIEW_H_
 
+#include <ppapi/c/pp_time.h>
 #include <ppapi/cpp/point.h>
 #include <ppapi/cpp/rect.h>
 #include <ppapi/utility/completion_callback_factory.h>

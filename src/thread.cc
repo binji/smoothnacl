@@ -4,16 +4,26 @@
 
 #include "thread.h"
 #include <algorithm>
+#include <time.h>
+#include <stdio.h>
 #include "draw_strategy_base.h"
 #include "initializer_factory_base.h"
 #include "simulation_base.h"
 #include "task.h"
+
+namespace {
+
+const int kMinMS = 10;  // 10ms = 100fps
+
+}  // namespace
 
 Thread::Thread(const ThreadContext& context)
     : context_(context),
       simulation_(NULL),
       thread_create_result_(0),
       quit_(false) {
+  last_time_.tv_sec = 0;
+  last_time_.tv_usec = 0;
   thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
 }
 
@@ -87,6 +97,21 @@ void Thread::MainLoop() {
       context_.step_cond->Wait();
       context_.step_cond->Unlock();
     }
+
+    struct timeval this_time;
+    gettimeofday(&this_time, NULL);
+    int diff_ms = (this_time.tv_sec * 1000 + this_time.tv_usec / 1000) -
+        (last_time_.tv_sec * 1000 + last_time_.tv_usec / 1000);
+    if (diff_ms < kMinMS) {
+      struct timespec sleep_time;
+      struct timespec rem_time;
+      sleep_time.tv_sec = 0;
+      sleep_time.tv_nsec = (kMinMS - diff_ms) * 1000000;
+      while (nanosleep(&sleep_time, &rem_time) == -1)
+        sleep_time = rem_time;
+    }
+
+    last_time_ = this_time;
   }
 }
 
