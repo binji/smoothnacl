@@ -76,10 +76,10 @@ void Thread::MainLoop() {
     ProcessQueue();
     draw_strategy_->Draw(context_.draw_options, simulation_);
 
-    if (context_.run_options != kRunOptions_None)
+    if (context_.run_options & kRunOptions_Simulation)
       simulation_->Step();
 
-    if (context_.run_options != kRunOptions_Continuous) {
+    if (context_.run_options & kRunOptions_Pause) {
       // TODO(binji): This is not quite right. The condition may be exited
       // prematurely by another signal firing. What is the correct condition
       // here to loop waiting for?

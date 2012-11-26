@@ -72,7 +72,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   ThreadContext context;
   context.config = config;
-  context.run_options = kRunOptions_Continuous;
+  context.run_options = kRunOptions_Simulation;
   context.draw_options = kDrawOptions_Simulation;
   context.queue = task_queue_;
   context.frames_drawn = frames_drawn_;
@@ -285,19 +285,24 @@ void SmoothlifeInstance::MessageSplat(const ParamList& params) {
 }
 
 void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
-  if (params.size() != 1)
+  if (params.size() > 2)
     return;
 
-  ThreadRunOptions run_options;
-  if (params[0] == "step")
-    run_options = kRunOptions_Step;
-  else if (params[0] == "continuous")
-    run_options = kRunOptions_Continuous;
-  else if (params[0] == "none")
-    run_options = kRunOptions_None;
-  else {
-    printf("Unknown value for SetRunOptions, ignoring.\n");
-    return;
+  ThreadRunOptions run_options = 0;
+  for (int i = 0; i < params.size(); ++i) {
+    if (params[i] == "simulation")
+      run_options |= kRunOptions_Simulation;
+    else if (params[i] == "noSimulation")
+      run_options &= ~kRunOptions_Simulation;
+    else if (params[i] == "pause")
+      run_options |= kRunOptions_Pause;
+    else if (params[i] == "run")
+      run_options &= ~kRunOptions_Pause;
+    else {
+      printf("Unknown value %s for SetRunOptions, ignoring.\n",
+          params[i].c_str());
+      continue;
+    }
   }
 
   EnqueueTask(MakeFunctionTask(&Thread::TaskSetRunOptions, run_options));

@@ -5,14 +5,12 @@
 #ifndef THREAD_OPTIONS_H_
 #define THREAD_OPTIONS_H_
 
-enum ThreadRunOptions {
-  // Run the simulation continuously.
-  kRunOptions_Continuous,
-  // Wait for a message to step the simulation.
-  kRunOptions_Step,
-  // Don't run the sim, wait for step message to copy the buffer.
-  kRunOptions_None,
+enum {
+  kRunOptions_Simulation = 1,
+  kRunOptions_Pause = 2,
 };
+
+typedef int ThreadRunOptions;
 
 enum ThreadDrawOptions {
   kDrawOptions_Simulation,

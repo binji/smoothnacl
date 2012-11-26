@@ -517,7 +517,7 @@ function makeMainEmbed(groupMessages) {
     msg3: groupMessages.palette,
     msg4: 'Clear:0',
     msg5: 'Splat',
-    msg6: 'SetRunOptions:continuous',
+    msg6: 'SetRunOptions:simulation',
     msg7: 'SetDrawOptions:simulation',
   });
 
