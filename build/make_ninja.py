@@ -14,7 +14,11 @@ ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 
 
 def Prefix(prefix, items):
-  return ' '.join(prefix + x for x in items.split())
+  if items is None:
+    return ''
+  if type(items) is str:
+    items = items.split()
+  return ' '.join(prefix + x for x in items)
 
 def SourceToObj(source, bits):
   return os.path.join('out', '%s.%s.o' % (os.path.splitext(source)[0], bits))
@@ -105,6 +109,39 @@ SOURCE_FILES = [
   OUT_SHADER_CC,
 ]
 
+IM_SOURCE_FILES = [
+  'third_party/im/src/old_imcolor.c',
+  'third_party/im/src/old_imresize.c',
+  'third_party/im/src/im_attrib.cpp',
+  'third_party/im/src/im_bin.cpp',
+  'third_party/im/src/im_binfile.cpp',
+  'third_party/im/src/im_colorhsi.cpp',
+  'third_party/im/src/im_colormode.cpp',
+  'third_party/im/src/im_colorutil.cpp',
+  'third_party/im/src/im_compress.cpp',
+  'third_party/im/src/im_convertbitmap.cpp',
+  'third_party/im/src/im_convertcolor.cpp',
+  'third_party/im/src/im_convertopengl.cpp',
+  'third_party/im/src/im_converttype.cpp',
+  'third_party/im/src/im_counter.cpp',
+  'third_party/im/src/im_datatype.cpp',
+  'third_party/im/src/im_dib.cpp',
+  'third_party/im/src/im_dibxbitmap.cpp',
+  'third_party/im/src/im_file.cpp',
+  'third_party/im/src/im_filebuffer.cpp',
+  'third_party/im/src/im_fileraw.cpp',
+  'third_party/im/src/im_format.cpp',
+#  'third_party/im/src/im_format_all.cpp',
+#  'third_party/im/src/im_format_jpeg.cpp',
+#  'third_party/im/src/im_format_png.cpp',
+  'third_party/im/src/im_image.cpp',
+  'third_party/im/src/im_lib.cpp',
+  'third_party/im/src/im_palette.cpp',
+  'third_party/im/src/im_rgb2map.cpp',
+  'third_party/im/src/im_str.cpp',
+  'third_party/im/src/old_im.cpp',
+]
+
 
 DATA_FILES = [
   'data/index.html',
@@ -191,40 +228,73 @@ def Gen(w):
       variables={'outbase': os.path.splitext(OUT_SHADER_CC)[0]})
 
 
+def BuildProject(w, name, rule, sources,
+                 includedirs=None, libdirs=None, libs=None, order_only=None):
+  includedirs = includedirs or []
+  libdirs = libdirs or []
+  libs = libs or []
+
+  for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
+    bit_incdirs = Prefix('-I', [x.format(**vars()) for x in includedirs])
+    bit_libdirs = Prefix('-L', [x.format(**vars()) for x in libdirs])
+    bit_libs = Prefix('-l', [x.format(**vars()) for x in libs])
+
+    cflags_name = 'cflags{bits}_{name}'.format(**vars())
+    ldflags_name = 'ldflags{bits}_{name}'.format(**vars())
+    w.variable(cflags_name, '$base_ccflags {bit_incdirs}'.format(**vars()))
+    w.variable(ldflags_name, '{bit_libdirs} {bit_libs}'.format(**vars()))
+
+    objs = [SourceToObj(x, bits) for x in sources]
+    for source, obj in zip(sources, objs):
+      w.build(obj, 'cc', source,
+          order_only=order_only,
+          variables={'cflags': '$' + cflags_name, 'cc': '$cc' + bits})
+
+    if rule == 'link':
+      out_name = 'out/{name}_{bits}.nexe'.format(**vars())
+    elif rule == 'ar':
+      out_name = 'out/{name}_{bits}.a'.format(**vars())
+
+    w.build(out_name, rule, objs,
+        variables={'ldflags': '$' + ldflags_name, 'cc': '$cc' + bits})
+
+
 def Code(w):
   w.newline()
   w.rule('cc',
       command='$cc $cflags -MMD -MF $out.d -c $in -o $out',
       depfile='$out.d',
       description='CC $out')
+  w.rule('ar',
+      command='$ar rc $out $in',
+      description='AR $out')
   w.rule('link',
       command='$cc $in $ldflags -o $out',
       description='LINK $out')
 
-  libs = Prefix('-l', '''pthread ppapi_gles2 ppapi_cpp ppapi fftw3''')
+  w.variable('base_ccflags',  '-g -std=c++0x -O2 -msse2')
+  for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
+    w.variable('cc' + bits, '$toolchain_dir/bin/{flavor}-g++'.format(**vars()))
+    w.variable('ar' + bits, '$toolchain_dir/bin/{flavor}-ar'.format(**vars()))
 
-  flags = '-g -std=c++0x -O2 -msse2'
   fftw_dir = 'third_party/fftw-prebuilt'
 
-  for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
-    includes = '-Isrc -Iout '
-    includes += '-I{fftw_dir}/newlib_x86_{bits}/include'.format(**vars())
-    libdirs = '-L{fftw_dir}/newlib_x86_{bits}/lib'.format(**vars())
+  BuildProject(
+    w, 'smoothlife', 'link',
+    SOURCE_FILES,
+    includedirs=[
+      'src',
+      'out',
+      fftw_dir + '/newlib_x86_{bits}/include',
+    ],
+    libdirs=[fftw_dir + '/newlib_x86_{bits}/lib'],
+    libs=['ppapi_gles2', 'ppapi_cpp', 'ppapi', 'fftw3'],
+    order_only=OUT_SHADER_H)
 
-    w.variable('cflags' + bits, '{flags} {includes}'.format(**vars()))
-    w.variable('ldflags' + bits, '{libdirs} {libs}'.format(**vars()))
-    w.variable('cc' + bits, '$toolchain_dir/bin/{flavor}-g++'.format(**vars()))
-
-    sources = SOURCE_FILES
-    objs = [SourceToObj(x, bits) for x in sources]
-    for source, obj in zip(sources, objs):
-      w.build(obj, 'cc', source,
-          order_only=OUT_SHADER_H,
-          variables={'cflags': '$cflags' + bits, 'cc': '$cc' + bits})
-
-    w.build('out/smoothlife_{bits}.nexe'.format(**vars()), 'link', objs,
-        variables={'ldflags': '$ldflags' + bits,
-                   'cc': '$cc' + bits})
+  BuildProject(
+    w, 'libim', 'ar',
+    IM_SOURCE_FILES,
+    includedirs=['third_party/im/include'])
 
   w.newline()
   w.rule('nmf',
