@@ -42,6 +42,7 @@ class Thread {
   void TaskDrawFilledCircle(double x, double y, double radius, double color);
   void TaskSetRunOptions(ThreadRunOptions run_options);
   void TaskSetDrawOptions(ThreadDrawOptions draw_options);
+  void TaskScreenshot();
 
  private:
   static void* MainLoopThunk(void*);

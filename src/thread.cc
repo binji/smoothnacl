@@ -66,6 +66,9 @@ void Thread::TaskSetDrawOptions(ThreadDrawOptions draw_options) {
   context_.draw_options = draw_options;
 }
 
+void Thread::TaskScreenshot() {
+}
+
 // static
 void* Thread::MainLoopThunk(void* param) {
   Thread* self = static_cast<Thread*>(param);

@@ -115,6 +115,8 @@ void SmoothlifeInstance::InitMessageMap() {
         "SetDrawOptions", &SmoothlifeInstance::MessageSetDrawOptions));
   message_map_.insert(MessageMap::value_type(
         "SetFullscreen", &SmoothlifeInstance::MessageSetFullscreen));
+  message_map_.insert(MessageMap::value_type(
+        "Screenshot", &SmoothlifeInstance::MessageScreenshot));
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
@@ -340,6 +342,13 @@ void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
     return;
 
   fullscreen_.SetFullscreen(params[0] == "true");
+}
+
+void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
+  if (params.size() != 0)
+    return;
+
+  EnqueueTask(MakeFunctionTask(&Thread::TaskScreenshot));
 }
 
 void SmoothlifeInstance::EnqueueTask(Task* task) {
