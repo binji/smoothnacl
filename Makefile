@@ -1,4 +1,4 @@
-CHROME_PATH?=/home/binji/dev/chromium/src/out/Debug/chrome
+CHROME_PATH?=/home/binji/dev/chromium/src/out/Release/chrome
 NEXE_ARGS?=--enable-nacl --incognito
 
 all: build.ninja

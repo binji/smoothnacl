@@ -319,9 +319,9 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
   ThreadDrawOptions draw_options;
   if (params[0] == "simulation")
     draw_options = kDrawOptions_Simulation;
-  else if (params[0] == "kernelDisc")
+  else if (params[0] == "disc")
     draw_options = kDrawOptions_KernelDisc;
-  else if (params[0] == "kernelRing")
+  else if (params[0] == "ring")
     draw_options = kDrawOptions_KernelRing;
   else if (params[0] == "smoother")
     draw_options = kDrawOptions_Smoother;
