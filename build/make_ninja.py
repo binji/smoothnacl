@@ -9,6 +9,7 @@ import optparse
 import os
 import sys
 
+WINDOWS = sys.platform in ('cygwin', 'win32')
 SCRIPT_DIR = os.path.dirname(__file__)
 ROOT_DIR = os.path.dirname(SCRIPT_DIR)
 
@@ -50,6 +51,16 @@ def Repath(prefix, seq):
     else:
       result.append(os.path.join(prefix, path))
   return result
+
+def Python(cmd):
+  if WINDOWS:
+    return 'python %s' % (cmd,)
+  return cmd
+
+
+def Path(p):
+  return os.path.normpath(p)
+
 
 
 SHADER_FILES = [
@@ -157,25 +168,47 @@ PACKAGE_FILES = DATA_FILES + BUILT_FILES + [
 SRC_PACKAGE_FILES = NoRepath(PACKAGE_FILES)
 DST_PACKAGE_FILES = Repath(['out', 'package'], PACKAGE_FILES)
 
+
+class Writer(ninja_syntax.Writer):
+  def __init__(self, s):
+    ninja_syntax.Writer.__init__(self, s)
+
+  def build(self, outputs, rule, inputs=None, implicit=None, order_only=None,
+            variables=None):
+    outputs = map(Path, self._as_list(outputs))
+    inputs = map(Path, self._as_list(inputs))
+    implicit = map(Path, self._as_list(implicit))
+    order_only = map(Path, self._as_list(order_only))
+    ninja_syntax.Writer.build(self, outputs, rule, inputs, implicit, order_only,
+                              variables)
+
 def main():
   parser = optparse.OptionParser()
   options, args = parser.parse_args()
 
   out_filename = os.path.join(os.path.dirname(__file__), '../build.ninja')
   s = cStringIO.StringIO()
-  w = ninja_syntax.Writer(s)
+  w = Writer(s)
 
-  w.rule('configure', command = MAKE_NINJA, generator=1)
+  w.rule('configure', command = Python(MAKE_NINJA), generator=1)
   w.build('build.ninja', 'configure', implicit=[MAKE_NINJA])
 
-  w.variable('nacl_sdk_usr', 'nacl_sdk/pepper_23')
-  w.variable('toolchain_dir', '$nacl_sdk_usr/toolchain/linux_x86_newlib')
+  platform_dict = {
+    'linux2': 'linux',
+    'cygwin': 'win',
+    'win32': 'win',
+    'darwin': 'mac'
+  }
+
+  w.variable('nacl_sdk_usr', Path('nacl_sdk/pepper_23'))
+  w.variable('toolchain_dir', Path('$nacl_sdk_usr/toolchain/%s_x86_newlib' % (
+      platform_dict[sys.platform])))
 
   Gen(w)
   Code(w)
   Data(w)
   Package(w)
-  w.default('out/smoothlife.nmf ' + ' '.join(DST_DATA_FILES))
+  w.default(' '.join(map(Path, ['out/smoothlife.nmf'] + DST_DATA_FILES)))
 
   # Don't write build.ninja until everything succeeds
   with open(out_filename, 'w') as f:
@@ -185,7 +218,7 @@ def main():
 def Gen(w):
   w.newline()
   w.rule('shader_to_c',
-      command='script/shader_to_c.py -r out -o $outbase $in',
+      command=Python('script/shader_to_c.py -r out -o $outbase $in'),
       description='SHADER_TO_C $out')
   w.build([OUT_SHADER_CC, OUT_SHADER_H], 'shader_to_c', SHADER_FILES,
       variables={'outbase': os.path.splitext(OUT_SHADER_CC)[0]})
@@ -213,7 +246,8 @@ def Code(w):
 
     w.variable('cflags' + bits, '{flags} {includes}'.format(**vars()))
     w.variable('ldflags' + bits, '{libdirs} {libs}'.format(**vars()))
-    w.variable('cc' + bits, '$toolchain_dir/bin/{flavor}-g++'.format(**vars()))
+    w.variable('cc' + bits,
+               Path('$toolchain_dir/bin/{flavor}-g++'.format(**vars())))
 
     sources = SOURCE_FILES
     objs = [SourceToObj(x, bits) for x in sources]
@@ -230,7 +264,7 @@ def Code(w):
   w.rule('nmf',
       command='$nmf $in -o $out -t newlib -D$objdump',
       description='NMF $out')
-  w.variable('nmf', '$nacl_sdk_usr/tools/create_nmf.py')
+  w.variable('nmf', Python('$nacl_sdk_usr/tools/create_nmf.py'))
   w.build('out/smoothlife.nmf', 'nmf',
       ['out/smoothlife_32.nexe', 'out/smoothlife_64.nexe'],
       variables={'objdump': '$toolchain_dir/bin/x86_64-nacl-objdump'})
@@ -238,17 +272,22 @@ def Code(w):
 
 def Data(w):
   w.newline()
-  w.rule('cp', command='cp $in $out', description='CP $out')
-  for inf, outf in zip(DST_DATA_FILES, SRC_DATA_FILES):
-    w.build(inf, 'cp', outf)
+
+  if WINDOWS:
+    cmd = Python('script/cp.py $in $out')
+  else:
+    cmd = 'cp $in $out'
+  w.rule('cp', command=cmd, description='CP $out')
+  for outf, inf in zip(DST_DATA_FILES, SRC_DATA_FILES):
+    w.build(outf, 'cp', inf)
 
 
 def Package(w):
   w.newline()
   w.rule('zip', command='$zip -C out/package $out $in', description='ZIP $out')
-  w.variable('zip', 'script/zip.py')
-  for inf, outf in zip(DST_PACKAGE_FILES, SRC_PACKAGE_FILES):
-    w.build(inf, 'cp', outf)
+  w.variable('zip', Python('script/zip.py'))
+  for outf, inf in zip(DST_PACKAGE_FILES, SRC_PACKAGE_FILES):
+    w.build(outf, 'cp', inf)
   w.build(os.path.join('out', 'smoothlife.zip'), 'zip', DST_PACKAGE_FILES)
   w.build('package', 'phony', 'out/smoothlife.zip')
 
