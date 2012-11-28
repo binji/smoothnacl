@@ -18,7 +18,8 @@ class GLTaskList;
 class DrawStrategy : public DrawStrategyBase {
  public:
   DrawStrategy(const pp::Size& size, LockedQueue* locked_queue);
-  virtual void Draw(ThreadDrawOptions options, SimulationBase* simulation);
+  virtual void Draw(SimulationThreadDrawOptions options,
+                    SimulationBase* simulation);
 
  private:
   void InitShader();

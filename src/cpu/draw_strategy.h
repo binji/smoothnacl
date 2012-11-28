@@ -15,7 +15,8 @@ namespace cpu {
 class DrawStrategy : public DrawStrategyBase {
  public:
   explicit DrawStrategy(LockedObject<AlignedUint32>* locked_buffer);
-  virtual void Draw(ThreadDrawOptions options, SimulationBase* simulation);
+  virtual void Draw(SimulationThreadDrawOptions options,
+                    SimulationBase* simulation);
   virtual void SetPalette(const PaletteConfig& config);
 
  private:

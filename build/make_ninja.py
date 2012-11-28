@@ -118,9 +118,9 @@ SOURCE_FILES = [
   'src/gpu/view.cc',
   'src/gpu/wrap_gl.cc',
   'src/palette.cc',
+  'src/simulation_thread.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
-  'src/thread.cc',
   'src/view_base.cc',
   OUT_SHADER_CC,
 ]

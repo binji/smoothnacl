@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef THREAD_H_
-#define THREAD_H_
+#ifndef SIMULATION_THREAD_H_
+#define SIMULATION_THREAD_H_
 
 #include <pthread.h>
 #include <sys/time.h>
@@ -11,27 +11,27 @@
 #include "locked_object.h"
 #include "palette.h"
 #include "simulation_config.h"
-#include "task_queue.h"
-#include "thread_options.h"
+#include "simulation_thread_options.h"
+#include "simulation_thread_task_queue.h"
 
 class DrawStrategyBase;
 class InitializerFactoryBase;
 class SimulationBase;
 
-struct ThreadContext {
+struct SimulationThreadContext {
   SimulationConfig config;
-  ThreadRunOptions run_options;
-  ThreadDrawOptions draw_options;
-  LockedObject<TaskQueue>* queue;  // Weak.
+  SimulationThreadRunOptions run_options;
+  SimulationThreadDrawOptions draw_options;
+  LockedObject<SimulationThreadTaskQueue>* queue;  // Weak.
   LockedObject<int>* frames_drawn;  // Weak.
   CondVar* step_cond;  // Weak.
   InitializerFactoryBase* initializer_factory;  // Weak.
 };
 
-class Thread {
+class SimulationThread {
  public:
-  explicit Thread(const ThreadContext& context);
-  ~Thread();
+  explicit SimulationThread(const SimulationThreadContext& context);
+  ~SimulationThread();
 
   // Tasks: Do not call these directly, use MakeFunctionTask(...) instead.
   void TaskSetKernel(const KernelConfig& config);
@@ -40,8 +40,8 @@ class Thread {
   void TaskClear(double color);
   void TaskSplat();
   void TaskDrawFilledCircle(double x, double y, double radius, double color);
-  void TaskSetRunOptions(ThreadRunOptions run_options);
-  void TaskSetDrawOptions(ThreadDrawOptions draw_options);
+  void TaskSetRunOptions(SimulationThreadRunOptions run_options);
+  void TaskSetDrawOptions(SimulationThreadDrawOptions draw_options);
   void TaskScreenshot();
 
  private:
@@ -49,7 +49,7 @@ class Thread {
   void MainLoop();
   void ProcessQueue();
 
-  ThreadContext context_;
+  SimulationThreadContext context_;
   DrawStrategyBase* draw_strategy_;
   SimulationBase* simulation_;
   pthread_t thread_;
@@ -57,8 +57,8 @@ class Thread {
   struct timeval last_time_;
   bool quit_;
 
-  Thread(const Thread&);  // Undefined.
-  Thread& operator =(const Thread&);  // Undefined.
+  SimulationThread(const SimulationThread&);  // Undefined.
+  SimulationThread& operator =(const SimulationThread&);  // Undefined.
 };
 
-#endif  // THREAD_H_
+#endif  // SIMULATION_THREAD_H_

@@ -7,22 +7,22 @@
 
 #include <functional>
 
-class Thread;
-
+template <typename T>
 class Task {
  public:
   virtual ~Task() {}
-  virtual void Run(Thread* thread) = 0;
+  virtual void Run(T* thread) = 0;
 };
 
-class FunctionTask : public Task {
+template <typename T>
+class FunctionTask : public Task<T> {
  public:
-  typedef void FunctionType(Thread*);
+  typedef void FunctionType(T*);
   explicit FunctionTask(const std::function<FunctionType>& function)
       : function_(function) {
   }
 
-  virtual void Run(Thread* thread) {
+  virtual void Run(T* thread) {
     function_(thread);
   }
 
@@ -30,31 +30,37 @@ class FunctionTask : public Task {
   std::function<FunctionType> function_;
 };
 
-template<typename F>
-Task* MakeFunctionTask(F func) {
-  return new FunctionTask(std::bind(func, std::placeholders::_1));
+template<typename T>
+Task<T>* MakeFunctionTask(void (T::*func)()) {
+  return new FunctionTask<T>(std::bind(func, std::placeholders::_1));
 }
 
-template<typename F, typename P1>
-Task* MakeFunctionTask(F func, const P1& p1) {
-  return new FunctionTask(std::bind(func, std::placeholders::_1, p1));
+template<typename T, typename A1,
+                     typename P1>
+Task<T>* MakeFunctionTask(void (T::*func)(A1), const P1& p1) {
+  return new FunctionTask<T>(std::bind(func, std::placeholders::_1, p1));
 }
 
-template<typename F, typename P1, typename P2>
-Task* MakeFunctionTask(F func, const P1& p1, const P2& p2) {
-  return new FunctionTask(std::bind(func, std::placeholders::_1, p1, p2));
+template<typename T, typename A1, typename A2,
+                     typename P1, typename P2>
+Task<T>* MakeFunctionTask(void (T::*func)(A1, A2), const P1& p1, const P2& p2) {
+  return new FunctionTask<T>(std::bind(func, std::placeholders::_1, p1, p2));
 }
 
-template<typename F, typename P1, typename P2, typename P3>
-Task* MakeFunctionTask(F func, const P1& p1, const P2& p2, const P3& p3) {
-  return new FunctionTask(std::bind(func, std::placeholders::_1, p1, p2, p3));
+template<typename T, typename A1, typename A2, typename A3,
+                     typename P1, typename P2, typename P3>
+Task<T>* MakeFunctionTask(void (T::*func)(A1, A2, A3), const P1& p1,
+                          const P2& p2, const P3& p3) {
+  return new FunctionTask<T>(std::bind(func, std::placeholders::_1, p1, p2,
+                                       p3));
 }
 
-template<typename F, typename P1, typename P2, typename P3, typename P4>
-Task* MakeFunctionTask(F func, const P1& p1, const P2& p2, const P3& p3,
-                       const P4& p4) {
-  return new FunctionTask(std::bind(func, std::placeholders::_1, p1, p2, p3,
-                                    p4));
+template<typename T, typename A1, typename A2, typename A3, typename A4,
+                     typename P1, typename P2, typename P3, typename P4>
+Task<T>* MakeFunctionTask(void (T::*func)(A1, A2, A3, A4), const P1& p1,
+                       const P2& p2, const P3& p3, const P4& p4) {
+  return new FunctionTask<T>(std::bind(func, std::placeholders::_1, p1, p2, p3,
+                                       p4));
 }
 
 #endif  // TASK_H_

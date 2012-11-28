@@ -18,7 +18,8 @@ DrawStrategy::DrawStrategy(const pp::Size& size,
   InitShader();
 }
 
-void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
+void DrawStrategy::Draw(SimulationThreadDrawOptions options,
+                        SimulationBase* simulation) {
   Simulation* gpu_sim = static_cast<Simulation*>(simulation);
 
   locked_queue_->PushBack(g_task_list.Take());

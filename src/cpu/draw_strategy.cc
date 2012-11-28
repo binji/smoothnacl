@@ -12,7 +12,8 @@ DrawStrategy::DrawStrategy(LockedObject<AlignedUint32>* locked_buffer)
       palette_(PaletteConfig()) {
 }
 
-void DrawStrategy::Draw(ThreadDrawOptions options, SimulationBase* simulation) {
+void DrawStrategy::Draw(SimulationThreadDrawOptions options,
+                        SimulationBase* simulation) {
   Simulation* cpu_sim = static_cast<Simulation*>(simulation);
 
   switch (options) {

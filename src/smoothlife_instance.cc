@@ -19,10 +19,10 @@
 #include "kernel_config.h"
 #include "palette.h"
 #include "simulation_config.h"
+#include "simulation_thread.h"
+#include "simulation_thread_options.h"
 #include "smoother_config.h"
 #include "task.h"
-#include "thread.h"
-#include "thread_options.h"
 #include "view_base.h"
 
 namespace {
@@ -64,13 +64,14 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   SimulationConfig config;
   config.size = sim_size_;
 
-  task_queue_ = new LockedObject<TaskQueue>(new TaskQueue);
+  task_queue_ = new LockedObject<SimulationThreadTaskQueue>(
+      new SimulationThreadTaskQueue);
   frames_drawn_ = new LockedObject<int>(new int(0));
   initializer_factory_ = new cpu::InitializerFactory(config.size);
   //initializer_factory_ = new gpu::InitializerFactory(config.size);
   step_cond_ = new CondVar;
 
-  ThreadContext context;
+  SimulationThreadContext context;
   context.config = config;
   context.run_options = kRunOptions_Simulation;
   context.draw_options = kDrawOptions_Simulation;
@@ -81,7 +82,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 
   ParseInitMessages(argc, argn, argv, &context);
 
-  thread_ = new Thread(context);
+  thread_ = new SimulationThread(context);
   view_ = initializer_factory_->CreateView();
 
   return true;
@@ -90,7 +91,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
 void SmoothlifeInstance::ParseInitMessages(
     uint32_t argc,
     const char* argn[], const char* argv[],
-    ThreadContext* context) {
+    SimulationThreadContext* context) {
   for (uint32_t i = 0; i < argc; ++i) {
     if (strncmp(argn[i], "msg", 3) == 0) {
       HandleMessage(pp::Var(argv[i]));
@@ -148,7 +149,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
         EnqueueTask(MakeFunctionTask(
-              &Thread::TaskDrawFilledCircle,
+              &SimulationThread::TaskDrawFilledCircle,
               sim_point.x(),
               sim_point.y(),
               10,
@@ -229,7 +230,7 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
   config.disc_radius = strtod(params[0].c_str(), NULL);
   config.ring_radius = strtod(params[1].c_str(), NULL);
   config.blend_radius = strtod(params[2].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&Thread::TaskSetKernel, config));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetKernel, config));
 }
 
 void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
@@ -248,7 +249,7 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
   config.mix = static_cast<Sigmoid>(atoi(params[8].c_str()));
   config.sn = strtod(params[9].c_str(), NULL);
   config.sm = strtod(params[10].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&Thread::TaskSetSmoother, config));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetSmoother, config));
 }
 
 void SmoothlifeInstance::MessageSetPalette(const ParamList& params) {
@@ -268,7 +269,7 @@ void SmoothlifeInstance::MessageSetPalette(const ParamList& params) {
     double stop = strtod(params[i + 1].c_str(), NULL) / 100.0;
     config.stops.push_back(ColorStop(color, stop));
   }
-  EnqueueTask(MakeFunctionTask(&Thread::TaskSetPalette, config));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetPalette, config));
 }
 
 void SmoothlifeInstance::MessageClear(const ParamList& params) {
@@ -276,21 +277,21 @@ void SmoothlifeInstance::MessageClear(const ParamList& params) {
     return;
 
   double color = strtod(params[0].c_str(), NULL);
-  EnqueueTask(MakeFunctionTask(&Thread::TaskClear, color));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskClear, color));
 }
 
 void SmoothlifeInstance::MessageSplat(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  EnqueueTask(MakeFunctionTask(&Thread::TaskSplat));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSplat));
 }
 
 void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
   if (params.size() > 2)
     return;
 
-  ThreadRunOptions run_options = 0;
+  SimulationThreadRunOptions run_options = 0;
   for (int i = 0; i < params.size(); ++i) {
     if (params[i] == "simulation")
       run_options |= kRunOptions_Simulation;
@@ -307,7 +308,8 @@ void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
     }
   }
 
-  EnqueueTask(MakeFunctionTask(&Thread::TaskSetRunOptions, run_options));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetRunOptions,
+                               run_options));
 
   step_cond_->Lock();
   step_cond_->Signal();
@@ -318,7 +320,7 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
   if (params.size() != 1)
     return;
 
-  ThreadDrawOptions draw_options;
+  SimulationThreadDrawOptions draw_options;
   if (params[0] == "simulation")
     draw_options = kDrawOptions_Simulation;
   else if (params[0] == "disc")
@@ -334,7 +336,8 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
     return;
   }
 
-  EnqueueTask(MakeFunctionTask(&Thread::TaskSetDrawOptions, draw_options));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetDrawOptions,
+                               draw_options));
 }
 
 void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
@@ -348,17 +351,17 @@ void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  EnqueueTask(MakeFunctionTask(&Thread::TaskScreenshot));
+  EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot));
 }
 
-void SmoothlifeInstance::EnqueueTask(Task* task) {
-  ScopedLocker<TaskQueue> locker(*task_queue_);
+void SmoothlifeInstance::EnqueueTask(SimulationThreadTask* task) {
+  ScopedLocker<SimulationThreadTaskQueue> locker(*task_queue_);
   if (locker.object()->size() > kMaxTaskQueueSize) {
     printf("Task queue is full, dropping message.\n");
     return;
   }
 
-  locker.object()->push_back(std::shared_ptr<Task>(task));
+  locker.object()->push_back(std::shared_ptr<SimulationThreadTask>(task));
 }
 
 void SmoothlifeInstance::ScheduleUpdate() {

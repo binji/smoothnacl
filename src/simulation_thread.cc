@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "thread.h"
+#include "simulation_thread.h"
 #include <algorithm>
 #include <time.h>
 #include <stdio.h>
@@ -17,7 +17,7 @@ const int kMinMS = 10;  // 10ms = 100fps
 
 }  // namespace
 
-Thread::Thread(const ThreadContext& context)
+SimulationThread::SimulationThread(const SimulationThreadContext& context)
     : context_(context),
       simulation_(NULL),
       thread_create_result_(0),
@@ -27,56 +27,58 @@ Thread::Thread(const ThreadContext& context)
   thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
 }
 
-Thread::~Thread() {
+SimulationThread::~SimulationThread() {
   quit_ = true;
   if (thread_create_result_ == 0)
     pthread_join(thread_, NULL);
 }
 
-void Thread::TaskSetKernel(const KernelConfig& config) {
+void SimulationThread::TaskSetKernel(const KernelConfig& config) {
   simulation_->SetKernel(config);
 }
 
-void Thread::TaskSetSmoother(const SmootherConfig& config) {
+void SimulationThread::TaskSetSmoother(const SmootherConfig& config) {
   simulation_->SetSmoother(config);
 }
 
-void Thread::TaskSetPalette(const PaletteConfig& config) {
+void SimulationThread::TaskSetPalette(const PaletteConfig& config) {
   draw_strategy_->SetPalette(config);
 }
 
-void Thread::TaskClear(double color) {
+void SimulationThread::TaskClear(double color) {
   simulation_->Clear(color);
 }
 
-void Thread::TaskSplat() {
+void SimulationThread::TaskSplat() {
   simulation_->Splat();
 }
 
-void Thread::TaskDrawFilledCircle(double x, double y, double radius,
+void SimulationThread::TaskDrawFilledCircle(double x, double y, double radius,
                                             double color) {
   simulation_->DrawFilledCircle(x, y, radius, color);
 }
 
-void Thread::TaskSetRunOptions(ThreadRunOptions run_options) {
+void SimulationThread::TaskSetRunOptions(
+    SimulationThreadRunOptions run_options) {
   context_.run_options = run_options;
 }
 
-void Thread::TaskSetDrawOptions(ThreadDrawOptions draw_options) {
+void SimulationThread::TaskSetDrawOptions(
+    SimulationThreadDrawOptions draw_options) {
   context_.draw_options = draw_options;
 }
 
-void Thread::TaskScreenshot() {
+void SimulationThread::TaskScreenshot() {
 }
 
 // static
-void* Thread::MainLoopThunk(void* param) {
-  Thread* self = static_cast<Thread*>(param);
+void* SimulationThread::MainLoopThunk(void* param) {
+  SimulationThread* self = static_cast<SimulationThread*>(param);
   self->MainLoop();
   return NULL;
 }
 
-void Thread::MainLoop() {
+void SimulationThread::MainLoop() {
   simulation_ = context_.initializer_factory->CreateSimulation(context_.config);
   draw_strategy_ = context_.initializer_factory->CreateDrawStrategy();
 
@@ -118,15 +120,14 @@ void Thread::MainLoop() {
   }
 }
 
-void Thread::ProcessQueue() {
-  TaskQueue* queue = context_.queue->Lock();
-  TaskQueue copy = *queue;
+void SimulationThread::ProcessQueue() {
+  SimulationThreadTaskQueue* queue = context_.queue->Lock();
+  SimulationThreadTaskQueue copy = *queue;
   queue->clear();
   context_.queue->Unlock();
 
-  for (TaskQueue::iterator iter = copy.begin(), end = copy.end();
-       iter != end;
-       ++iter) {
+  SimulationThreadTaskQueue::iterator iter = copy.begin();
+  SimulationThreadTaskQueue::iterator end = copy.end();
+  for (; iter != end; ++iter)
     (*iter)->Run(this);
-  }
 }

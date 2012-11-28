@@ -15,13 +15,13 @@
 #include "condvar.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
-#include "task_queue.h"
+#include "simulation_thread_task_queue.h"
 
 
 class InitializerFactoryBase;
+class SimulationThread;
+class SimulationThreadContext;
 class SmoothlifeInstance;
-class Thread;
-class ThreadContext;
 class ViewBase;
 typedef std::vector<std::string> ParamList;
 typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
@@ -39,7 +39,7 @@ class SmoothlifeInstance : public pp::Instance {
 
  private:
   void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
-                         ThreadContext* context);
+                         SimulationThreadContext* context);
 
   void InitMessageMap();
   void MessageSetKernel(const ParamList& params);
@@ -52,15 +52,15 @@ class SmoothlifeInstance : public pp::Instance {
   void MessageSetFullscreen(const ParamList& params);
   void MessageScreenshot(const ParamList& params);
 
-  void EnqueueTask(Task* task);
+  void EnqueueTask(SimulationThreadTask* task);
   void ScheduleUpdate();
   void UpdateCallback(int32_t result);
 
   pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
   ViewBase* view_;
-  Thread* thread_;
+  SimulationThread* thread_;
   pp::Size sim_size_;
-  LockedObject<TaskQueue>* task_queue_;
+  LockedObject<SimulationThreadTaskQueue>* task_queue_;
   LockedObject<int>* frames_drawn_;
   InitializerFactoryBase* initializer_factory_;
   CondVar* step_cond_;
