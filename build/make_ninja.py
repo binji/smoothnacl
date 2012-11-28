@@ -210,35 +210,60 @@ JPEG_SOURCE_FILES = [
   'third_party/im/src/libjpeg/jutils.c',
 ]
 
+EXIF_SOURCE_FILES = [
+  'third_party/im/src/libexif/exif-byte-order.c',
+  'third_party/im/src/libexif/exif-content.c',
+  'third_party/im/src/libexif/exif-data.c',
+  'third_party/im/src/libexif/exif-entry.c',
+  'third_party/im/src/libexif/exif-format.c',
+  'third_party/im/src/libexif/exif-ifd.c',
+  'third_party/im/src/libexif/exif-loader.c',
+  'third_party/im/src/libexif/exif-log.c',
+  'third_party/im/src/libexif/exif-mem.c',
+  'third_party/im/src/libexif/exif-mnote-data.c',
+  'third_party/im/src/libexif/exif-tag.c',
+  'third_party/im/src/libexif/exif-utils.c',
+  'third_party/im/src/libexif/canon/exif-mnote-data-canon.c',
+  'third_party/im/src/libexif/canon/mnote-canon-entry.c',
+  'third_party/im/src/libexif/canon/mnote-canon-tag.c',
+  'third_party/im/src/libexif/fuji/exif-mnote-data-fuji.c',
+  'third_party/im/src/libexif/fuji/mnote-fuji-entry.c',
+  'third_party/im/src/libexif/fuji/mnote-fuji-tag.c',
+  'third_party/im/src/libexif/olympus/exif-mnote-data-olympus.c',
+  'third_party/im/src/libexif/olympus/mnote-olympus-entry.c',
+  'third_party/im/src/libexif/olympus/mnote-olympus-tag.c',
+  'third_party/im/src/libexif/pentax/exif-mnote-data-pentax.c',
+  'third_party/im/src/libexif/pentax/mnote-pentax-entry.c',
+  'third_party/im/src/libexif/pentax/mnote-pentax-tag.c',
+]
+
 IM_SOURCE_FILES = [
-  'third_party/im/src/old_imcolor.c',
-  'third_party/im/src/old_imresize.c',
   'third_party/im/src/im_attrib.cpp',
   'third_party/im/src/im_bin.cpp',
   'third_party/im/src/im_binfile.cpp',
   'third_party/im/src/im_colorhsi.cpp',
   'third_party/im/src/im_colormode.cpp',
   'third_party/im/src/im_colorutil.cpp',
-#  'third_party/im/src/im_compress.cpp',
   'third_party/im/src/im_convertbitmap.cpp',
   'third_party/im/src/im_convertcolor.cpp',
   'third_party/im/src/im_convertopengl.cpp',
   'third_party/im/src/im_converttype.cpp',
   'third_party/im/src/im_counter.cpp',
   'third_party/im/src/im_datatype.cpp',
-  'third_party/im/src/im_file.cpp',
   'third_party/im/src/im_filebuffer.cpp',
+  'third_party/im/src/im_file.cpp',
   'third_party/im/src/im_fileraw.cpp',
   'third_party/im/src/im_format.cpp',
-#  'third_party/im/src/im_format_all.cpp',
-#  'third_party/im/src/im_format_jpeg.cpp',
-#  'third_party/im/src/im_format_png.cpp',
+  'third_party/im/src/im_format_jpeg.cpp',
+  'third_party/im/src/im_format_png.cpp',
   'third_party/im/src/im_image.cpp',
   'third_party/im/src/im_lib.cpp',
   'third_party/im/src/im_palette.cpp',
   'third_party/im/src/im_rgb2map.cpp',
   'third_party/im/src/im_str.cpp',
+  'third_party/im/src/old_imcolor.c',
   'third_party/im/src/old_im.cpp',
+  'third_party/im/src/old_imresize.c',
   'third_party/im/src/process/im_analyze.cpp',
   'third_party/im/src/process/im_arithmetic_bin.cpp',
   'third_party/im/src/process/im_arithmetic_un.cpp',
@@ -375,9 +400,10 @@ def Gen(w):
 
 
 def BuildProject(w, name, rule, sources,
-                 includedirs=None, libs=None, order_only=None):
+                 includedirs=None, libs=None, order_only=None, defines=None):
   includedirs = includedirs or []
   libs = libs or []
+  defines = defines or []
   libfiles = [l for l in libs if os.path.dirname(l)]
   libnames = [l for l in libs if not os.path.dirname(l)]
   libdirs = sorted(set([os.path.dirname(l) for l in libfiles]))
@@ -388,12 +414,15 @@ def BuildProject(w, name, rule, sources,
     bit_libdirs = Prefix('-L', [x.format(**vars()) for x in libdirs])
     bit_libs = Prefix('-l', [x.format(**vars()) for x in libs])
     bit_libfiles = [x.format(**vars()) for x in libfiles]
+    bit_defines = Prefix('-D', [x.format(**vars()) for x in defines])
 
     ccflags_name = 'ccflags{bits}_{name}'.format(**vars())
     cxxflags_name = 'cxxflags{bits}_{name}'.format(**vars())
     ldflags_name = 'ldflags{bits}_{name}'.format(**vars())
-    w.variable(ccflags_name, '$base_ccflags {bit_incdirs}'.format(**vars()))
-    w.variable(cxxflags_name, '$base_cxxflags {bit_incdirs}'.format(**vars()))
+    w.variable(ccflags_name,
+               '$base_ccflags {bit_incdirs} {bit_defines}'.format(**vars()))
+    w.variable(cxxflags_name,
+               '$base_cxxflags {bit_incdirs} {bit_defines}'.format(**vars()))
     w.variable(ldflags_name, '{bit_libdirs} {bit_libs}'.format(**vars()))
 
     objs = [SourceToObj(x, bits) for x in sources]
@@ -446,12 +475,27 @@ def Code(w):
   BuildProject(
     w, 'libim', 'ar',
     IM_SOURCE_FILES,
-    includedirs=['third_party/im/include'])
+    includedirs=[
+      'third_party/im/include',
+      'third_party/im/src',
+      'third_party/im/src/libexif',
+      'third_party/im/src/libpng',
+      'third_party/im/src/libjpeg',
+    ],
+    defines=['USE_EXIF'])
 
   BuildProject(
     w, 'libjpeg', 'ar',
     JPEG_SOURCE_FILES,
     includedirs=['third_party/im/include'])
+
+  BuildProject(
+    w, 'libexif', 'ar',
+    EXIF_SOURCE_FILES,
+    includedirs=[
+      'third_party/im/src',
+      'third_party/im/src/libexif',
+    ])
 
   BuildProject(
     w, 'libpng', 'ar',
@@ -477,7 +521,8 @@ def Code(w):
       'out/libim_{bits}.a',
       'out/libjpeg_{bits}.a',
       'out/libpng_{bits}.a',
-      'out/libzlib_{bits}.a'],
+      'out/libzlib_{bits}.a',
+      'out/libexif_{bits}.a'],
     order_only=OUT_SHADER_H)
 
   w.newline()
