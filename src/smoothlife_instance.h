@@ -13,10 +13,9 @@
 #include <ppapi/cpp/instance.h>
 #include <ppapi/utility/completion_callback_factory.h>
 #include "fft_allocation.h"
-#include "task.h"
+#include "simulation_thread.h"
 
 
-class SimulationThread;
 class SimulationThreadContext;
 class SmoothlifeInstance;
 class ViewBase;

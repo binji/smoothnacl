@@ -16,37 +16,21 @@ namespace {
 const int kMinMS = 10;  // 10ms = 100fps
 const int kMaxTaskQueueSize = 25;
 
-template <typename T>
-LockedObject<T>* NewLockedObject() {
-  return new LockedObject<T>(new T);
-}
-
 }  // namespace
 
 SimulationThread::SimulationThread(const SimulationThreadContext& context)
-    : context_(context),
-      task_queue_(NewLockedObject<SimulationThreadTaskQueue>()),
-      frames_drawn_(NewLockedObject<int>()),
-      simulation_(NULL),
-      thread_create_result_(0),
-      quit_(false) {
+    : Thread<SimulationThread>(),
+      task_queue_(new ThreadTaskQueue),
+      context_(context),
+      frames_drawn_(new int),
+      simulation_(NULL) {
   last_time_.tv_sec = 0;
   last_time_.tv_usec = 0;
 }
 
-SimulationThread::~SimulationThread() {
-  quit_ = true;
-  if (thread_create_result_ == 0)
-    pthread_join(thread_, NULL);
-
+void SimulationThread::Destroy() {
   delete simulation_;
   delete draw_strategy_;
-  delete frames_drawn_;
-  delete task_queue_;
-}
-
-void SimulationThread::Start() {
-  thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
 }
 
 void SimulationThread::Step() {
@@ -55,21 +39,22 @@ void SimulationThread::Step() {
   step_cond_.Unlock();
 }
 
-int SimulationThread::GetFramesDrawnAndReset() {
-  ScopedLocker<int> locker(*frames_drawn_);
-  int frames_drawn = *locker.object();
-  *locker.object() = 0;
-  return frames_drawn;
-}
-
-void SimulationThread::EnqueueTask(SimulationThreadTask* task) {
-  ScopedLocker<SimulationThreadTaskQueue> locker(*task_queue_);
+void SimulationThread::EnqueueTask(ThreadTask* task) {
+  ScopedLocker<ThreadTaskQueue> locker(task_queue_);
   if (locker.object()->size() > kMaxTaskQueueSize) {
     printf("Task queue is full, dropping message.\n");
     return;
   }
 
-  locker.object()->push_back(std::shared_ptr<SimulationThreadTask>(task));
+  locker.object()->push_back(ThreadTaskPtr(task));
+}
+
+
+int SimulationThread::GetFramesDrawnAndReset() {
+  ScopedLocker<int> locker(frames_drawn_);
+  int frames_drawn = *locker.object();
+  *locker.object() = 0;
+  return frames_drawn;
 }
 
 void SimulationThread::TaskSetKernel(const KernelConfig& config) {
@@ -111,20 +96,14 @@ void SimulationThread::TaskScreenshot() {
 }
 
 // static
-void* SimulationThread::MainLoopThunk(void* param) {
-  SimulationThread* self = static_cast<SimulationThread*>(param);
-  self->MainLoop();
-  return NULL;
-}
-
 void SimulationThread::MainLoop() {
   simulation_ = context_.initializer_factory->CreateSimulation(context_.config);
   draw_strategy_ = context_.initializer_factory->CreateDrawStrategy();
 
-  while (!quit_) {
-    int* frames = frames_drawn_->Lock();
+  while (!ShouldQuit()) {
+    int* frames = frames_drawn_.Lock();
     (*frames)++;
-    frames_drawn_->Unlock();
+    frames_drawn_.Unlock();
 
     // Process queue should be first to allow for any startup initialization.
     ProcessQueue();
@@ -160,13 +139,13 @@ void SimulationThread::MainLoop() {
 }
 
 void SimulationThread::ProcessQueue() {
-  SimulationThreadTaskQueue* queue = task_queue_->Lock();
-  SimulationThreadTaskQueue copy = *queue;
+  ThreadTaskQueue* queue = task_queue_.Lock();
+  ThreadTaskQueue copy = *queue;
   queue->clear();
-  task_queue_->Unlock();
+  task_queue_.Unlock();
 
-  SimulationThreadTaskQueue::iterator iter = copy.begin();
-  SimulationThreadTaskQueue::iterator end = copy.end();
+  ThreadTaskQueue::iterator iter = copy.begin();
+  ThreadTaskQueue::iterator end = copy.end();
   for (; iter != end; ++iter)
     (*iter)->Run(this);
 }
