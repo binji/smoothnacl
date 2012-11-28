@@ -15,7 +15,7 @@
 #include "condvar.h"
 #include "fft_allocation.h"
 #include "locked_object.h"
-#include "simulation_thread_task_queue.h"
+#include "task.h"
 
 
 class InitializerFactoryBase;
@@ -52,7 +52,6 @@ class SmoothlifeInstance : public pp::Instance {
   void MessageSetFullscreen(const ParamList& params);
   void MessageScreenshot(const ParamList& params);
 
-  void EnqueueTask(SimulationThreadTask* task);
   void ScheduleUpdate();
   void UpdateCallback(int32_t result);
 
@@ -60,7 +59,6 @@ class SmoothlifeInstance : public pp::Instance {
   ViewBase* view_;
   SimulationThread* thread_;
   pp::Size sim_size_;
-  LockedObject<SimulationThreadTaskQueue>* task_queue_;
   LockedObject<int>* frames_drawn_;
   InitializerFactoryBase* initializer_factory_;
   CondVar* step_cond_;

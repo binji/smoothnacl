@@ -14,23 +14,40 @@
 namespace {
 
 const int kMinMS = 10;  // 10ms = 100fps
+const int kMaxTaskQueueSize = 25;
 
 }  // namespace
 
 SimulationThread::SimulationThread(const SimulationThreadContext& context)
     : context_(context),
+      task_queue_(new LockedObject<SimulationThreadTaskQueue>(
+          new SimulationThreadTaskQueue)),
       simulation_(NULL),
       thread_create_result_(0),
       quit_(false) {
   last_time_.tv_sec = 0;
   last_time_.tv_usec = 0;
-  thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
 }
 
 SimulationThread::~SimulationThread() {
   quit_ = true;
   if (thread_create_result_ == 0)
     pthread_join(thread_, NULL);
+  delete task_queue_;
+}
+
+void SimulationThread::Start() {
+  thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
+}
+
+void SimulationThread::EnqueueTask(SimulationThreadTask* task) {
+  ScopedLocker<SimulationThreadTaskQueue> locker(*task_queue_);
+  if (locker.object()->size() > kMaxTaskQueueSize) {
+    printf("Task queue is full, dropping message.\n");
+    return;
+  }
+
+  locker.object()->push_back(std::shared_ptr<SimulationThreadTask>(task));
 }
 
 void SimulationThread::TaskSetKernel(const KernelConfig& config) {
@@ -121,10 +138,10 @@ void SimulationThread::MainLoop() {
 }
 
 void SimulationThread::ProcessQueue() {
-  SimulationThreadTaskQueue* queue = context_.queue->Lock();
+  SimulationThreadTaskQueue* queue = task_queue_->Lock();
   SimulationThreadTaskQueue copy = *queue;
   queue->clear();
-  context_.queue->Unlock();
+  task_queue_->Unlock();
 
   SimulationThreadTaskQueue::iterator iter = copy.begin();
   SimulationThreadTaskQueue::iterator end = copy.end();

@@ -22,7 +22,6 @@ struct SimulationThreadContext {
   SimulationConfig config;
   SimulationThreadRunOptions run_options;
   SimulationThreadDrawOptions draw_options;
-  LockedObject<SimulationThreadTaskQueue>* queue;  // Weak.
   LockedObject<int>* frames_drawn;  // Weak.
   CondVar* step_cond;  // Weak.
   InitializerFactoryBase* initializer_factory;  // Weak.
@@ -32,6 +31,9 @@ class SimulationThread {
  public:
   explicit SimulationThread(const SimulationThreadContext& context);
   ~SimulationThread();
+
+  void Start();
+  void EnqueueTask(SimulationThreadTask* Task);
 
   // Tasks: Do not call these directly, use MakeFunctionTask(...) instead.
   void TaskSetKernel(const KernelConfig& config);
@@ -50,6 +52,7 @@ class SimulationThread {
   void ProcessQueue();
 
   SimulationThreadContext context_;
+  LockedObject<SimulationThreadTaskQueue>* task_queue_;
   DrawStrategyBase* draw_strategy_;
   SimulationBase* simulation_;
   pthread_t thread_;
