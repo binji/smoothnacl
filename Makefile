@@ -2,18 +2,18 @@ CHROME_PATH?=/home/binji/dev/chromium/src/out/Release/chrome
 NEXE_ARGS?=--enable-nacl --incognito
 
 all: build.ninja
-	@ninja
+	ninja
 
 build.ninja:
-	@build/make_ninja.py
+	python build/make_ninja.py
 
 clean:
 	rm -rf out build.ninja
 
 run: all
-	script/run.py out ${CHROME_PATH} ${NEXE_ARGS}
+	python script/run.py out ${CHROME_PATH} ${NEXE_ARGS}
 
 package: build.ninja
-	@ninja package
+	ninja package
 
-.PHONY: all clean kill run package
+.PHONY: all clean run package
