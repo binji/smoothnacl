@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
-#include <memory.h>
+#include <string.h>
 
 #ifndef IM_PROCESS
 #define IM_INT_PROCESSING     int processing = IM_ERR_NONE;

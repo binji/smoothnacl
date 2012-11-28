@@ -16,7 +16,7 @@
 #include "im_color.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 template <class T1, class T2, class T3> 

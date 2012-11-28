@@ -13,7 +13,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 
 
 #define BMP_ID              0x4d42  /* BMP "magic" number           */

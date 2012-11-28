@@ -6,7 +6,6 @@
 
 
 #include <stdlib.h>
-#include <memory.h>
 #include <string.h>
 
 #include "im.h"

@@ -12,7 +12,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 /* Scale floating point magnitudes to 8 bits */
 static float MAG_SCALE;

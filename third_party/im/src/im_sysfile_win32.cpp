@@ -8,7 +8,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <memory.h>
+#include <string.h>
 #include <assert.h>
 
 #include "im_util.h"

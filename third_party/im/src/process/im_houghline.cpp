@@ -13,7 +13,7 @@
 #include "im_process_glo.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 #ifndef M_PI

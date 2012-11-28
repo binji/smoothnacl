@@ -4,7 +4,7 @@ NEXE_ARGS?=--enable-nacl --incognito
 all: build.ninja
 	ninja
 
-build.ninja:
+build.ninja: build/make_ninja.py
 	python build/make_ninja.py
 
 clean:

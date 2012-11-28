@@ -14,7 +14,7 @@
 #include "im_process_ana.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 unsigned long* imHistogramNew(int data_type, int *hcount)

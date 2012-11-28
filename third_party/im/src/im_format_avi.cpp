@@ -18,7 +18,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 
 
 static const char* iAVICompTable[15] = 

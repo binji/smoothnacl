@@ -14,7 +14,7 @@
 #include "im_process_pnt.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 void imProcessQuantizeRGBUniform(const imImage* src_image, imImage* dst_image, int dither)

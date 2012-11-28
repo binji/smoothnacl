@@ -7,7 +7,7 @@
 #include "im_counter.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 static imCounterCallback iCounterFunc = NULL;

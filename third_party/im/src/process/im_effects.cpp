@@ -15,7 +15,7 @@
 #include "im_math_op.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 static unsigned char BoxMean(imbyte *map, int offset, int shift, int hbox_size, int vbox_size)

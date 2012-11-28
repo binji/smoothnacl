@@ -18,7 +18,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <memory.h>
+#include <string.h>
 
 
 #ifdef IM_PROCESS

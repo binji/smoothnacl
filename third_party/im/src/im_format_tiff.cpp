@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <memory.h>
 
 //Used to debug TIFF loading and decoding
 //#define IM_TIFF_DEBUG_RGBA 1

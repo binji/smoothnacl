@@ -66,6 +66,11 @@ def Path(p):
   return os.path.normpath(p)
 
 
+def PathToLibname(p):
+  basename = os.path.splitext(os.path.basename(p))[0]
+  assert(basename.startswith('lib'))
+  return basename[3:]
+
 
 SHADER_FILES = [
   'data/shaders/1tex.vert',
@@ -120,6 +125,91 @@ SOURCE_FILES = [
   OUT_SHADER_CC,
 ]
 
+ZLIB_SOURCE_FILES = [
+  'third_party/im/src/zlib/adler32.c',
+  'third_party/im/src/zlib/compress.c',
+  'third_party/im/src/zlib/crc32.c',
+  'third_party/im/src/zlib/deflate.c',
+  'third_party/im/src/zlib/gzclose.c',
+  'third_party/im/src/zlib/gzlib.c',
+  'third_party/im/src/zlib/gzread.c',
+  'third_party/im/src/zlib/gzwrite.c',
+  'third_party/im/src/zlib/infback.c',
+  'third_party/im/src/zlib/inffast.c',
+  'third_party/im/src/zlib/inflate.c',
+  'third_party/im/src/zlib/inftrees.c',
+  'third_party/im/src/zlib/trees.c',
+  'third_party/im/src/zlib/uncompr.c',
+  'third_party/im/src/zlib/zutil.c',
+]
+
+PNG_SOURCE_FILES = [
+  'third_party/im/src/libpng/png.c',
+  'third_party/im/src/libpng/pngerror.c',
+  'third_party/im/src/libpng/pngget.c',
+  'third_party/im/src/libpng/pngmem.c',
+  'third_party/im/src/libpng/pngpread.c',
+  'third_party/im/src/libpng/pngread.c',
+  'third_party/im/src/libpng/pngrio.c',
+  'third_party/im/src/libpng/pngrtran.c',
+  'third_party/im/src/libpng/pngrutil.c',
+  'third_party/im/src/libpng/pngset.c',
+  'third_party/im/src/libpng/pngtrans.c',
+  'third_party/im/src/libpng/pngwio.c',
+  'third_party/im/src/libpng/pngwrite.c',
+  'third_party/im/src/libpng/pngwtran.c',
+  'third_party/im/src/libpng/pngwutil.c',
+]
+
+JPEG_SOURCE_FILES = [
+  'third_party/im/src/libjpeg/jaricom.c',
+  'third_party/im/src/libjpeg/jcapimin.c',
+  'third_party/im/src/libjpeg/jcapistd.c',
+  'third_party/im/src/libjpeg/jcarith.c',
+  'third_party/im/src/libjpeg/jccoefct.c',
+  'third_party/im/src/libjpeg/jccolor.c',
+  'third_party/im/src/libjpeg/jcdctmgr.c',
+  'third_party/im/src/libjpeg/jchuff.c',
+  'third_party/im/src/libjpeg/jcinit.c',
+  'third_party/im/src/libjpeg/jcmainct.c',
+  'third_party/im/src/libjpeg/jcmarker.c',
+  'third_party/im/src/libjpeg/jcmaster.c',
+  'third_party/im/src/libjpeg/jcomapi.c',
+  'third_party/im/src/libjpeg/jcparam.c',
+  'third_party/im/src/libjpeg/jcprepct.c',
+  'third_party/im/src/libjpeg/jcsample.c',
+  'third_party/im/src/libjpeg/jctrans.c',
+  'third_party/im/src/libjpeg/jdapimin.c',
+  'third_party/im/src/libjpeg/jdapistd.c',
+  'third_party/im/src/libjpeg/jdarith.c',
+  'third_party/im/src/libjpeg/jdatadst.c',
+  'third_party/im/src/libjpeg/jdatasrc.c',
+  'third_party/im/src/libjpeg/jdcoefct.c',
+  'third_party/im/src/libjpeg/jdcolor.c',
+  'third_party/im/src/libjpeg/jddctmgr.c',
+  'third_party/im/src/libjpeg/jdhuff.c',
+  'third_party/im/src/libjpeg/jdinput.c',
+  'third_party/im/src/libjpeg/jdmainct.c',
+  'third_party/im/src/libjpeg/jdmarker.c',
+  'third_party/im/src/libjpeg/jdmaster.c',
+  'third_party/im/src/libjpeg/jdmerge.c',
+  'third_party/im/src/libjpeg/jdpostct.c',
+  'third_party/im/src/libjpeg/jdsample.c',
+  'third_party/im/src/libjpeg/jdtrans.c',
+  'third_party/im/src/libjpeg/jerror.c',
+  'third_party/im/src/libjpeg/jfdctflt.c',
+  'third_party/im/src/libjpeg/jfdctfst.c',
+  'third_party/im/src/libjpeg/jfdctint.c',
+  'third_party/im/src/libjpeg/jidctflt.c',
+  'third_party/im/src/libjpeg/jidctfst.c',
+  'third_party/im/src/libjpeg/jidctint.c',
+  'third_party/im/src/libjpeg/jmemmgr.c',
+  'third_party/im/src/libjpeg/jmemnobs.c',
+  'third_party/im/src/libjpeg/jquant1.c',
+  'third_party/im/src/libjpeg/jquant2.c',
+  'third_party/im/src/libjpeg/jutils.c',
+]
+
 IM_SOURCE_FILES = [
   'third_party/im/src/old_imcolor.c',
   'third_party/im/src/old_imresize.c',
@@ -129,15 +219,13 @@ IM_SOURCE_FILES = [
   'third_party/im/src/im_colorhsi.cpp',
   'third_party/im/src/im_colormode.cpp',
   'third_party/im/src/im_colorutil.cpp',
-  'third_party/im/src/im_compress.cpp',
+#  'third_party/im/src/im_compress.cpp',
   'third_party/im/src/im_convertbitmap.cpp',
   'third_party/im/src/im_convertcolor.cpp',
   'third_party/im/src/im_convertopengl.cpp',
   'third_party/im/src/im_converttype.cpp',
   'third_party/im/src/im_counter.cpp',
   'third_party/im/src/im_datatype.cpp',
-  'third_party/im/src/im_dib.cpp',
-  'third_party/im/src/im_dibxbitmap.cpp',
   'third_party/im/src/im_file.cpp',
   'third_party/im/src/im_filebuffer.cpp',
   'third_party/im/src/im_fileraw.cpp',
@@ -151,6 +239,31 @@ IM_SOURCE_FILES = [
   'third_party/im/src/im_rgb2map.cpp',
   'third_party/im/src/im_str.cpp',
   'third_party/im/src/old_im.cpp',
+  'third_party/im/src/process/im_analyze.cpp',
+  'third_party/im/src/process/im_arithmetic_bin.cpp',
+  'third_party/im/src/process/im_arithmetic_un.cpp',
+  'third_party/im/src/process/im_canny.cpp',
+  'third_party/im/src/process/im_color.cpp',
+  'third_party/im/src/process/im_convolve.cpp',
+  'third_party/im/src/process/im_convolve_rank.cpp',
+  'third_party/im/src/process/im_distance.cpp',
+  'third_party/im/src/process/im_effects.cpp',
+  'third_party/im/src/process/im_geometric.cpp',
+  'third_party/im/src/process/im_histogram.cpp',
+  'third_party/im/src/process/im_houghline.cpp',
+  'third_party/im/src/process/im_kernel.cpp',
+  'third_party/im/src/process/im_logic.cpp',
+  'third_party/im/src/process/im_morphology_bin.cpp',
+  'third_party/im/src/process/im_morphology_gray.cpp',
+  'third_party/im/src/process/im_point.cpp',
+  'third_party/im/src/process/im_process_counter.cpp',
+  'third_party/im/src/process/im_quantize.cpp',
+  'third_party/im/src/process/im_remotesens.cpp',
+  'third_party/im/src/process/im_render.cpp',
+  'third_party/im/src/process/im_resize.cpp',
+  'third_party/im/src/process/im_statistics.cpp',
+  'third_party/im/src/process/im_threshold.cpp',
+  'third_party/im/src/process/im_tonegamut.cpp',
 ]
 
 
@@ -262,40 +375,55 @@ def Gen(w):
 
 
 def BuildProject(w, name, rule, sources,
-                 includedirs=None, libdirs=None, libs=None, order_only=None):
+                 includedirs=None, libs=None, order_only=None):
   includedirs = includedirs or []
-  libdirs = libdirs or []
   libs = libs or []
+  libfiles = [l for l in libs if os.path.dirname(l)]
+  libnames = [l for l in libs if not os.path.dirname(l)]
+  libdirs = sorted(set([os.path.dirname(l) for l in libfiles]))
+  libs = [PathToLibname(l) for l in libfiles] + libnames
 
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
     bit_incdirs = Prefix('-I', [x.format(**vars()) for x in includedirs])
     bit_libdirs = Prefix('-L', [x.format(**vars()) for x in libdirs])
     bit_libs = Prefix('-l', [x.format(**vars()) for x in libs])
+    bit_libfiles = [x.format(**vars()) for x in libfiles]
 
-    cflags_name = 'cflags{bits}_{name}'.format(**vars())
+    ccflags_name = 'ccflags{bits}_{name}'.format(**vars())
+    cxxflags_name = 'cxxflags{bits}_{name}'.format(**vars())
     ldflags_name = 'ldflags{bits}_{name}'.format(**vars())
-    w.variable(cflags_name, '$base_ccflags {bit_incdirs}'.format(**vars()))
+    w.variable(ccflags_name, '$base_ccflags {bit_incdirs}'.format(**vars()))
+    w.variable(cxxflags_name, '$base_cxxflags {bit_incdirs}'.format(**vars()))
     w.variable(ldflags_name, '{bit_libdirs} {bit_libs}'.format(**vars()))
 
     objs = [SourceToObj(x, bits) for x in sources]
     for source, obj in zip(sources, objs):
+      ext = os.path.splitext(source)[1]
+      if ext in ('.cc', '.cpp'):
+        cc = '$cxx' + bits
+        ccflags = '$' + cxxflags_name
+      elif ext == '.c':
+        cc = '$cc' + bits
+        ccflags = '$' + ccflags_name
+
       w.build(obj, 'cc', source,
-          order_only=order_only,
-          variables={'cflags': '$' + cflags_name, 'cc': '$cc' + bits})
+              order_only=order_only,
+              variables={'ccflags': ccflags, 'cc': cc})
 
     if rule == 'link':
       out_name = 'out/{name}_{bits}.nexe'.format(**vars())
+      variables= {'ldflags': '$' + ldflags_name, 'cc': '$cxx' + bits}
     elif rule == 'ar':
       out_name = 'out/{name}_{bits}.a'.format(**vars())
+      variables= {'ar': '$ar' + bits}
 
-    w.build(out_name, rule, objs,
-        variables={'ldflags': '$' + ldflags_name, 'cc': '$cc' + bits})
+    w.build(out_name, rule, objs + bit_libfiles, variables=variables)
 
 
 def Code(w):
   w.newline()
   w.rule('cc',
-      command='$cc $cflags -MMD -MF $out.d -c $in -o $out',
+      command='$cc $ccflags -MMD -MF $out.d -c $in -o $out',
       depfile='$out.d',
       description='CC $out')
   w.rule('ar',
@@ -305,14 +433,34 @@ def Code(w):
       command='$cc $in $ldflags -o $out',
       description='LINK $out')
 
-  w.variable('base_ccflags',  '-g -std=c++0x -O2 -msse2')
+  w.variable('base_ccflags', '-g -O2 -msse2')
+  w.variable('base_cxxflags', '-g -std=c++0x -O2 -msse2')
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
     w.variable('cc' + bits,
+               Path('$toolchain_dir/bin/{flavor}-gcc'.format(**vars())))
+    w.variable('cxx' + bits,
                Path('$toolchain_dir/bin/{flavor}-g++'.format(**vars())))
     w.variable('ar' + bits,
                Path('$toolchain_dir/bin/{flavor}-ar'.format(**vars())))
 
-  fftw_dir = 'third_party/fftw-prebuilt'
+  BuildProject(
+    w, 'libim', 'ar',
+    IM_SOURCE_FILES,
+    includedirs=['third_party/im/include'])
+
+  BuildProject(
+    w, 'libjpeg', 'ar',
+    JPEG_SOURCE_FILES,
+    includedirs=['third_party/im/include'])
+
+  BuildProject(
+    w, 'libpng', 'ar',
+    PNG_SOURCE_FILES,
+    includedirs=['third_party/im/src/zlib'])
+
+  BuildProject(
+    w, 'libzlib', 'ar',
+    ZLIB_SOURCE_FILES)
 
   BuildProject(
     w, 'smoothlife', 'link',
@@ -320,16 +468,17 @@ def Code(w):
     includedirs=[
       'src',
       'out',
-      fftw_dir + '/newlib_x86_{bits}/include',
-    ],
-    libdirs=[fftw_dir + '/newlib_x86_{bits}/lib'],
-    libs=['ppapi_gles2', 'ppapi_cpp', 'ppapi', 'fftw3'],
+      'third_party/fftw-prebuilt/newlib_x86_{bits}/include'],
+    libs=[
+      'ppapi_gles2',
+      'ppapi_cpp',
+      'ppapi',
+      'third_party/fftw-prebuilt/newlib_x86_{bits}/lib/libfftw3.a',
+      'out/libim_{bits}.a',
+      'out/libjpeg_{bits}.a',
+      'out/libpng_{bits}.a',
+      'out/libzlib_{bits}.a'],
     order_only=OUT_SHADER_H)
-
-  BuildProject(
-    w, 'libim', 'ar',
-    IM_SOURCE_FILES,
-    includedirs=['third_party/im/include'])
 
   w.newline()
   w.rule('nmf',

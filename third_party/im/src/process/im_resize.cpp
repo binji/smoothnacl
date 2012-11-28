@@ -14,7 +14,7 @@
 #include "im_process_loc.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 static inline void iResizeInverse(int x, int y, float *xl, float *yl, float x_invfactor, float y_invfactor)

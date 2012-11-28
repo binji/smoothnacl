@@ -13,7 +13,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <memory.h>
+#include <string.h>
 
 
 template <class T>

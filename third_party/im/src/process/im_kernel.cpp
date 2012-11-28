@@ -11,7 +11,7 @@
 #include "im_kernel.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 #include <assert.h>
 #include <math.h>
 

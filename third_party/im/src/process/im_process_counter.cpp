@@ -7,7 +7,7 @@
 #include "im_process_counter.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 int im_process_mincount = 250000;   /* 500*500 image size */

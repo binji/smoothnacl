@@ -14,7 +14,7 @@
 #include "im_process_pnt.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 static void rgb2yrgb(imbyte* r, imbyte* g, imbyte* b, imbyte* y)

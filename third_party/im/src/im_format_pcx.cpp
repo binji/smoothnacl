@@ -13,7 +13,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 
 #define PCX_ID 0x0A
 

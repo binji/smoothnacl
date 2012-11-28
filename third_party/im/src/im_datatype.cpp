@@ -15,7 +15,7 @@ typedef struct _iTypeInfo
   int size;
   unsigned long max;
   long min;
-  char* name;
+  const char* name;
 } iTypeInfo;
 
 static iTypeInfo iTypeInfoTable[] =  

@@ -14,7 +14,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <memory.h>
+#include <string.h>
 
 #include "im.h"
 #include "im_util.h"

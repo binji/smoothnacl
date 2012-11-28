@@ -11,7 +11,7 @@
 #include "im_process_glo.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 #include <math.h>
 
 const float DT_ONE    = 1.0f;             // 1x0

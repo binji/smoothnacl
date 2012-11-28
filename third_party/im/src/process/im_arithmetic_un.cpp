@@ -15,7 +15,7 @@
 #include "im_math_op.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 
 // Fake complex operations for real types

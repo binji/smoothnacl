@@ -13,7 +13,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 
 /*  File Header Structure. */
 /*  4  Magic;      magic number */

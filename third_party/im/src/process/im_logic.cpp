@@ -12,7 +12,7 @@
 #include "im_process_pnt.h"
 
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 
 template <class T> 
 static void DoBitwiseOp(T *map1, T *map2, T *map, int count, int op)

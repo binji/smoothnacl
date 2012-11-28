@@ -13,7 +13,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <memory.h>
+#include <string.h>
 
 #ifdef USE_FFTW3
 #include "fftw3.h"

@@ -13,7 +13,6 @@
 
 #include <stdlib.h>
 #include <string.h>
-#include <memory.h>
 #include <math.h>
 
 static int iKRNReadDescription(imBinFile* handle, char* comment, int *size)
