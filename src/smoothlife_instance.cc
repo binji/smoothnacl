@@ -42,7 +42,6 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
       view_(NULL),
       thread_(NULL),
       sim_size_(512, 512),
-      frames_drawn_(NULL),
       fullscreen_(this),
       is_initial_view_change_(true) {
   // Request to receive input events.
@@ -61,21 +60,18 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   SimulationConfig config;
   config.size = sim_size_;
 
-  frames_drawn_ = new LockedObject<int>(new int(0));
-  initializer_factory_ = new cpu::InitializerFactory(config.size);
-  //initializer_factory_ = new gpu::InitializerFactory(config.size);
-  step_cond_ = new CondVar;
+  InitializerFactoryBase* initializer_factory;
+  initializer_factory = new cpu::InitializerFactory(config.size);
+  //initializer_factory = new gpu::InitializerFactory(config.size);
 
   SimulationThreadContext context;
   context.config = config;
   context.run_options = kRunOptions_Simulation;
   context.draw_options = kDrawOptions_Simulation;
-  context.frames_drawn = frames_drawn_;
-  context.step_cond = step_cond_;
-  context.initializer_factory = initializer_factory_;
+  context.initializer_factory = initializer_factory;
 
   thread_ = new SimulationThread(context);
-  view_ = initializer_factory_->CreateView();
+  view_ = initializer_factory->CreateView();
 
   ParseInitMessages(argc, argn, argv, &context);
   thread_->Start();
@@ -308,10 +304,7 @@ void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
 
   thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetRunOptions,
                                run_options));
-
-  step_cond_->Lock();
-  step_cond_->Signal();
-  step_cond_->Unlock();
+  thread_->Step();
 }
 
 void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
@@ -366,12 +359,7 @@ void SmoothlifeInstance::UpdateCallback(int32_t result) {
   static PP_TimeTicks last_time = 0;
   if (last_time) {
     PP_TimeTicks this_time = GetTimeTicks();
-    int num_frames;
-    int* frames = frames_drawn_->Lock();
-    num_frames = *frames;
-    *frames = 0;
-    frames_drawn_->Unlock();
-
+    int num_frames = thread_->GetFramesDrawnAndReset();
     float fps = num_frames / (this_time - last_time);
     char buffer[20];
     sprintf(&buffer[0], "FPS: %.3f", fps);

@@ -12,13 +12,10 @@
 #include <ppapi/cpp/fullscreen.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/utility/completion_callback_factory.h>
-#include "condvar.h"
 #include "fft_allocation.h"
-#include "locked_object.h"
 #include "task.h"
 
 
-class InitializerFactoryBase;
 class SimulationThread;
 class SimulationThreadContext;
 class SmoothlifeInstance;
@@ -59,9 +56,6 @@ class SmoothlifeInstance : public pp::Instance {
   ViewBase* view_;
   SimulationThread* thread_;
   pp::Size sim_size_;
-  LockedObject<int>* frames_drawn_;
-  InitializerFactoryBase* initializer_factory_;
-  CondVar* step_cond_;
   MessageMap message_map_;
   pp::Fullscreen fullscreen_;
   bool is_initial_view_change_;

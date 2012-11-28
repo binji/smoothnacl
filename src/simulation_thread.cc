@@ -16,12 +16,17 @@ namespace {
 const int kMinMS = 10;  // 10ms = 100fps
 const int kMaxTaskQueueSize = 25;
 
+template <typename T>
+LockedObject<T>* NewLockedObject() {
+  return new LockedObject<T>(new T);
+}
+
 }  // namespace
 
 SimulationThread::SimulationThread(const SimulationThreadContext& context)
     : context_(context),
-      task_queue_(new LockedObject<SimulationThreadTaskQueue>(
-          new SimulationThreadTaskQueue)),
+      task_queue_(NewLockedObject<SimulationThreadTaskQueue>()),
+      frames_drawn_(NewLockedObject<int>()),
       simulation_(NULL),
       thread_create_result_(0),
       quit_(false) {
@@ -33,11 +38,28 @@ SimulationThread::~SimulationThread() {
   quit_ = true;
   if (thread_create_result_ == 0)
     pthread_join(thread_, NULL);
+
+  delete simulation_;
+  delete draw_strategy_;
+  delete frames_drawn_;
   delete task_queue_;
 }
 
 void SimulationThread::Start() {
   thread_create_result_ = pthread_create(&thread_, NULL, &MainLoopThunk, this);
+}
+
+void SimulationThread::Step() {
+  step_cond_.Lock();
+  step_cond_.Signal();
+  step_cond_.Unlock();
+}
+
+int SimulationThread::GetFramesDrawnAndReset() {
+  ScopedLocker<int> locker(*frames_drawn_);
+  int frames_drawn = *locker.object();
+  *locker.object() = 0;
+  return frames_drawn;
 }
 
 void SimulationThread::EnqueueTask(SimulationThreadTask* task) {
@@ -100,9 +122,9 @@ void SimulationThread::MainLoop() {
   draw_strategy_ = context_.initializer_factory->CreateDrawStrategy();
 
   while (!quit_) {
-    int* frames = context_.frames_drawn->Lock();
+    int* frames = frames_drawn_->Lock();
     (*frames)++;
-    context_.frames_drawn->Unlock();
+    frames_drawn_->Unlock();
 
     // Process queue should be first to allow for any startup initialization.
     ProcessQueue();
@@ -115,9 +137,9 @@ void SimulationThread::MainLoop() {
       // TODO(binji): This is not quite right. The condition may be exited
       // prematurely by another signal firing. What is the correct condition
       // here to loop waiting for?
-      context_.step_cond->Lock();
-      context_.step_cond->Wait();
-      context_.step_cond->Unlock();
+      step_cond_.Lock();
+      step_cond_.Wait();
+      step_cond_.Unlock();
     }
 
     struct timeval this_time;
