@@ -5,18 +5,25 @@
 #ifndef SIMULATION_THREAD_H_
 #define SIMULATION_THREAD_H_
 
+#include <memory>
 #include <pthread.h>
 #include <sys/time.h>
+#include <vector>
 #include "condvar.h"
 #include "locked_object.h"
 #include "palette.h"
 #include "simulation_config.h"
 #include "simulation_thread_options.h"
-#include "simulation_thread_task_queue.h"
+#include "task.h"
 
 class DrawStrategyBase;
 class InitializerFactoryBase;
 class SimulationBase;
+
+class SimulationThread;
+typedef Task<SimulationThread> SimulationThreadTask;
+typedef std::vector<std::shared_ptr<SimulationThreadTask> >
+    SimulationThreadTaskQueue;
 
 struct SimulationThreadContext {
   SimulationConfig config;
