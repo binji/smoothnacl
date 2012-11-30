@@ -7,6 +7,7 @@
 
 #include <fftw3.h>
 #include <stdint.h>
+#include <string.h>
 #include "ppapi/cpp/size.h"
 
 struct ReduceSizeForComplex {};
@@ -26,6 +27,13 @@ class FftAllocation {
     data_ = static_cast<T*>(fftw_malloc(sizeof(T) * count_));
   }
 
+  FftAllocation(const FftAllocation& other)
+      : size_(other.size_) {
+    count_ = other.count_;
+    data_ = static_cast<T*>(fftw_malloc(sizeof(T) * count_));
+    memcpy(data_, other.data_, sizeof(T) * count_);
+  }
+
   ~FftAllocation() {
     fftw_free(data_);
   }
@@ -43,7 +51,6 @@ class FftAllocation {
   const T* end() const { return data_ + count_; }
 
  private:
-  FftAllocation(const FftAllocation&);  // undefined
   FftAllocation& operator =(const FftAllocation&);  // undefined
 
   T* data_;

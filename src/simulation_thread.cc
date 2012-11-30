@@ -93,6 +93,7 @@ void SimulationThread::TaskSetDrawOptions(
 }
 
 void SimulationThread::TaskScreenshot() {
+  draw_strategy_->PostScreenshot();
 }
 
 // static

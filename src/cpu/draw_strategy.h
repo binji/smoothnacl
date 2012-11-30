@@ -10,18 +10,25 @@
 #include "locked_object.h"
 #include "palette.h"
 
+namespace pp {
+class Instance;
+}  // namespace pp
+
 namespace cpu {
 
 class DrawStrategy : public DrawStrategyBase {
  public:
-  explicit DrawStrategy(LockedObject<AlignedUint32>* locked_buffer);
+  DrawStrategy(pp::Instance* instance,
+               LockedObject<AlignedUint32>* locked_buffer);
   virtual void Draw(SimulationThreadDrawOptions options,
                     SimulationBase* simulation);
   virtual void SetPalette(const PaletteConfig& config);
+  virtual void PostScreenshot();
 
  private:
   void CopyBuffer(const AlignedReals& src);
 
+  pp::Instance* instance_;  // Weak.
   LockedObject<AlignedUint32>* locked_buffer_;  // Weak.
   Palette palette_;
 

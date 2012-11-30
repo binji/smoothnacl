@@ -36,7 +36,7 @@ class Thread {
 
 template <typename T>
 Thread<T>::Thread()
-    : quit_(new bool),
+    : quit_(new bool(false)),
       thread_create_result_(0) {
 }
 

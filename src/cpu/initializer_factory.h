@@ -12,11 +12,15 @@
 
 class SimulationConfig;
 
+namespace pp {
+class Instance;
+}  // namespace pp
+
 namespace cpu {
 
 class InitializerFactory : public InitializerFactoryBase {
  public:
-  explicit InitializerFactory(const pp::Size& size);
+  InitializerFactory(pp::Instance* instance, const pp::Size& size);
   virtual ~InitializerFactory();
 
   virtual DrawStrategyBase* CreateDrawStrategy();
@@ -24,6 +28,7 @@ class InitializerFactory : public InitializerFactoryBase {
   virtual ViewBase* CreateView();
 
  private:
+  pp::Instance* instance_;  // Weak.
   LockedObject<AlignedUint32>* locked_buffer_;
 };
 

@@ -4,11 +4,15 @@
 
 #include "cpu/draw_strategy.h"
 #include "cpu/simulation.h"
+#include "screenshot_task.h"
+#include "worker_thread.h"
 
 namespace cpu {
 
-DrawStrategy::DrawStrategy(LockedObject<AlignedUint32>* locked_buffer)
-    : locked_buffer_(locked_buffer),
+DrawStrategy::DrawStrategy(pp::Instance* instance,
+                           LockedObject<AlignedUint32>* locked_buffer)
+    : instance_(instance),
+      locked_buffer_(locked_buffer),
       palette_(PaletteConfig()) {
 }
 
@@ -51,6 +55,14 @@ void DrawStrategy::Draw(SimulationThreadDrawOptions options,
 
 void DrawStrategy::SetPalette(const PaletteConfig& config) {
   palette_.SetConfig(config);
+}
+
+void DrawStrategy::PostScreenshot() {
+  AlignedUint32* buffer = locked_buffer_->Lock();
+  AlignedUint32* copy = new AlignedUint32(*buffer);
+  locked_buffer_->Unlock();
+
+  EnqueueWork(new ScreenshotTask(instance_, copy));
 }
 
 void DrawStrategy::CopyBuffer(const AlignedReals& src) {

@@ -439,6 +439,9 @@ function setupUI() {
     $('#savePresetName').val('');
     return false;
   });
+  $('#takeScreenshot').button().click(function (e) {
+    $('#nacl_module').get(0).postMessage('Screenshot');
+  });
 
   var groups = ['kernel', 'smoother', 'palette', 'draw-options'];
   for (var i = 0; i < groups.length; ++i)
@@ -530,7 +533,18 @@ function makeMainEmbed(groupMessages) {
 
   // Listen for messages from this embed -- they're only fps updates.
   listenerEl.addEventListener('message', function (e) {
-    $('#fps').text(e.data);
+    if (typeof(e.data) === 'string') {
+      $('#fps').text(e.data);
+    } else {
+      // Screenshot array buffer.
+      var blob = new Blob([new Uint8Array(e.data)], {type: 'image/jpeg'});
+      var url = webkitURL.createObjectURL(blob);
+      $('#screenshots').append(
+          $('<img>').attr('src', url)
+                    .attr('width', 128)
+                    .attr('height', 128));
+      webkitURL.revokeObjectURL(url);
+    }
   }, true);
 }
 

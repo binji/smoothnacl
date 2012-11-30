@@ -61,7 +61,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   config.size = sim_size_;
 
   InitializerFactoryBase* initializer_factory;
-  initializer_factory = new cpu::InitializerFactory(config.size);
+  initializer_factory = new cpu::InitializerFactory(this, config.size);
   //initializer_factory = new gpu::InitializerFactory(config.size);
 
   SimulationThreadContext context;

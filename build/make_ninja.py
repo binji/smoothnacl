@@ -118,10 +118,12 @@ SOURCE_FILES = [
   'src/gpu/view.cc',
   'src/gpu/wrap_gl.cc',
   'src/palette.cc',
+  'src/screenshot_task.cc',
   'src/simulation_thread.cc',
   'src/smoothlife_instance.cc',
   'src/smoothlife_module.cc',
   'src/view_base.cc',
+  'src/worker_thread.cc',
   OUT_SHADER_CC,
 ]
 
@@ -462,6 +464,8 @@ def Code(w):
       command='$cc $in $ldflags -o $out',
       description='LINK $out')
 
+#  w.variable('base_ccflags', '-g -msse2')
+#  w.variable('base_cxxflags', '-g -std=c++0x -msse2')
   w.variable('base_ccflags', '-g -O2 -msse2')
   w.variable('base_cxxflags', '-g -std=c++0x -O2 -msse2')
   for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
@@ -512,7 +516,8 @@ def Code(w):
     includedirs=[
       'src',
       'out',
-      'third_party/fftw-prebuilt/newlib_x86_{bits}/include'],
+      'third_party/fftw-prebuilt/newlib_x86_{bits}/include',
+      'third_party/im/include'],
     libs=[
       'ppapi_gles2',
       'ppapi_cpp',

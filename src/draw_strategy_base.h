@@ -16,6 +16,7 @@ class DrawStrategyBase {
   virtual void Draw(SimulationThreadDrawOptions options,
                     SimulationBase* simulation) = 0;
   virtual void SetPalette(const PaletteConfig& config) {}
+  virtual void PostScreenshot() {}
 };
 
 #endif  // DRAW_STRATEGY_BASE_H_

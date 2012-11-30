@@ -17,11 +17,7 @@
 
 
 class SimulationThreadContext;
-class SmoothlifeInstance;
 class ViewBase;
-typedef std::vector<std::string> ParamList;
-typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
-typedef std::map<std::string, MessageFunc> MessageMap;
 
 
 class SmoothlifeInstance : public pp::Instance {
@@ -34,6 +30,10 @@ class SmoothlifeInstance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
+  typedef std::vector<std::string> ParamList;
+  typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
+  typedef std::map<std::string, MessageFunc> MessageMap;
+
   void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
                          SimulationThreadContext* context);
 
