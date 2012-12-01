@@ -9,6 +9,7 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "palette.h"
+#include "screenshot_config.h"
 
 namespace pp {
 class Instance;
@@ -23,7 +24,7 @@ class DrawStrategy : public DrawStrategyBase {
   virtual void Draw(SimulationThreadDrawOptions options,
                     SimulationBase* simulation);
   virtual void SetPalette(const PaletteConfig& config);
-  virtual void PostScreenshot();
+  virtual void PostScreenshot(const ScreenshotConfig& config);
 
  private:
   void CopyBuffer(const AlignedReals& src);

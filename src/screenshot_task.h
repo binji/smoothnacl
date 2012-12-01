@@ -11,6 +11,8 @@
 #include <memory>
 #include <vector>
 #include "fft_allocation.h"
+#include "image_operation.h"
+#include "screenshot_config.h"
 #include "task.h"
 #include "worker_thread.h"
 
@@ -19,70 +21,10 @@ class Instance;
 class VarArrayBuffer;
 }  // namespace pp
 
-struct ImageDeleter {
-  void operator ()(imImage* image) const;
-};
-typedef std::unique_ptr<imImage, ImageDeleter> ImagePtr;
-
-struct FileDeleter {
-  void operator ()(imFile* file) const;
-};
-typedef std::unique_ptr<imFile, FileDeleter> FilePtr;
-
-struct MemoryFilenameDeleter {
-  void operator ()(imBinMemoryFileName* filename) const;
-};
-typedef std::unique_ptr<imBinMemoryFileName, MemoryFilenameDeleter>
-    MemoryFilenamePtr;
-
-class ImageOperation {
- public:
-  virtual ~ImageOperation() {}
-  virtual ImagePtr Run(ImagePtr src) = 0;
-};
-
-class ReduceImageOperation : public ImageOperation {
- public:
-  explicit ReduceImageOperation(size_t max_length);
-  virtual ImagePtr Run(ImagePtr src);
-
- private:
-  size_t max_length_;
-};
-
-class CropImageOperation : public ImageOperation {
- public:
-  CropImageOperation(double x_scale, double y_scale, size_t max_length);
-  virtual ImagePtr Run(ImagePtr src);
-
- private:
-  double x_scale_;
-  double y_scale_;
-  size_t max_length_;
-};
-
-class BrightnessContrastImageOperation : public ImageOperation {
- public:
-  BrightnessContrastImageOperation(double brightness_shift,
-                                   double contrast_factor);
-  virtual ImagePtr Run(ImagePtr src);
-
- private:
-  double brightness_shift_;
-  double contrast_factor_;
-};
-
-class ScreenshotConfig {
- public:
-  ScreenshotConfig();
-  ~ScreenshotConfig();
-
-  std::vector<ImageOperation*> operations;
-};
-
 class ScreenshotTask : public Task<WorkerThread> {
  public:
-  ScreenshotTask(pp::Instance* instance, AlignedUint32* buffer);
+  ScreenshotTask(pp::Instance* instance, AlignedUint32* buffer,
+                 const ScreenshotConfig& config);
 
   virtual void Run(WorkerThread* thread);
 
@@ -95,6 +37,7 @@ class ScreenshotTask : public Task<WorkerThread> {
 
   pp::Instance* instance_;  // Weak.
   std::unique_ptr<AlignedUint32> buffer_;
+  ScreenshotConfig config_;
 
   ScreenshotTask(const ScreenshotTask&);  // Undefined.
   ScreenshotTask& operator =(const ScreenshotTask&);  // Undefined.

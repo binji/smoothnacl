@@ -5,9 +5,10 @@
 #ifndef DRAW_STRATEGY_BASE_H_
 #define DRAW_STRATEGY_BASE_H_
 
-#include "palette.h"
 #include "simulation_thread_options.h"
 
+struct PaletteConfig;
+struct ScreenshotConfig;
 class SimulationBase;
 
 class DrawStrategyBase {
@@ -16,7 +17,7 @@ class DrawStrategyBase {
   virtual void Draw(SimulationThreadDrawOptions options,
                     SimulationBase* simulation) = 0;
   virtual void SetPalette(const PaletteConfig& config) {}
-  virtual void PostScreenshot() {}
+  virtual void PostScreenshot(const ScreenshotConfig& config) {}
 };
 
 #endif  // DRAW_STRATEGY_BASE_H_

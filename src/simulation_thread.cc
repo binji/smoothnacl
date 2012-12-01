@@ -92,8 +92,8 @@ void SimulationThread::TaskSetDrawOptions(
   context_.draw_options = draw_options;
 }
 
-void SimulationThread::TaskScreenshot() {
-  draw_strategy_->PostScreenshot();
+void SimulationThread::TaskScreenshot(const ScreenshotConfig& config) {
+  draw_strategy_->PostScreenshot(config);
 }
 
 // static

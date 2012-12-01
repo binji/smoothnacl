@@ -57,12 +57,12 @@ void DrawStrategy::SetPalette(const PaletteConfig& config) {
   palette_.SetConfig(config);
 }
 
-void DrawStrategy::PostScreenshot() {
+void DrawStrategy::PostScreenshot(const ScreenshotConfig& config) {
   AlignedUint32* buffer = locked_buffer_->Lock();
   AlignedUint32* copy = new AlignedUint32(*buffer);
   locked_buffer_->Unlock();
 
-  EnqueueWork(new ScreenshotTask(instance_, copy));
+  EnqueueWork(new ScreenshotTask(instance_, copy, config));
 }
 
 void DrawStrategy::CopyBuffer(const AlignedReals& src) {

@@ -16,8 +16,10 @@
 
 #include "cpu/initializer_factory.h"
 #include "gpu/initializer_factory.h"
+#include "image_operation.h"
 #include "kernel_config.h"
 #include "palette.h"
+#include "screenshot_config.h"
 #include "simulation_config.h"
 #include "simulation_thread.h"
 #include "simulation_thread_options.h"
@@ -342,7 +344,17 @@ void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
   if (params.size() != 0)
     return;
 
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot));
+  ScreenshotConfig config;
+  config.operations.push_back(
+      ScreenshotConfig::OperationPtr(new ReduceImageOperation(256)));
+  config.operations.push_back(
+      ScreenshotConfig::OperationPtr(new CropImageOperation(0.5, 0.5, 128)));
+  config.operations.push_back(
+      ScreenshotConfig::OperationPtr(
+          new BrightnessContrastImageOperation(10, 40)));
+
+  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot,
+                                        config));
 }
 
 void SmoothlifeInstance::ScheduleUpdate() {

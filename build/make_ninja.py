@@ -117,6 +117,8 @@ SOURCE_FILES = [
   'src/gpu/vertex_buffer.cc',
   'src/gpu/view.cc',
   'src/gpu/wrap_gl.cc',
+  'src/im_utils.cc',
+  'src/image_operation.cc',
   'src/palette.cc',
   'src/screenshot_task.cc',
   'src/simulation_thread.cc',
