@@ -21,6 +21,7 @@ var presets = [
   ["Oil Slick",[4,12,1],[2,0.115,0.269,0.496,0.34,0.767,3,4,4,0.028,0.147],[0,"#b8cfcf",0,"#3f5a5c",77,"#1a330a",91,"#c0e0dc",99]],
   ["Worms",[10.6,31.8,1],[1,0.157,0.092,0.256,0.098,0.607,3,4,4,0.015,0.34],[0,"#4d3e3e",0,"#9a1ac9",77,"#aaf09e",100]],
 ];
+var screenshotRequestID = 0;
 
 function upperCaseFirst(s) {
   return s.charAt(0).toUpperCase() + s.substr(1);
@@ -442,8 +443,14 @@ function setupUI() {
     return false;
   });
   $('#takeScreenshot').button().click(function (e) {
-    $('#nacl_module').get(0).postMessage(
-        'Screenshot:reduce 256,crop 0.5 0.5 128,brightness_contrast 10 40');
+    var screenshot_message = 'Screenshot:' + screenshotRequestID + ',';
+    var screenshotParams = [];
+    screenshotParams.push(screenshotRequestID++);
+    screenshotParams.push('reduce 256');
+    screenshotParams.push('crop 0.5 0.5 128');
+    screenshotParams.push('brightness_contrast 10 40');
+    var screenshotMessage = 'Screenshot:' + screenshotParams.join(',');
+    $('#nacl_module').get(0).postMessage(screenshotMessage);
   });
 
   var groups = ['kernel', 'smoother', 'palette', 'draw-options'];
@@ -540,7 +547,11 @@ function makeMainEmbed(groupMessages) {
       $('#fps').text(e.data);
     } else {
       // Screenshot array buffer.
-      var blob = new Blob([new Uint8Array(e.data)], {type: 'image/jpeg'});
+      // First 4 bytes are the request id.
+      var requestID = new Uint32Array(e.data, 0, 4)[0];
+      console.log('Got screenshot with request id: ' + requestID);
+      var imageData = new Uint8Array(e.data, 4);
+      var blob = new Blob([imageData], {type: 'image/jpeg'});
       var url = webkitURL.createObjectURL(blob);
       $('#screenshots').append(
           $('<img>').attr('src', url));

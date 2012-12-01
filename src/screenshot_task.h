@@ -32,6 +32,7 @@ class ScreenshotTask : public Task<WorkerThread> {
   ImagePtr BufferToImage();
   FilePtr WriteImageToFile(imBinMemoryFileName* filename, ImagePtr image);
   pp::VarArrayBuffer FileToArrayBuffer(imBinMemoryFileName* filename,
+                                       uint32_t request_id,
                                        FilePtr file);
   static void MainThreadRun(void* user_data, int32_t result);
 

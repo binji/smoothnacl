@@ -13,6 +13,7 @@ class ImageOperation;
 struct ScreenshotConfig {
   typedef std::shared_ptr<ImageOperation> OperationPtr;
   typedef std::vector<OperationPtr> Operations;
+  int request_id;
   Operations operations;
 };
 

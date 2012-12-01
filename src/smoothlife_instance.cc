@@ -357,8 +357,13 @@ void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
 }
 
 void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
+  if (params.size() < 1)
+    return;
+
   ScreenshotConfig config;
-  for (int i = 0; i < params.size(); ++i) {
+  config.request_id = atoi(params[0].c_str());
+
+  for (int i = 1; i < params.size(); ++i) {
     const std::string& param = params[i];
     // Split each param at spaces.
     std::vector<std::string> operation_params = Split(param, ' ');

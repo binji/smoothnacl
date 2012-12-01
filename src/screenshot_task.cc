@@ -40,6 +40,7 @@ void ScreenshotTask::Run(WorkerThread*) {
 
   FilePtr file = WriteImageToFile(filename.get(), std::move(image));
   pp::VarArrayBuffer array_buffer = FileToArrayBuffer(filename.get(),
+                                                      config_.request_id,
                                                       std::move(file));
 
   PostMessageData* post_message_data = new PostMessageData;
@@ -104,13 +105,15 @@ FilePtr ScreenshotTask::WriteImageToFile(imBinMemoryFileName* filename,
 
 pp::VarArrayBuffer ScreenshotTask::FileToArrayBuffer(
     imBinMemoryFileName* filename,
+    uint32_t request_id,
     FilePtr file) {
   imBinFile* binfile = static_cast<imBinFile*>(imFileHandle(file.get(), 0));
   size_t size = imBinFileSize(binfile);
 
-  pp::VarArrayBuffer array_buffer(size);
-  void* var_data = array_buffer.Map();
-  memcpy(var_data, filename->buffer, size);
+  pp::VarArrayBuffer array_buffer(sizeof(request_id) + size);
+  char* var_data = static_cast<char*>(array_buffer.Map());
+  memcpy(var_data, &request_id, sizeof(request_id));
+  memcpy(var_data + sizeof(request_id), filename->buffer, size);
   array_buffer.Unmap();
 
   return array_buffer;
