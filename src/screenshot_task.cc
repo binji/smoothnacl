@@ -5,6 +5,9 @@
 #include "screenshot_task.h"
 #include <im_format_all.h>
 #include <im_image.h>
+#include <im_process_loc.h>
+#include <im_process_pnt.h>
+#include <memory>
 #include <ppapi/cpp/completion_callback.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/cpp/var_array_buffer.h>
@@ -19,17 +22,12 @@ struct PostMessageData {
   pp::VarArrayBuffer buffer;
 };
 
-uint32_t ArgbToAbgr(uint32_t color) {
-  return (color & 0xff00ff00) |
-      ((color << 16) & 0xff0000) |
-      ((color >> 16) & 0xff);
-}
-
-void ArgbToAbgr(AlignedUint32* buffer) {
-  uint32_t* data = buffer->data();
-  for (size_t i = 0; i < buffer->count(); ++i)
-    data[i] = ArgbToAbgr(data[i]);
-}
+struct ImageDeleter {
+  void operator ()(imImage* image) {
+    imImageDestroy(image);
+  }
+};
+typedef std::unique_ptr<imImage, ImageDeleter> ImagePtr;
 
 }  // namespace
 
@@ -64,9 +62,60 @@ ScreenshotTask::~ScreenshotTask() {
 }
 
 void ScreenshotTask::Run(WorkerThread*) {
-  ArgbToAbgr(buffer_);
+  size_t width = buffer_->size().width();
+  size_t height = buffer_->size().height();
+  ImagePtr image(imImageCreate(
+      width, height,
+      IM_RGB,
+      IM_BYTE));
+  if (image == NULL) {
+    printf("imImageCreate failed.\n");
+    return;
+  }
 
-  int err;
+  uint32_t* data = buffer_->data();
+  for (size_t src_y = 0; src_y < height; ++src_y)
+  for (size_t x = 0; x < width; ++x) {
+    size_t dst_y = height - src_y;
+    uint32_t src_pixel = data[src_y * width + x];
+    uint8_t r = src_pixel >> 16;
+    uint8_t g = src_pixel >> 8;
+    uint8_t b = src_pixel;
+
+    static_cast<char*>(image->data[0])[dst_y * width + x] = r;
+    static_cast<char*>(image->data[1])[dst_y * width + x] = g;
+    static_cast<char*>(image->data[2])[dst_y * width + x] = b;
+  }
+
+  ImagePtr reduced_image(imImageCreate(width / 2, height / 2, IM_RGB, IM_BYTE));
+  if (reduced_image == NULL) {
+    printf("imImageCreate failed.\n");
+    return;
+  }
+
+  int err = imProcessReduce(image.get(), reduced_image.get(), 1);
+  if (err == 0) {
+    printf("imProcessReduce failed.\n");
+    return;
+  }
+
+  ImagePtr cropped_image(imImageCreate(width / 4, height / 4, IM_RGB, IM_BYTE));
+  if (cropped_image == NULL) {
+    printf("imImageCreate failed.\n");
+    return;
+  }
+
+  imProcessCrop(reduced_image.get(), cropped_image.get(),
+                width / 8, height / 8);
+
+  float params[2];
+  params[0] = 10;  // Brightness shift.
+  params[1] = 30;  // Constrast factor.
+  imProcessToneGamut(cropped_image.get(), cropped_image.get(),
+                     IM_GAMUT_BRIGHTCONT, &params[0]);
+
+  // Write image to Jpeg memory file.
+  err;
   if (imBinFileSetCurrentModule(IM_MEMFILE) == -1) {
     printf("imBinMemoryFileName failed.\n");
     return;
@@ -83,19 +132,9 @@ void ScreenshotTask::Run(WorkerThread*) {
     return;
   }
 
-  err = imFileWriteImageInfo(
-      file_,
-      buffer_->size().width(), buffer_->size().height(),
-      IM_RGB | IM_ALPHA | IM_PACKED | IM_TOPDOWN,
-      IM_BYTE);
+  err = imFileSaveImage(file_, cropped_image.get());
   if (err != IM_ERR_NONE) {
-    printf("imFileWriteImageInfo failed. Error: %d\n", err);
-    return;
-  }
-
-  err = imFileWriteImageData(file_, buffer_->data());
-  if (err != IM_ERR_NONE) {
-    printf("imFileWriteImageData failed. Error: %d\n", err);
+    printf("imFileSaveImage. Error: %d\n", err);
     return;
   }
 
