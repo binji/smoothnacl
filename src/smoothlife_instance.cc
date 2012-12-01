@@ -35,6 +35,28 @@ double GetTimeTicks() {
   return pp::Module::Get()->core()->GetTimeTicks();
 }
 
+std::vector<std::string> Split(const std::string& s, char delim) {
+  const char kWhitespace[] = " \t\n";
+  std::vector<std::string> components;
+  size_t start = 0;
+  size_t delim_pos;
+  do {
+    start = s.find_first_not_of(kWhitespace, start);
+    if (start == std::string::npos)
+      break;
+
+    delim_pos = s.find(delim, start);
+    size_t end = s.find_last_not_of(kWhitespace, delim_pos);
+    if (end != delim_pos)
+      end++;
+
+    components.push_back(s.substr(start, end - start));
+    start = delim_pos + 1;
+  } while (delim_pos != std::string::npos);
+
+  return components;
+}
+
 }  // namespace
 
 
@@ -197,13 +219,7 @@ void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
   std::vector<std::string> params;
 
   if (colon != std::string::npos) {
-    size_t param_start = colon + 1;
-    size_t comma;
-    do {
-      comma = message.find(',', param_start);
-      params.push_back(message.substr(param_start, comma - param_start));
-      param_start = comma + 1;
-    } while (comma != std::string::npos);
+    params = Split(message.substr(colon + 1), ',');
   }
 
   MessageMap::iterator func_iter = message_map_.find(function);
@@ -341,17 +357,50 @@ void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
 }
 
 void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
-  if (params.size() != 0)
-    return;
-
   ScreenshotConfig config;
-  config.operations.push_back(
-      ScreenshotConfig::OperationPtr(new ReduceImageOperation(256)));
-  config.operations.push_back(
-      ScreenshotConfig::OperationPtr(new CropImageOperation(0.5, 0.5, 128)));
-  config.operations.push_back(
-      ScreenshotConfig::OperationPtr(
-          new BrightnessContrastImageOperation(10, 40)));
+  for (int i = 0; i < params.size(); ++i) {
+    const std::string& param = params[i];
+    // Split each param at spaces.
+    std::vector<std::string> operation_params = Split(param, ' ');
+
+    if (operation_params.size() == 0) {
+      printf("Ignoring empty operation.\n");
+      continue;
+    }
+
+    std::string operation = operation_params[0];
+    operation_params.erase(operation_params.begin());
+
+    ImageOperation* op = NULL;
+    if (operation == "reduce") {
+      if (operation_params.size() != 1)
+        continue;
+
+      int max_length = atoi(operation_params[0].c_str());
+      op = new ReduceImageOperation(max_length);
+    } else if (operation == "crop") {
+      if (operation_params.size() != 3)
+        continue;
+
+      double x_scale = strtod(operation_params[0].c_str(), NULL);
+      double y_scale = strtod(operation_params[1].c_str(), NULL);
+      int max_length = atoi(operation_params[2].c_str());
+      op = new CropImageOperation(x_scale, y_scale, max_length);
+    } else if (operation == "brightness_contrast") {
+      if (operation_params.size() != 2)
+        continue;
+
+      double brightness_shift = strtod(operation_params[0].c_str(), NULL);
+      double contrast_factor = strtod(operation_params[1].c_str(), NULL);
+      op = new BrightnessContrastImageOperation(brightness_shift,
+                                                contrast_factor);
+    } else {
+      printf("Unknown operation %s, ignoring.\n", operation.c_str());
+    }
+
+    if (op)
+      config.operations.push_back(ScreenshotConfig::OperationPtr(op));
+  }
 
   thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot,
                                         config));

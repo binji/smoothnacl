@@ -442,7 +442,8 @@ function setupUI() {
     return false;
   });
   $('#takeScreenshot').button().click(function (e) {
-    $('#nacl_module').get(0).postMessage('Screenshot');
+    $('#nacl_module').get(0).postMessage(
+        'Screenshot:reduce 256,crop 0.5 0.5 128,brightness_contrast 10 40');
   });
 
   var groups = ['kernel', 'smoother', 'palette', 'draw-options'];
