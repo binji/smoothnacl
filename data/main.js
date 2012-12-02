@@ -22,6 +22,8 @@ var presets = [
   ["Worms",[10.6,31.8,1],[1,0.157,0.092,0.256,0.098,0.607,3,4,4,0.015,0.34],[0,"#4d3e3e",0,"#9a1ac9",77,"#aaf09e",100]],
 ];
 var screenshotRequestID = 0;
+var screenshotRequestCallbacks = {
+};
 
 function upperCaseFirst(s) {
   return s.charAt(0).toUpperCase() + s.substr(1);
@@ -93,6 +95,14 @@ function updateGroup(groupName) {
   }
 }
 
+function takeScreenshot(screenshotParams, callback) {
+  var requestID = screenshotRequestID++;
+  screenshotParams.unshift(requestID);
+  screenshotRequestCallbacks[requestID] = callback;
+  var screenshotMessage = 'Screenshot:' + screenshotParams.join(',');
+  $('#nacl_module').get(0).postMessage(screenshotMessage);
+}
+
 function makePresetElement(name, values, isUserPreset, index) {
   var itemEl =
       $('<div/>').addClass('preset-item')
@@ -162,6 +172,13 @@ function initPresets() {
 
 function savePreset(name, values) {
   var presetEl = makePresetElement(name, values, true);
+  takeScreenshot([
+    'reduce 256',
+    'crop 0.5 0.5 128',
+    'brightness_contrast 10 40',
+  ], function (url) {
+    presetEl.append($('<img>').attr('src', url));
+  });
   $('#presetMenu').prepend(presetEl)
                   .masonry('reload');
   savePresetsToLocalStorage();
@@ -170,7 +187,7 @@ function savePreset(name, values) {
 function savePresetsToLocalStorage() {
   var presetValues = [];
   $('#presetMenu > div.user-preset').each(function () {
-    var preset = [$(this).children('label').eq(0).text()];
+    var preset = [$(this).children('label').text()];
     preset = preset.concat(JSON.parse($(this).data('value')));
     presetValues.push(preset);
   });
@@ -454,16 +471,6 @@ function setupUI() {
     $('#savePresetName').val('');
     return false;
   });
-  $('#takeScreenshot').button().click(function (e) {
-    var screenshot_message = 'Screenshot:' + screenshotRequestID + ',';
-    var screenshotParams = [];
-    screenshotParams.push(screenshotRequestID++);
-    screenshotParams.push('reduce 256');
-    screenshotParams.push('crop 0.5 0.5 128');
-    screenshotParams.push('brightness_contrast 10 40');
-    var screenshotMessage = 'Screenshot:' + screenshotParams.join(',');
-    $('#nacl_module').get(0).postMessage(screenshotMessage);
-  });
 
   var groups = ['kernel', 'smoother', 'palette', 'draw-options'];
   for (var i = 0; i < groups.length; ++i)
@@ -558,9 +565,11 @@ function makeMainEmbed(groupMessages) {
       var imageData = new Uint8Array(e.data, 4);
       var blob = new Blob([imageData], {type: 'image/jpeg'});
       var url = webkitURL.createObjectURL(blob);
-      $('#screenshots').append(
-          $('<img>').attr('src', url));
-      //webkitURL.revokeObjectURL(url);
+
+      var callback = screenshotRequestCallbacks[requestID];
+      if (callback)
+        callback(url);
+      delete screenshotRequestCallbacks[requestID];
     }
   }, true);
 }

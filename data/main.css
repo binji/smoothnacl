@@ -78,10 +78,18 @@
 }
 
 #presetMenu .preset-item > .close-button-div {
+  background-color: rgba(255, 255, 255, 0);
+  border-radius: 2px;
   display: block;
   position: absolute;
   right: 0;
   top: 4px;
+  -webkit-transition-duration: 400ms;
+  -webkit-transition-property: background-color;
+}
+
+#presetMenu .preset-item:hover > .close-button-div {
+  background-color: rgba(255, 255, 255, 0.95);
 }
 
 .masonry,
