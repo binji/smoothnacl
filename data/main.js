@@ -93,62 +93,69 @@ function updateGroup(groupName) {
   }
 }
 
-function makePresetElement(name, values, isUserPreset) {
+function makePresetElement(name, values, isUserPreset, index) {
   var itemEl =
-      $('<li/>').addClass('setting-row')
-                .append(
-          $('<a/>').attr('href', '#')
-                   .data('value', JSON.stringify(values))
-                   .text(name));
+      $('<div/>').addClass('preset-item')
+                 .data('value', JSON.stringify(values))
+                 .click(function (e) {
+                   onPresetChanged(JSON.parse($(this).data('value')));
+                 })
+                 .append(
+          $('<label/>')
+              .text(name));
 
   if (isUserPreset) {
     itemEl.addClass('user-preset')
           .append(
         $('<div/>').addClass('close-button-div')
                    .click(function (e) {
-                     itemEl.hide('blind', 200, function () {
-                       itemEl.remove();
-                       savePresetsToLocalStorage();
-                     });
+                     itemEl.remove();
+                     savePresetsToLocalStorage();
+                     $('#presetMenu').masonry('reload');
                      e.stopPropagation();
                    })
                    .append(
             $('<span/>').addClass('ui-icon ui-icon-closethick')));
+  } else {
+    // append image from data\.
+    itemEl.append(
+        $('<img>').attr('src', 'preset' + index + '.jpg'));
   }
 
   return itemEl;
 }
 
-function loadPresets(array, isUserPreset) {
+function loadPresets(array, isUserPreset, prepend) {
   var menu = $('#presetMenu');
+  var presetEls = [];
   for (var i = 0; i < array.length; ++i) {
     var presetEl = makePresetElement(
         array[i][0],
         array[i].slice(1, 4),
-        isUserPreset);
-    menu.append(presetEl);
+        isUserPreset,
+        i);
+    presetEls.push(presetEl);
   }
+
+  if (prepend)
+    menu.prepend(presetEls);
+  else
+    menu.append(presetEls);
 }
 
 function initPresets() {
   loadPresets(presets, false);
-  $('#presetMenu').menu({
-    select: function (e, ui) {
-      var presetValuesJson = ui.item.children('a:first').data('value');
-      onPresetChanged(JSON.parse(presetValuesJson));
-    }
-  });
 
   if (chrome !== undefined && chrome.storage !== undefined) {
     chrome.storage.local.get('presets', function (items) {
-      loadPresets(JSON.parse(items['presets']), true);
-      $('#presetMenu').menu('refresh');
+      loadPresets(JSON.parse(items['presets']), true, true);
+      $('#presetMenu').masonry();
     });
   } else if (window.localStorage !== undefined) {
     var savedPresets = window.localStorage.getItem('presets');
     if (savedPresets) {
-      loadPresets(JSON.parse(savedPresets), true);
-      $('#presetMenu').menu('refresh');
+      loadPresets(JSON.parse(savedPresets), true, true);
+      $('#presetMenu').masonry();
     }
   }
 }
@@ -156,17 +163,14 @@ function initPresets() {
 function savePreset(name, values) {
   var presetEl = makePresetElement(name, values, true);
   $('#presetMenu').prepend(presetEl)
-                  .menu('refresh');
-  presetEl.hide();
-  presetEl.show('blind', 200, function () {
-    savePresetsToLocalStorage();
-  });
+                  .masonry('reload');
+  savePresetsToLocalStorage();
 }
 
 function savePresetsToLocalStorage() {
   var presetValues = [];
-  $('#presetMenu > li.user-preset > a').each(function () {
-    var preset = [$(this).text()];
+  $('#presetMenu > div.user-preset').each(function () {
+    var preset = [$(this).children('label').eq(0).text()];
     preset = preset.concat(JSON.parse($(this).data('value')));
     presetValues.push(preset);
   });
@@ -416,6 +420,7 @@ function setupUI() {
     east__resizable: true,
     east__onresize: function () {
       $('.tabs').tabs('refresh');
+      $('#presetMenu').masonry();
     },
     livePaneResizing: true
   });
@@ -423,6 +428,13 @@ function setupUI() {
   $('.tabs').tabs({
     active: 1,
     heightStyle: 'fill',
+  });
+
+  $('#presetMenu').masonry({
+    columnWidth: 128,
+    gutterWidth: 16,
+    isFitWidth: true,
+    itemSelector: '.preset-item',
   });
 
   $('#clear').button().click(function (e) {
@@ -458,13 +470,6 @@ function setupUI() {
     makeUIForGroup(groups[i]);
 
   // Add plus button.
-  /*
-  $('#gradientType').prepend(
-      $('<div/>').addClass('plus-button-div')
-                 .append(
-          $('<span/>').addClass('ui-icon ui-icon-plusthick')));
-          */
-
   $('.plus-button-div').button().click(function () {
     addColorstopUI('#ffffff', 100, function () {
       updateGroup('palette');
@@ -555,7 +560,7 @@ function makeMainEmbed(groupMessages) {
       var url = webkitURL.createObjectURL(blob);
       $('#screenshots').append(
           $('<img>').attr('src', url));
-      webkitURL.revokeObjectURL(url);
+      //webkitURL.revokeObjectURL(url);
     }
   }, true);
 }

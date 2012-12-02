@@ -47,23 +47,54 @@
 }
 
 #presetMenu {
-  border: 0;
+  margin: 0 auto;
 }
 
-#presetMenu .ui-menu-item {
-  font-weight: 400;
-  margin: 0;
-  padding: 15px 0 !important;
+#presetMenu .preset-item {
+  background-color: #eee;
+  float: left;
+  height: 128px;
+  margin: 16px 0 0 0;
+  width: 128px;
 }
 
-#presetMenu .ui-menu-item a {
-  -webkit-flex: 1;
+#presetMenu .preset-item > label {
+  background-color: rgba(255, 255, 255, 0.95);
+  bottom: 0;
+  height: auto;
+  left: 0;
+  max-height: 0;
+  overflow: hidden;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  vertical-align: bottom;
+  -webkit-transition-duration: 400ms;
+  -webkit-transition-property: max-height;
 }
 
-#presetMenu .ui-menu-item a.ui-state-focus {
-  background: rgb(250, 236, 236);
-  border: 1px solid rgb(250, 236, 236);
-  box-shadow: 1px 1px #ddd;
+#presetMenu .preset-item:hover > label {
+  max-height: 128px;
+}
+
+#presetMenu .preset-item > .close-button-div {
+  display: block;
+  position: absolute;
+  right: 0;
+  top: 4px;
+}
+
+.masonry,
+.masonry .masonry-brick {
+  -webkit-transition-duration: 200ms;
+}
+
+.masonry {
+  -webkit-transition-property: height, width;
+}
+
+.masonry .masonry-brick {
+  -webkit-transition-property: left, right, top;
 }
 
 .close-button-div {
