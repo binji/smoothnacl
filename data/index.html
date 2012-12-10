@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html data-ng-app="directives">
 <!--
 Copyright (c) 2012 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
@@ -13,11 +13,13 @@ found in the LICENSE file.
   <link rel="stylesheet" href="jquery.miniColors.css">
   <link rel="stylesheet" href="main.css">
   <script type="text/javascript" src="jquery-1.8.2.min.js"></script>
-  <script type="text/javascript" src="jquery-ui-1.9.0.custom.min.js"></script>
+  <script type="text/javascript" src="jquery-ui-1.9.0.custom.js"></script>
   <script type="text/javascript" src="jquery.layout-latest.min.js"></script>
   <script type="text/javascript" src="jquery.masonry.min.js"></script>
   <script type="text/javascript" src="jquery.miniColors.min.js"></script>
-  <script type="text/javascript" src="main.js"></script>
+  <script type="text/javascript" src="angular.min.js"></script>
+  <script type="text/javascript" src="directives.js"></script>
+  <script type="text/javascript" src="app.js"></script>
 </head>
 <body>
   <div class="ui-layout-east">
@@ -76,10 +78,13 @@ found in the LICENSE file.
       </div>
       <div id="tabs-advanced">
         <div class="draw-options">
-          <div data-type="buttonset"
+          <buttonset
+              data-name="view"
+              data-ng-model="drawOptions.view"
               data-values="simulation smoother disc ring"
-              data-value-type="string" data-value="simulation">view</div>
+              data-value="simulation"></buttonset>
         </div>
+        <input type="text" ng-model="drawOptions.view">
         <div class="kernel">
           <div data-type="range" data-min="0" data-max="50" data-prec="1"
               title="Radius of the 'disc' part of a cell.">
@@ -95,15 +100,27 @@ found in the LICENSE file.
           </div>
         </div>
         <div class="smoother">
-          <div data-type="buttonset" data-values="discrete smooth1 smooth2 smooth3">timestep</div>
+          <buttonset
+              data-name="timestep"
+              data-ng-model="smoother.timestep"
+              data-values="discrete smooth1 smooth2 smooth3"></buttonset>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">dt</div>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">b1</div>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">d1</div>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">b2</div>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">d2</div>
-          <div data-type="buttonset" data-values="mode1 mode2 mode3 mode4">sigmoid mode</div>
-          <div data-type="buttonset" data-values="hard linear hermite sin smooth">sigmoid</div>
-          <div data-type="buttonset" data-values="hard linear hermite sin smooth">mix</div>
+          <buttonset
+              data-name="sigmoid mode"
+              data-ng-model="smoother.sigmoidMode"
+              data-values="mode1 mode2 mode3 mode4"></buttonset>
+          <buttonset
+              data-name="sigmoid"
+              data-ng-model="smoother.sigmoid"
+              data-values="hard linear hermite sin smooth"></buttonset>
+          <buttonset
+              data-name="mix"
+              data-ng-model="smoother.mix"
+              data-values="hard linear hermite sin smooth"></buttonset>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">sn</div>
           <div data-type="range" data-min="0" data-max="1" data-prec="3">sm</div>
         </div>

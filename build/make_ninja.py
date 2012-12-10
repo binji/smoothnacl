@@ -297,9 +297,10 @@ IM_SOURCE_FILES = [
 
 
 DATA_FILES = [
+  'data/app.js',
+  'data/directives.js',
   'data/index.html',
   'data/main.css',
-  'data/main.js',
   'data/preset0.jpg',
   'data/preset1.jpg',
   'data/preset2.jpg',
@@ -311,6 +312,7 @@ DATA_FILES = [
   'data/preset8.jpg',
   # Strip everything between < and > when repathing.
   #'<third_party/Iris/iris.min.js',
+  '<third_party/angular.js/>angular.min.js',
   '<third_party/jquery/>jquery-1.8.2.min.js',
   '<third_party/jquery.layout/>jquery.layout-latest.min.js',
   '<third_party/jquery.masonry/>jquery.masonry.min.js',
@@ -332,7 +334,8 @@ DATA_FILES = [
   '<third_party/jquery-ui/>images/ui-icons_888888_256x240.png',
   '<third_party/jquery-ui/>images/ui-icons_cd0a0a_256x240.png',
   '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.css',
-  '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.js',
+  '<third_party/jquery-ui/jquery-ui-1.9.0.custom/js/>jquery-ui-1.9.0.custom.js',
+#  '<third_party/jquery-ui/>jquery-ui-1.9.0.custom.min.js',
   '<third_party/Nunito/>Nunito-Bold.ttf',
   '<third_party/Nunito/>Nunito-Regular.ttf',
 ]
