@@ -199,11 +199,11 @@
   -webkit-flex: 1;
 }
 
-.buttonset > .value {
+.enum > .value {
   margin: 0 6px;
 }
 
-.buttonset > .value span.ui-button-text {
+.enum > .value span.ui-button-text {
   padding: .4em .6em;
 }
 

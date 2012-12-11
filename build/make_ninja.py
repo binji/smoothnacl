@@ -298,6 +298,7 @@ IM_SOURCE_FILES = [
 
 DATA_FILES = [
   'data/app.js',
+  'data/controllers.js',
   'data/directives.js',
   'data/index.html',
   'data/main.css',

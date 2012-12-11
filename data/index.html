@@ -18,10 +18,11 @@ found in the LICENSE file.
   <script type="text/javascript" src="jquery.masonry.min.js"></script>
   <script type="text/javascript" src="jquery.miniColors.min.js"></script>
   <script type="text/javascript" src="angular.min.js"></script>
+  <script type="text/javascript" src="controllers.js"></script>
   <script type="text/javascript" src="directives.js"></script>
   <script type="text/javascript" src="app.js"></script>
 </head>
-<body>
+<body ng-controller="controller">
   <div class="ui-layout-east">
     <div class="title"><span class="title-bold">Smooth</span>Life</div>
     <div class="tabs">
@@ -78,51 +79,61 @@ found in the LICENSE file.
       </div>
       <div id="tabs-advanced">
         <div class="draw-options">
-          <buttonset
-              data-name="view"
-              data-ng-model="drawOptions.view"
-              data-values="simulation smoother disc ring"
-              data-value="simulation"></buttonset>
+          <buttonset-row data-label="view"
+              data-model="drawOptions.view"
+              data-values="simulation smoother disc ring"></buttonset-row>
         </div>
-        <input type="text" ng-model="drawOptions.view">
         <div class="kernel">
-          <div data-type="range" data-min="0" data-max="50" data-prec="1"
+          <slider-row data-label="disc radius"
+              data-model="kernel.discRadius"
+              data-min="0" data-max="50" data-prec="1"
               title="Radius of the 'disc' part of a cell.">
-            disc radius
-          </div>
-          <div data-type="range" data-min="0" data-max="50" data-prec="1"
+          </slider-row>
+          <slider-row data-label="ring radius"
+              data-model="kernel.ringRadius"
+              data-min="0" data-max="50" data-prec="1"
               title="Radius of the 'ring' part of a cell, surrounding the disc.">
-            ring radius
-          </div>
-          <div data-type="range" data-min="0" data-max="50" data-prec="1"
+          </slider-row>
+          <slider-row data-label="anti-alias radius"
+              data-model="kernel.antiAliasRadius"
+              data-min="0" data-max="50" data-prec="1"
               title="The anti-aliasing radius. The larger this value, the more blended the region between the disc and the ring.">
-            anti-alias radius
-          </div>
+          </slider-row>
         </div>
         <div class="smoother">
-          <buttonset
-              data-name="timestep"
-              data-ng-model="smoother.timestep"
-              data-values="discrete smooth1 smooth2 smooth3"></buttonset>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">dt</div>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">b1</div>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">d1</div>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">b2</div>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">d2</div>
-          <buttonset
-              data-name="sigmoid mode"
-              data-ng-model="smoother.sigmoidMode"
-              data-values="mode1 mode2 mode3 mode4"></buttonset>
-          <buttonset
-              data-name="sigmoid"
-              data-ng-model="smoother.sigmoid"
-              data-values="hard linear hermite sin smooth"></buttonset>
-          <buttonset
-              data-name="mix"
-              data-ng-model="smoother.mix"
-              data-values="hard linear hermite sin smooth"></buttonset>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">sn</div>
-          <div data-type="range" data-min="0" data-max="1" data-prec="3">sm</div>
+          <buttonset-row data-label="timestep"
+              data-model="smoother.timestep"
+              data-values="discrete smooth1 smooth2 smooth3"></buttonset-row>
+          <slider-row data-label="dt"
+              data-model="smoother.dt"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
+          <slider-row data-label="b1"
+              data-model="smoother.b1"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
+          <slider-row data-label="d1"
+              data-model="smoother.d1"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
+          <slider-row data-label="b2"
+              data-model="smoother.b2"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
+          <slider-row data-label="d2"
+              data-model="smoother.d2"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
+          <buttonset-row data-label="sigmoid mode"
+              data-model="smoother.sigmoidMode"
+              data-values="mode1 mode2 mode3 mode4"></buttonset-row>
+          <buttonset-row data-label="sigmoid"
+              data-model="smoother.sigmoid"
+              data-values="hard linear hermite sin smooth"></buttonset-row>
+          <buttonset-row data-label="mix"
+              data-model="smoother.mix"
+              data-values="hard linear hermite sin smooth"></buttonset-row>
+          <slider-row data-label="sn"
+              data-model="smoother.sn"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
+          <slider-row data-label="sm"
+              data-model="smoother.sm"
+              data-min="0" data-max="1" data-prec="3"></slider-row>
         </div>
       </div>
     </div>
