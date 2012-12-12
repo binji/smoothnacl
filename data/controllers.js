@@ -29,4 +29,12 @@ var controller = function ($scope) {
     sn: 0.0,
     sm: 0.0,
   };
+
+  $scope.palette = {
+    colorstops: [
+      { color: '#000000', stop: 0 },
+      { color: '#ffffff', stop: 100 },
+    ],
+    gradientType: 0
+  };
 };

@@ -13,11 +13,11 @@ angular.module('directives', [])
       replace: true,
       template: '<div/>',
       link: function (scope, iElement, iAttrs, ngModel) {
-        var name = iAttrs.name;
+        var name = iAttrs.name.replace(/\W+/, '_');
         var values = iAttrs.values.split(' ');
         for (var i = 0; i < values.length; ++i) {
           var valueText = values[i];
-          var optionId = name.replace(' ', '_') + '_' + i;
+          var optionId = name + i;
           var labelEl = $('<label/>').attr('for', optionId)
                                      .text(valueText);
           var optionEl = $('<input/>').attr('type', 'radio')
@@ -52,7 +52,7 @@ angular.module('directives', [])
       require: '?ngModel',
       restrict: 'E',  // Element only.
       replace: true,
-      template: '<div/>',
+      template: '<div></div>',
       link: function (scope, iElement, iAttrs, ngModel) {
         var prec = +iAttrs.prec;
         var mult = Math.pow(10, prec);
@@ -114,12 +114,13 @@ angular.module('directives', [])
       replace: true,
       template:
         '<div class="enum setting-row">' +
-          '<label></label>' +
           '<buttonset class="value">' +
           '</buttonset>' +
         '</div>',
       compile: function (tElement, tAttrs) {
-        var label = tElement.find('label').text(tAttrs.label);
+        if (tAttrs.label)
+          tElement.prepend($('<label/>').text(tAttrs.label));
+
         var buttonset = tElement.find('buttonset');
         buttonset.attr({
           'data-name': tAttrs.model.replace(/\W+/, '_'),
@@ -128,6 +129,85 @@ angular.module('directives', [])
         });
 
         return function postLink(scope, iElement, iAttrs) {};
+      },
+    };
+  })
+  .directive('colorPicker', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      require: 'ngModel',
+      // We have to wrap the colorpicker input in a div -- miniColors adds a
+      // span as sibling to the input for the colorpicker which screws up the
+      // angular linking phase.
+      template: '<div><input type="hidden"></div>',
+      link: function (scope, iElement, iAttrs, ngModel) {
+        var inputEl = iElement.find('input');
+        // miniColors fires a change callback both from user input and when it
+        // is changed programmatically. Ignore changes that occur when setting
+        // the miniColors value.
+        var isSettingValue = false;
+
+        inputEl.miniColors({
+          change: function (hex, rgba) {
+            if (!isSettingValue) {
+              scope.$apply(function () {
+                ngModel.$setViewValue(hex);
+              });
+            }
+          }
+        });
+
+        ngModel.$render = function () {
+          isSettingValue = true;
+          inputEl.miniColors('value', ngModel.$viewValue);
+          isSettingValue = false;
+        };
+      },
+    };
+  })
+  .directive('colorstop', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      template:
+        '<div class="color setting-row">' +
+          '<span class="handle ui-icon ui-icon-grip-dotted-vertical"/>' +
+          '<div class="value">' +
+            '<color-picker></color-picker>' +
+            '<slider data-min="0" data-max="100" data-prec="0"></slider>' +
+          '</div>' +
+          '<div class="close-button-div">' +
+            '<span class="ui-icon ui-icon-closethick"/>' +
+          '</div>' +
+        '</div>',
+      compile: function (tElement, tAttrs) {
+        tElement.find('color-picker').attr('data-ng-model', tAttrs.model + '.color');
+        tElement.find('slider').attr('data-ng-model', tAttrs.model + '.stop');
+
+        return function postLink(scope, iElement, iAttrs) {};
+      },
+    };
+  })
+  .directive('colorGradient', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      template: '<div></div>',
+      link: function (scope, iElement, iAttrs) {
+        scope.$watch(iAttrs.model, function (newValue) {
+          if (newValue.gradientType !== 0)
+            var gradient = '-webkit-repeating-linear-gradient(left';
+          else
+            var gradient = '-webkit-linear-gradient(left';
+
+          angular.forEach(newValue.colorstops, function (colorstop) {
+            gradient += ', ' + colorstop.color + ' ' + colorstop.stop + '%';
+          });
+          gradient += ')';
+
+          iElement.css('background', gradient);
+        }, true);  // true => compare using angular.equals
       },
     };
   });
