@@ -126,7 +126,7 @@
   opacity: 1.0;
 }
 
-#addColorstop.setting-row {
+.no-border-bottom {
   border-bottom: 0;
 }
 

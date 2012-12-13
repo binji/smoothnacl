@@ -37,4 +37,11 @@ var controller = function ($scope) {
     ],
     gradientType: 0
   };
+
+  $scope.addColorstop = function () {
+    $scope.palette.colorstops.push({
+      color: '#ffffff',
+      stop: 100
+    });
+  };
 };

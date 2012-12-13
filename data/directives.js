@@ -210,4 +210,16 @@ angular.module('directives', [])
         }, true);  // true => compare using angular.equals
       },
     };
+  })
+  .directive('button', function () {
+    return {
+      restrict: 'E',
+      link: function (scope, iElement, iAttrs) {
+        iElement.button().click(function () {
+          scope.$apply(function () {
+            scope.$eval(iAttrs.click);
+          });
+        });
+      },
+    };
   });
