@@ -177,7 +177,7 @@ angular.module('directives', [])
             '<color-picker></color-picker>' +
             '<slider data-min="0" data-max="100" data-prec="0"></slider>' +
           '</div>' +
-          '<div class="close-button-div">' +
+          '<div class="close-button-div" data-ng-click="removeColorstop($index)">' +
             '<span class="ui-icon ui-icon-closethick"/>' +
           '</div>' +
         '</div>',
@@ -215,9 +215,7 @@ angular.module('directives', [])
     return {
       restrict: 'E',
       link: function (scope, iElement, iAttrs) {
-        iElement.button().click(function () {
-          scope.$apply(iAttrs.click);
-        });
+        iElement.button();
       },
     };
   });

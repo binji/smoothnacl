@@ -73,6 +73,10 @@ var controller = function ($scope) {
     });
   };
 
+  $scope.removeColorstop = function (index) {
+    $scope.palette.colorstops.splice(index, 1);
+  };
+
   $scope.getValues = function () {
     return {
       kernel: $scope.kernel,
