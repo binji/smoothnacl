@@ -216,9 +216,7 @@ angular.module('directives', [])
       restrict: 'E',
       link: function (scope, iElement, iAttrs) {
         iElement.button().click(function () {
-          scope.$apply(function () {
-            scope.$eval(iAttrs.click);
-          });
+          scope.$apply(iAttrs.click);
         });
       },
     };

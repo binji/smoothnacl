@@ -51,12 +51,16 @@ found in the LICENSE file.
         </p>
         <span id="fps">FPS: 0.000</span>
       </div>
-      <div id="tabs-presets">
+      <div id="tabs-presets" data-ng-controller="presetController">
         <form id="savePreset" class="setting-row">
           <input type="text" id="savePresetName" placeholder="Save name">
           <input type="submit" id="savePresetButton" value="Save">
         </form>
         <div id="presetMenu">
+          <li data-ng-repeat="preset in presets"
+              data-ng-click="setPreset($index)">
+            {{preset[0]}}
+          </li>
         </div>
         <!-- ugly hack for copying current presets -->
         <textarea id="presetTextarea"></textarea>
