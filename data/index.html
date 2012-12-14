@@ -56,11 +56,9 @@ found in the LICENSE file.
           <input type="text" id="savePresetName" placeholder="Save name">
           <input type="submit" id="savePresetButton" value="Save">
         </form>
-        <div id="presetMenu">
-          <li data-ng-repeat="preset in presets"
-              data-ng-click="setPreset($index)">
-            {{preset[0]}}
-          </li>
+        <div id="presetMenu" data-masonry>
+          <preset data-ng-repeat="preset in presets"
+              data-ng-click="setPreset($index)"></preset>
         </div>
         <!-- ugly hack for copying current presets -->
         <textarea id="presetTextarea"></textarea>
@@ -145,15 +143,19 @@ found in the LICENSE file.
     </div>
   </div>
   <div class="ui-layout-center">
-    <div id="listener">
+    <div id="listener" data-nacl-module
+        msg1="{{getKernelMessage()}}"
+        msg2="{{getSmootherMessage()}}"
+        msg3="{{getPaletteMessage()}}"
+        msg4="Clear:0"
+        msg5="Splat"
+        msg6="SetRunOptions:simulation,run"
+        msg7="SetDrawOptions:simulation">
     </div>
     <div id="buttonBar">
       <div>
         <input type="submit" id="clear" value="Clear">
         <input type="submit" id="splat" value="Splat">
-        <!--
-        <input type="submit" id="fullscreen" value="Fullscreen">
-        -->
       </div>
     </div>
   </div>

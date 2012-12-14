@@ -218,4 +218,72 @@ angular.module('directives', [])
         iElement.button();
       },
     };
+  })
+  .directive('preset', function () {
+    return {
+      restrict: 'E',
+      replace: true,
+      template:
+        '<div class="preset-item">' +
+          '<label>{{preset.name}}</label>' +
+          '<img data-ng-src="{{preset.imgSrc}}">' +
+        '</div>',
+    };
+  })
+  .directive('masonry', function ($timeout) {
+    return function postLink(scope, iElement, iAttrs) {
+      $timeout(function () {
+        iElement.masonry({
+          columnWidth: 128,
+          gutterWidth: 16,
+          isFitWidth: true,
+          itemSelector: '.preset-item',
+        });
+      });
+    };
+  })
+  .directive('naclModule', function ($interpolate, $timeout) {
+    return {
+      restrict: 'A',
+      link: function (scope, iElement, iAttrs) {
+        var embed = $('<embed>');
+        var attrs = {};
+
+        angular.extend(attrs, {
+          id: 'nacl_module',
+          src: 'smoothlife.nmf',
+          type: 'application/x-nacl',
+        });
+
+        // For some reason, the values are not correctly interpolated in
+        // iAttrs. The pre-interpolated attrs are in iElement[0].attributes,
+        // though, so we can redo the work (correctly).
+        angular.forEach(iElement[0].attributes, function (attr) {
+          if (attr.name.lastIndexOf('msg', 0) === 0) {
+            attrs[attr.name] = $interpolate(attr.value)(scope);
+          }
+        });
+
+        embed.attr(attrs);
+
+        $timeout(function () {
+          embed.attr({
+            width: $('.ui-layout-center').width(),
+            height: $('.ui-layout-center').height()
+          });
+        });
+
+        scope.$watch('kernel', function () {
+          embed[0].postMessage(scope.getKernelMessage());
+        }, true);
+        scope.$watch('smoother', function () {
+          embed[0].postMessage(scope.getSmootherMessage());
+        }, true);
+        scope.$watch('palette', function () {
+          embed[0].postMessage(scope.getPaletteMessage());
+        }, true);
+
+        iElement.append(embed);
+      }
+    };
   });
