@@ -89,6 +89,8 @@ var controller = function ($scope) {
     $scope.kernel = newPreset.kernel;
     $scope.smoother = newPreset.smoother;
     $scope.palette= newPreset.palette;
+
+    $scope.$broadcast('clearSplat');
   });
 };
 

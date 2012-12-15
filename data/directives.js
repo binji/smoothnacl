@@ -282,6 +282,10 @@ angular.module('directives', [])
         scope.$watch('palette', function () {
           embed[0].postMessage(scope.getPaletteMessage());
         }, true);
+        scope.$on('clearSplat', function () {
+          embed[0].postMessage('Clear:0');
+          embed[0].postMessage('Splat');
+        });
 
         iElement.append(embed);
       }
