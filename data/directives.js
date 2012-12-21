@@ -3,10 +3,11 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  **/
-"use strict"
+"use strict";
 
-angular.module('directives', [])
-  .directive('buttonset', function () {
+(function () {
+
+  var buttonsetDirective = function () {
     return {
       require: '?ngModel',
       restrict: 'E',  // Element only.
@@ -46,8 +47,9 @@ angular.module('directives', [])
         }
       },
     };
-  })
-  .directive('slider', function () {
+  };
+
+  var sliderDirective = function () {
     return {
       require: '?ngModel',
       restrict: 'E',  // Element only.
@@ -78,8 +80,9 @@ angular.module('directives', [])
         }
       }
     };
-  })
-  .directive('sliderRow', function () {
+  };
+
+  var sliderRowDirective = function () {
     return {
       restrict: 'E',
       replace: true,
@@ -107,8 +110,9 @@ angular.module('directives', [])
         return function postLink(scope, iElement, iAttrs) {};
       },
     };
-  })
-  .directive('buttonsetRow', function () {
+  };
+
+  var buttonsetRowDirective = function () {
     return {
       restrict: 'E',
       replace: true,
@@ -131,8 +135,9 @@ angular.module('directives', [])
         return function postLink(scope, iElement, iAttrs) {};
       },
     };
-  })
-  .directive('colorPicker', function () {
+  };
+
+  var colorPickerDirective = function () {
     return {
       restrict: 'E',
       replace: true,
@@ -165,8 +170,9 @@ angular.module('directives', [])
         };
       },
     };
-  })
-  .directive('colorstop', function () {
+  };
+
+  var colorstopDirective = function () {
     return {
       restrict: 'E',
       replace: true,
@@ -188,8 +194,9 @@ angular.module('directives', [])
         return function postLink(scope, iElement, iAttrs) {};
       },
     };
-  })
-  .directive('colorGradient', function () {
+  };
+
+  var colorGradientDirective = function () {
     return {
       restrict: 'E',
       replace: true,
@@ -210,16 +217,18 @@ angular.module('directives', [])
         }, true);  // true => compare using angular.equals
       },
     };
-  })
-  .directive('button', function () {
+  };
+
+  var buttonDirective = function () {
     return {
       restrict: 'E',
       link: function (scope, iElement, iAttrs) {
         iElement.button();
       },
     };
-  })
-  .directive('preset', function () {
+  };
+
+  var presetDirective = function () {
     return {
       restrict: 'E',
       replace: true,
@@ -229,8 +238,9 @@ angular.module('directives', [])
           '<img data-ng-src="{{preset.imgSrc}}">' +
         '</div>',
     };
-  })
-  .directive('masonry', function ($timeout) {
+  };
+
+  var masonryDirective = ['$timeout', function ($timeout) {
     return function postLink(scope, iElement, iAttrs) {
       $timeout(function () {
         iElement.masonry({
@@ -241,8 +251,10 @@ angular.module('directives', [])
         });
       });
     };
-  })
-  .directive('naclModule', function ($interpolate, $timeout) {
+  }];
+
+  var naclModuleDirective = ['$interpolate', '$timeout',
+      function ($interpolate, $timeout) {
     return {
       restrict: 'A',
       link: function (scope, iElement, iAttrs) {
@@ -290,4 +302,19 @@ angular.module('directives', [])
         iElement.append(embed);
       }
     };
-  });
+  }];
+
+  angular.module('smoothnacl', [])
+      .directive('button', buttonDirective)
+      .directive('buttonset', buttonsetDirective)
+      .directive('buttonsetRow', buttonsetRowDirective)
+      .directive('colorGradient', colorGradientDirective)
+      .directive('colorPicker', colorPickerDirective)
+      .directive('colorstop', colorstopDirective)
+      .directive('masonry', masonryDirective)
+      .directive('naclModule', naclModuleDirective)
+      .directive('preset', presetDirective)
+      .directive('sliderRow', sliderRowDirective)
+      .directive('slider', sliderDirective);
+
+})();

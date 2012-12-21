@@ -3,7 +3,8 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  **/
-"use strict"
+"use strict";
+
 var kernelOrder = ['discRadius', 'ringRadius', 'antiAliasRadius'];
 var smootherOrder = ['timestep', 'dt', 'b1', 'd1', 'b2', 'd2',
                      'sigmoidMode', 'sigmoid', 'mix', 'sn', 'sm'];
