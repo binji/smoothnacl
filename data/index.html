@@ -49,7 +49,13 @@ found in the LICENSE file.
             <li>The original source can be found at <a href="http://sourceforge.net/projects/smoothlife">http://sourceforge.net/projects/smoothlife</a>.</li>
           </ul>
         </p>
-        <span id="fps">FPS: 0.000</span>
+        <span id="fps">FPS: {{fps}}</span>
+        <p>
+          <button id="takeScreenshot" data-ng-click="takeScreenshot()">
+            Screenshot
+          </button>
+          <img ng-src="{{screenshotUrl}}"></img>
+        </p>
       </div>
       <div id="tabs-presets" data-ng-controller="presetController">
         <form id="savePreset" class="setting-row">

@@ -93,6 +93,16 @@ var controller = function ($scope) {
 
     $scope.$broadcast('clearSplat');
   });
+
+  $scope.takeScreenshot = function () {
+    $scope.$broadcast('takeScreenshot', [
+        'reduce 256',
+        'crop 0.5 0.5 128',
+        'brightness_contrast 10 40',
+    ], function (url) {
+      $scope.screenshotUrl = url;
+    });
+  };
 };
 
 var presetController = function ($scope) {

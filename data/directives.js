@@ -253,8 +253,8 @@
     };
   }];
 
-  var naclModuleDirective = ['$interpolate', '$timeout',
-      function ($interpolate, $timeout) {
+  var naclModuleDirective = ['$interpolate', '$timeout', '$rootScope',
+      function ($interpolate, $timeout, $rootScope) {
     return {
       restrict: 'A',
       link: function (scope, iElement, iAttrs) {
@@ -298,6 +298,40 @@
           embed[0].postMessage('Clear:0');
           embed[0].postMessage('Splat');
         });
+
+        scope.requestId = 0;
+        scope.requestCallbacks = {};
+
+        scope.$on('takeScreenshot', function (event, params, callback) {
+          var requestId = scope.requestId++;
+          scope.requestCallbacks[requestId] = callback;
+          params = angular.copy(params)
+          params.unshift(requestId)
+          embed[0].postMessage('Screenshot:' + params.join(','))
+        });
+
+        // bind/on doesn't work for messages from NaCl module.
+        iElement[0].addEventListener('message', function (e) {
+          console.log('Got message from nacl module.');
+          if (typeof(e.data) === 'string') {
+            // Skip "FPS: "
+            var fps = +e.data.substr(5);
+            // FPS update.
+            $rootScope.$apply(function (scope) {
+              scope.fps = fps;
+            });
+          } else {
+            var requestId = new Uint32Array(e.data, 0, 4)[0];
+            console.log('Got screenshot with request id: ' + requestId);
+            var imageData = new Uint8Array(e.data, 4);
+            var blob = new Blob([imageData], {type: 'image/jpeg'});
+            var url = webkitURL.createObjectURL(blob);
+            var callback = scope.requestCallbacks[requestId];
+            if (callback)
+              callback(url);
+            delete scope.requestCallbacks[requestId];
+          }
+        }, true);
 
         iElement.append(embed);
       }
