@@ -50,18 +50,12 @@ found in the LICENSE file.
           </ul>
         </p>
         <span id="fps">FPS: {{fps}}</span>
-        <p>
-          <button id="takeScreenshot" data-ng-click="takeScreenshot()">
-            Screenshot
-          </button>
-          <img ng-src="{{screenshotUrl}}"></img>
-        </p>
       </div>
       <div id="tabs-presets" data-ng-controller="presetController">
-        <form id="savePreset" class="setting-row">
+        <form id="savePreset" class="setting-row" data-ng-submit="addPreset()">
           <input type="text" id="savePresetName" placeholder="Save name"
               data-ng-model="addPresetName">
-          <button id="savePresetButton" data-ng-click="addPreset()">
+          <button id="savePresetButton">
             Save
           </button>
         </form>

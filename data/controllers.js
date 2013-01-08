@@ -93,16 +93,6 @@ var controller = function ($scope) {
 
     $scope.$broadcast('clearSplat');
   });
-
-  $scope.takeScreenshot = function () {
-    $scope.$broadcast('takeScreenshot', [
-        'reduce 256',
-        'crop 0.5 0.5 128',
-        'brightness_contrast 10 40',
-    ], function (url) {
-      $scope.screenshotUrl = url;
-    });
-  };
 };
 
 var presetController = function ($scope) {
@@ -121,6 +111,7 @@ var presetController = function ($scope) {
   function getPresetObject(preset) {
     var result = {
       name: preset[0],
+      canRemove: false,
       kernel: {},
       smoother: {},
       palette: {
@@ -156,11 +147,11 @@ var presetController = function ($scope) {
     $scope.$emit('presetChanged', $scope.presets[presetIndex]);
   };
 
-  $scope.setPreset(0);
-
   $scope.addPreset = function () {
     var presetObject = angular.copy($scope.getValues());
     presetObject.name = $scope.addPresetName;
+    presetObject.canRemove = true;
+
     // Clear the input box.
     $scope.addPresetName = '';
 
@@ -173,5 +164,13 @@ var presetController = function ($scope) {
     });
 
     $scope.presets.unshift(presetObject);
+
+    return false;
   };
+
+  $scope.removePreset = function (index) {
+    $scope.presets.splice(index, 1);
+  };
+
+  $scope.setPreset(0);
 };

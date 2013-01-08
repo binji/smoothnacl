@@ -236,6 +236,10 @@
         '<div class="preset-item">' +
           '<label>{{preset.name}}</label>' +
           '<img data-ng-src="{{preset.imgSrc}}">' +
+          '<div class="close-button-div" data-ng-show="preset.canRemove"' +
+              'data-ng-click="removePreset($index)">' +
+            '<span class="ui-icon ui-icon-closethick"/>' +
+          '</div>' +
         '</div>',
     };
   };
