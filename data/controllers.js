@@ -157,4 +157,21 @@ var presetController = function ($scope) {
   };
 
   $scope.setPreset(0);
+
+  $scope.addPreset = function () {
+    var presetObject = angular.copy($scope.getValues());
+    presetObject.name = $scope.addPresetName;
+    // Clear the input box.
+    $scope.addPresetName = '';
+
+    $scope.$emit('takeScreenshot', [
+        'reduce 256',
+        'crop 0.5 0.5 128',
+        'brightness_contrast 10 40',
+    ], function (url) {
+      presetObject.imgSrc = url;
+    });
+
+    $scope.presets.unshift(presetObject);
+  };
 };

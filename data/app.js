@@ -18,6 +18,7 @@ $(document).ready(function () {
     east__resizable: true,
     east__onresize: function () {
       $('.tabs').tabs('refresh');
+      $('#presetMenu').masonry('reload');
     },
     livePaneResizing: true
   });

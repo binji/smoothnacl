@@ -59,10 +59,13 @@ found in the LICENSE file.
       </div>
       <div id="tabs-presets" data-ng-controller="presetController">
         <form id="savePreset" class="setting-row">
-          <input type="text" id="savePresetName" placeholder="Save name">
-          <input type="submit" id="savePresetButton" value="Save">
+          <input type="text" id="savePresetName" placeholder="Save name"
+              data-ng-model="addPresetName">
+          <button id="savePresetButton" data-ng-click="addPreset()">
+            Save
+          </button>
         </form>
-        <div id="presetMenu" data-masonry>
+        <div id="presetMenu" data-masonry data-model="presets">
           <preset data-ng-repeat="preset in presets"
               data-ng-click="setPreset($index)"></preset>
         </div>

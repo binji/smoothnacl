@@ -250,6 +250,39 @@
           itemSelector: '.preset-item',
         });
       });
+
+      var oldValue = null;
+      scope.$watch(iAttrs.model, function (newValue) {
+        // This watches too many changes. We only want to reload when the
+        // presets array changes, not if any of the array values change.
+        // (For some reason, passing false to $watch doesn't do this).
+        if (oldValue !== null) {
+          if (oldValue.length === newValue.length) {
+            // Check to see if the objects of the array are equal, if so,
+            // the only change that occurred was a change to an item's
+            // value.
+            var allMatch = true;
+            for (var i = 0; i < oldValue.length; ++i) {
+              if (oldValue[i] !== newValue[i]) {
+                allMatch = false;
+                break;
+              }
+            }
+
+            if (allMatch) {
+              return;
+            }
+          }
+        }
+
+        // Otherwise, reload masonry.
+        iElement.masonry('reload');
+
+        // Make oldValue a shallow copy of newValue.
+        oldValue = [];
+        for (var i = 0; i < newValue.length; ++i)
+          oldValue.push(newValue[i]);
+      }, true);  // true => compare using angular.equals
     };
   }];
 
