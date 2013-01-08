@@ -9,7 +9,7 @@ var kernelOrder = ['discRadius', 'ringRadius', 'antiAliasRadius'];
 var smootherOrder = ['timestep', 'dt', 'b1', 'd1', 'b2', 'd2',
                      'sigmoidMode', 'sigmoid', 'mix', 'sn', 'sm'];
 
-var controller = function ($scope) {
+var controller = function ($scope, $timeout) {
   $scope.drawOptions = {
     view: 0,
   };
@@ -87,12 +87,14 @@ var controller = function ($scope) {
   };
 
   $scope.$on('presetChanged', function (event, newPreset) {
-    $scope.kernel = newPreset.kernel;
-    $scope.smoother = newPreset.smoother;
-    $scope.palette= newPreset.palette;
+    $scope.kernel = angular.copy(newPreset.kernel);
+    $scope.smoother = angular.copy(newPreset.smoother);
+    $scope.palette= angular.copy(newPreset.palette);
 
-    $scope.$broadcast('clear');
-    $scope.$broadcast('splat');
+    $timeout(function () {
+      $scope.$broadcast('clear');
+      $scope.$broadcast('splat');
+    });
   });
 
   $scope.clear = function () {
