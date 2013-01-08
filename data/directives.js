@@ -101,7 +101,7 @@
         span.text('{{' + model + ' | number:' + tAttrs.prec + '}}');
         var slider = tElement.find('slider');
         slider.attr({
-          'data-ng-model': model,
+          'ng-model': model,
           'data-min': tAttrs.min,
           'data-max': tAttrs.max,
           'data-prec': tAttrs.prec,
@@ -128,7 +128,7 @@
         var buttonset = tElement.find('buttonset');
         buttonset.attr({
           'data-name': tAttrs.model.replace(/\W+/, '_'),
-          'data-ng-model': tAttrs.model,
+          'ng-model': tAttrs.model,
           'data-values': tAttrs.values,
         });
 
@@ -183,13 +183,13 @@
             '<color-picker></color-picker>' +
             '<slider data-min="0" data-max="100" data-prec="0"></slider>' +
           '</div>' +
-          '<div class="close-button-div" data-ng-click="removeColorstop($index)">' +
+          '<div class="close-button-div" ng-click="removeColorstop($index)">' +
             '<span class="ui-icon ui-icon-closethick"/>' +
           '</div>' +
         '</div>',
       compile: function (tElement, tAttrs) {
-        tElement.find('color-picker').attr('data-ng-model', tAttrs.model + '.color');
-        tElement.find('slider').attr('data-ng-model', tAttrs.model + '.stop');
+        tElement.find('color-picker').attr('ng-model', tAttrs.model + '.color');
+        tElement.find('slider').attr('ng-model', tAttrs.model + '.stop');
 
         return function postLink(scope, iElement, iAttrs) {};
       },
@@ -235,9 +235,9 @@
       template:
         '<div class="preset-item">' +
           '<label>{{preset.name}}</label>' +
-          '<img data-ng-src="{{preset.imgSrc}}">' +
-          '<div class="close-button-div" data-ng-show="preset.canRemove"' +
-              'data-ng-click="removePreset($index)">' +
+          '<img ng-src="{{preset.imgSrc}}">' +
+          '<div class="close-button-div" ng-show="preset.canRemove"' +
+              'ng-click="removePreset($index)">' +
             '<span class="ui-icon ui-icon-closethick"/>' +
           '</div>' +
         '</div>',

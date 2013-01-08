@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html data-ng-app="smoothnacl" data-ng-csp>
+<html ng-app="smoothnacl" ng-csp>
 <!--
 Copyright (c) 2012 The Chromium Authors. All rights reserved.
 Use of this source code is governed by a BSD-style license that can be
@@ -51,17 +51,17 @@ found in the LICENSE file.
         </p>
         <span id="fps">FPS: {{fps}}</span>
       </div>
-      <div id="tabs-presets" data-ng-controller="presetController">
-        <form id="savePreset" class="setting-row" data-ng-submit="addPreset()">
+      <div id="tabs-presets" ng-controller="presetController">
+        <form id="savePreset" class="setting-row" ng-submit="addPreset()">
           <input type="text" id="savePresetName" placeholder="Save name"
-              data-ng-model="addPresetName">
+              ng-model="addPresetName">
           <button id="savePresetButton">
             Save
           </button>
         </form>
-        <div id="presetMenu" data-masonry data-model="presets">
-          <preset data-ng-repeat="preset in presets"
-              data-ng-click="setPreset($index)"></preset>
+        <div id="presetMenu" masonry data-model="presets">
+          <preset ng-repeat="preset in presets"
+              ng-click="setPreset($index)"></preset>
         </div>
         <!-- ugly hack for copying current presets -->
         <textarea id="presetTextarea"></textarea>
@@ -75,11 +75,11 @@ found in the LICENSE file.
               data-model="palette.gradientType"
               data-values="linear repeat"></buttonset-row>
           <colorstop
-              data-ng-repeat="colorstop in palette.colorstops"
+              ng-repeat="colorstop in palette.colorstops"
               data-model="colorstop"></colorstop>
         </div>
         <div class="setting-row no-border-bottom">
-          <button class="plus-button-div" data-ng-click="addColorstop()">
+          <button class="plus-button-div" ng-click="addColorstop()">
             <span class="ui-icon ui-icon-plusthick"></span>
           </button>
         </div>
