@@ -228,6 +228,17 @@
     };
   };
 
+  var disableButtonDirective = function () {
+    return {
+      restrict: 'A',
+      link: function (scope, iElement, iAttrs) {
+        scope.$watch(iAttrs.disableButton, function (value) {
+          iElement.button('option', 'disabled', value);
+        });
+      },
+    };
+  };
+
   var presetDirective = function () {
     return {
       restrict: 'E',
@@ -382,6 +393,7 @@
       .directive('colorGradient', colorGradientDirective)
       .directive('colorPicker', colorPickerDirective)
       .directive('colorstop', colorstopDirective)
+      .directive('disableButton', disableButtonDirective)
       .directive('masonry', masonryDirective)
       .directive('naclModule', naclModuleDirective)
       .directive('preset', presetDirective)

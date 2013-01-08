@@ -52,12 +52,12 @@ found in the LICENSE file.
         <span id="fps">FPS: {{fps}}</span>
       </div>
       <div id="tabs-presets" ng-controller="presetController">
-        <form id="savePreset" class="setting-row" ng-submit="addPreset()">
+        <form name="savePresetForm" id="savePreset" class="setting-row"
+            ng-submit="addPreset()">
           <input type="text" id="savePresetName" placeholder="Save name"
-              ng-model="addPresetName">
-          <button id="savePresetButton">
-            Save
-          </button>
+              ng-model="addPresetName" required>
+          <button id="savePresetButton"
+              disable-button="savePresetForm.$invalid">Save</button>
         </form>
         <div id="presetMenu" masonry data-model="presets">
           <preset ng-repeat="preset in presets"
