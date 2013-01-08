@@ -342,8 +342,10 @@
         scope.$watch('palette', function () {
           embed[0].postMessage(scope.getPaletteMessage());
         }, true);
-        scope.$on('clearSplat', function () {
+        scope.$on('clear', function () {
           embed[0].postMessage('Clear:0');
+        });
+        scope.$on('splat', function () {
           embed[0].postMessage('Splat');
         });
 

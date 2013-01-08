@@ -91,8 +91,17 @@ var controller = function ($scope) {
     $scope.smoother = newPreset.smoother;
     $scope.palette= newPreset.palette;
 
-    $scope.$broadcast('clearSplat');
+    $scope.$broadcast('clear');
+    $scope.$broadcast('splat');
   });
+
+  $scope.clear = function () {
+    $scope.$broadcast('clear');
+  };
+
+  $scope.splat = function () {
+    $scope.$broadcast('splat');
+  };
 };
 
 var presetController = function ($scope) {
