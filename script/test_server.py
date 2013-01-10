@@ -44,7 +44,7 @@ class QuietHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
 
 def _HTTPServerProcess(conn, serve_dir):
-  """Run a local httpserver with a randomly-chosen port.
+  """Run a local httpserver with the port 5103.
 
   This function assumes it is run as a child process using multiprocessing.
 
@@ -58,7 +58,7 @@ def _HTTPServerProcess(conn, serve_dir):
   import BaseHTTPServer
 
   os.chdir(serve_dir)
-  httpd = BaseHTTPServer.HTTPServer(('', 0), QuietHTTPRequestHandler)
+  httpd = BaseHTTPServer.HTTPServer(('', 5103), QuietHTTPRequestHandler)
   conn.send(httpd.server_address[1])  # the chosen port number
   httpd.timeout = 0.5  # seconds
   running = True

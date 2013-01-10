@@ -92,8 +92,8 @@ var controller = function ($scope, $timeout) {
     $scope.palette= angular.copy(newPreset.palette);
 
     $timeout(function () {
-      $scope.$broadcast('clear');
-      $scope.$broadcast('splat');
+      $scope.clear();
+      $scope.splat();
     });
   });
 
@@ -106,14 +106,18 @@ var controller = function ($scope, $timeout) {
   };
 };
 
-var presetController = function ($scope, staticPresets) {
-  $scope.presets = staticPresets.get();
+var presetController = function ($scope, localStaticPreset) {
+  $scope.savePresets = function () {
+    localStaticPreset.set($scope.presets);
+  };
 
   $scope.choosePreset = function (presetIndex) {
+    if (!presetsLoaded) return;
     $scope.$emit('presetChanged', $scope.presets[presetIndex]);
   };
 
   $scope.addPreset = function () {
+    if (!presetsLoaded) return;
     var presetObject = angular.copy($scope.getValues());
     presetObject.name = $scope.addPresetName;
     presetObject.canRemove = true;
@@ -127,14 +131,23 @@ var presetController = function ($scope, staticPresets) {
         'brightness_contrast 10 40',
     ], function (url) {
       presetObject.imgSrc = url;
+      $scope.savePresets();
     });
 
     $scope.presets.unshift(presetObject);
+    $scope.savePresets();
   };
 
   $scope.removePreset = function (index) {
+    if (!presetsLoaded) return;
     $scope.presets.splice(index, 1);
+    $scope.savePresets();
   };
 
-  $scope.choosePreset(0);
+  var presetsLoaded = false;
+  localStaticPreset.get(function (presets) {
+    $scope.presets = presets;
+    presetsLoaded = true;
+    $scope.choosePreset(0);
+  });
 };

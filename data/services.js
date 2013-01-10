@@ -7,7 +7,7 @@
 
 (function () {
 
-  var staticPresetsService = function () {
+  var staticPresetService = function () {
     var presets = [
       ["Subdividers",[15.2,32.1,7.6],[3,0.329,0.15,0.321,0.145,0.709,3,2,4,0.269,0.662],[0,"#000000",3,"#f5f5c1",12,"#158a34",68,"#89e681",100]],
       ["Green Hex",[15.2,32.1,5],[3,0.273,0.117,0.288,0.243,0.348,3,2,4,0.269,0.662],[1,"#000000",3,"#f5f5c1",8,"#158a34",17,"#89e681",20]],
@@ -56,11 +56,71 @@
     });
 
     return {
-      get: function () { return convertedPresets; },
+      get: function (callback) { callback(convertedPresets); },
       set: function (presets) {},
     };
   };
 
+  var localStoragePresetService = function () {
+    // Use chrome.storage (Chrome Packaged Apps).
+    if (chrome !== undefined && chrome.storage !== undefined) {
+      return {
+        get: function (callback) {
+          chrome.storage.local.get('presets', function (items) {
+            callback(JSON.parse(items['presets']));
+          });
+        },
+
+        set: function (presets) {
+          chrome.storage.local.set({'presets': JSON.stringify(presets)});
+        }
+      };
+    }
+
+    // Use localStorage.
+    if (window.localStorage !== undefined) {
+      return {
+        get: function (callback) {
+          callback(JSON.parse(window.localStorage.getItem('presets')));
+        },
+
+        set: function (presets) {
+          window.localStorage.setItem('presets', JSON.stringify(presets));
+        }
+      };
+    }
+
+    // Dummy.
+    return {
+      get: function (callback) { callback([]); },
+      set: function () {}
+    };
+  };
+
+  var localStaticPresetService = function (staticPreset, localStoragePreset) {
+    return {
+      get: function (callback) {
+        localStoragePreset.get(function (presets) {
+          if (presets) {
+            callback(presets);
+            return;
+          }
+
+          staticPreset.get(function (presets) {
+            callback(presets);
+          });
+        });
+
+      },
+
+      set: function (presets) {
+        localStoragePreset.set(presets);
+      },
+    };
+  };
+
   window.module
-      .factory('staticPresets', staticPresetsService);
+      .factory('staticPreset', staticPresetService)
+      .factory('localStoragePreset', localStoragePresetService)
+      .factory('localStaticPreset', localStaticPresetService);
 })();
