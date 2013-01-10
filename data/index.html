@@ -18,8 +18,10 @@ found in the LICENSE file.
   <script type="text/javascript" src="jquery.masonry.min.js"></script>
   <script type="text/javascript" src="jquery.miniColors.js"></script>
   <script type="text/javascript" src="angular.js"></script>
+  <script type="text/javascript" src="module.js"></script>
   <script type="text/javascript" src="controllers.js"></script>
   <script type="text/javascript" src="directives.js"></script>
+  <script type="text/javascript" src="services.js"></script>
   <script type="text/javascript" src="app.js"></script>
 </head>
 <body ng-controller="controller">
@@ -61,7 +63,7 @@ found in the LICENSE file.
         </form>
         <div id="presetMenu" masonry data-model="presets">
           <preset ng-repeat="preset in presets"
-              ng-click="setPreset($index)"></preset>
+              ng-click="choosePreset($index)"></preset>
         </div>
         <!-- ugly hack for copying current presets -->
         <textarea id="presetTextarea"></textarea>

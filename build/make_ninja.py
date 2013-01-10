@@ -302,6 +302,7 @@ DATA_FILES = [
   'data/directives.js',
   'data/index.html',
   'data/main.css',
+  'data/module.js',
   'data/preset0.jpg',
   'data/preset1.jpg',
   'data/preset2.jpg',
@@ -311,6 +312,7 @@ DATA_FILES = [
   'data/preset6.jpg',
   'data/preset7.jpg',
   'data/preset8.jpg',
+  'data/services.js',
   # Strip everything between < and > when repathing.
 #  '<third_party/angular.js/>angular.min.js',
   '<third_party/angular.js/>angular.js',

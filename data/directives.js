@@ -388,7 +388,7 @@
     };
   }];
 
-  angular.module('smoothnacl', [])
+  window.module
       .directive('button', buttonDirective)
       .directive('buttonset', buttonsetDirective)
       .directive('buttonsetRow', buttonsetRowDirective)
