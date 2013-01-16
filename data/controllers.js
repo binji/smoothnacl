@@ -9,7 +9,7 @@ var kernelOrder = ['discRadius', 'ringRadius', 'antiAliasRadius'];
 var smootherOrder = ['timestep', 'dt', 'b1', 'd1', 'b2', 'd2',
                      'sigmoidMode', 'sigmoid', 'mix', 'sn', 'sm'];
 
-var controller = function ($scope, $timeout) {
+var controller = function ($scope) {
   $scope.drawOptions = {
     view: 0,
   };
@@ -78,11 +78,15 @@ var controller = function ($scope, $timeout) {
   };
 
 
-  $scope.getValues = function () {
+  $scope.getValues = function (fromPreset) {
+    if (!fromPreset) {
+      fromPreset = $scope;
+    }
+
     return {
-      kernel: $scope.kernel,
-      smoother: $scope.smoother,
-      palette: $scope.palette
+      kernel: fromPreset.kernel,
+      smoother: fromPreset.smoother,
+      palette: fromPreset.palette
     };
   };
 
@@ -91,10 +95,11 @@ var controller = function ($scope, $timeout) {
     $scope.smoother = angular.copy(newPreset.smoother);
     $scope.palette= angular.copy(newPreset.palette);
 
-    $timeout(function () {
-      $scope.clear();
-      $scope.splat();
-    });
+    // When the preset changes, we want to clear/splat -- but only after the
+    // values have changed to the new values. Broadcast those values with the
+    // message, but if it is unset, perform the clear/splat immediately.
+    var values = angular.copy($scope.getValues(newPreset));
+    $scope.$broadcast('clearSplat', values);
   });
 
   $scope.clear = function () {
@@ -107,7 +112,10 @@ var controller = function ($scope, $timeout) {
 };
 
 var presetController = function ($scope, localStaticPreset) {
+  var presetsLoaded = false;
+
   $scope.savePresets = function () {
+    if (!presetsLoaded) return;
     localStaticPreset.set($scope.presets);
   };
 
@@ -144,7 +152,6 @@ var presetController = function ($scope, localStaticPreset) {
     $scope.savePresets();
   };
 
-  var presetsLoaded = false;
   localStaticPreset.get(function (presets) {
     $scope.presets = presets;
     presetsLoaded = true;

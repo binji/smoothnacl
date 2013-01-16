@@ -268,6 +268,9 @@
 
       var oldValue = null;
       scope.$watch(iAttrs.model, function (newValue) {
+        if (!newValue)
+          return;
+
         // This watches too many changes. We only want to reload when the
         // presets array changes, not if any of the array values change.
         // (For some reason, passing false to $watch doesn't do this).
@@ -333,20 +336,76 @@
           });
         });
 
+        var moduleLoaded = false;
+        var queuedMessages = [];
+
+        var postMessage = function (message) {
+          if (!moduleLoaded) {
+            queuedMessages.push(message);
+          } else {
+            embed[0].postMessage(message);
+          }
+        };
+
+        var postQueuedMessages = function () {
+          for (var i = 0; i < queuedMessages.length; ++i) {
+            embed[0].postMessage(queuedMessages[i]);
+          }
+          queuedMessages = [];
+        };
+
+        iElement[0].addEventListener('load', function (e) {
+          moduleLoaded = true;
+          postQueuedMessages();
+        }, true);
+
+        var clearSplatValues;
+        var postClearSplatIfValuesMatch = function () {
+          if (angular.equals(postedValues, clearSplatValues)) {
+            postMessage('Clear:0');
+            postMessage('Splat');
+            clearSplatValues = undefined;
+            return true;
+          } else {
+            return false;
+          }
+        };
+
+        var postedValues = {
+          kernel: undefined,
+          smoother: undefined,
+          palette: undefined
+        };
+
         scope.$watch('kernel', function () {
-          embed[0].postMessage(scope.getKernelMessage());
+          postMessage(scope.getKernelMessage());
+          postedValues.kernel = angular.copy(scope.kernel);
+          postClearSplatIfValuesMatch();
         }, true);
         scope.$watch('smoother', function () {
-          embed[0].postMessage(scope.getSmootherMessage());
+          postMessage(scope.getSmootherMessage());
+          postedValues.smoother = angular.copy(scope.smoother);
+          postClearSplatIfValuesMatch();
         }, true);
         scope.$watch('palette', function () {
-          embed[0].postMessage(scope.getPaletteMessage());
+          postMessage(scope.getPaletteMessage());
+          postedValues.palette = angular.copy(scope.palette);
+          postClearSplatIfValuesMatch();
         }, true);
-        scope.$on('clear', function () {
-          embed[0].postMessage('Clear:0');
+
+        scope.$on('clearSplat', function (event, values) {
+          if (angular.equals(postedValues, values)) {
+            postMessage('Clear:0');
+            postMessage('Splat');
+          } else {
+            clearSplatValues = values;
+          }
         });
-        scope.$on('splat', function () {
-          embed[0].postMessage('Splat');
+        scope.$on('clear', function (values) {
+          postMessage('Clear:0');
+        });
+        scope.$on('splat', function (values) {
+          postMessage('Splat');
         });
 
         scope.requestId = 0;
@@ -357,12 +416,11 @@
           scope.requestCallbacks[requestId] = callback;
           params = angular.copy(params)
           params.unshift(requestId)
-          embed[0].postMessage('Screenshot:' + params.join(','))
+          postMessage('Screenshot:' + params.join(','))
         });
 
         // bind/on doesn't work for messages from NaCl module.
         iElement[0].addEventListener('message', function (e) {
-          console.log('Got message from nacl module.');
           if (typeof(e.data) === 'string') {
             // Skip "FPS: "
             var fps = +e.data.substr(5);

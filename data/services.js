@@ -67,7 +67,11 @@
       return {
         get: function (callback) {
           chrome.storage.local.get('presets', function (items) {
-            callback(JSON.parse(items['presets']));
+            if ('presets' in items) {
+              callback(JSON.parse(items['presets']));
+            } else {
+              callback([]);
+            }
           });
         },
 
@@ -81,7 +85,12 @@
     if (window.localStorage !== undefined) {
       return {
         get: function (callback) {
-          callback(JSON.parse(window.localStorage.getItem('presets')));
+          var presets = window.localStorage.getItem('presets');
+          if (presets !== undefined) {
+            callback(JSON.parse(items));
+          } else {
+            callback([]);
+          }
         },
 
         set: function (presets) {
@@ -101,7 +110,7 @@
     return {
       get: function (callback) {
         localStoragePreset.get(function (presets) {
-          if (presets) {
+          if (presets.length > 0) {
             callback(presets);
             return;
           }
@@ -110,7 +119,6 @@
             callback(presets);
           });
         });
-
       },
 
       set: function (presets) {
