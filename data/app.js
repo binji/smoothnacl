@@ -24,11 +24,6 @@ $(document).ready(function () {
     livePaneResizing: true
   });
 
-  $('.tabs').tabs({
-    active: 1,
-    heightStyle: 'fill',
-  });
-
   var buttonBarTimeout;
   $('#buttonBar').hide()
                  .mouseover(function (e) {

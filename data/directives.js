@@ -447,6 +447,25 @@
     };
   }];
 
+  var tabsDirective = function () {
+    return {
+      restrict: 'A',
+      link: function (scope, iElement, iAttrs) {
+        var tabOptions = {};
+
+        // Forward attrs like "tabs-foo-bar" through as "fooBar".
+        angular.forEach(iAttrs, function (value, key) {
+          if (key.lastIndexOf('tabs', 0) === 0) {
+            var fixedKey = key.charAt(4).toLowerCase() + key.slice(5);
+            tabOptions[fixedKey] = value;
+          }
+        });
+
+        iElement.tabs(tabOptions);
+      },
+    };
+  };
+
   window.module
       .directive('button', buttonDirective)
       .directive('buttonset', buttonsetDirective)
@@ -459,6 +478,7 @@
       .directive('naclModule', naclModuleDirective)
       .directive('preset', presetDirective)
       .directive('sliderRow', sliderRowDirective)
-      .directive('slider', sliderDirective);
+      .directive('slider', sliderDirective)
+      .directive('tabs', tabsDirective);
 
 })();
