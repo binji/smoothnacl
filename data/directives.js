@@ -432,8 +432,9 @@
             var requestId = new Uint32Array(e.data, 0, 4)[0];
             console.log('Got screenshot with request id: ' + requestId);
             var imageData = new Uint8Array(e.data, 4);
-            var blob = new Blob([imageData], {type: 'image/jpeg'});
-            var url = webkitURL.createObjectURL(blob);
+            var stringImageData = String.fromCharCode.apply(null, imageData);
+            var url = 'data:image/jpeg;base64,' + btoa(stringImageData);
+
             var callback = scope.requestCallbacks[requestId];
             if (callback)
               callback(url);
