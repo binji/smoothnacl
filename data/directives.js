@@ -304,6 +304,24 @@
     };
   }];
 
+  var stringFromArray = function (a) {
+    // String.fromCharCode fails with imageData > 120k or so, seemingly
+    // because the array is put on the stack. Just use 50k chunks to be safe.
+    var maxLength = 50 * 1024;
+    var offset = 0;
+    var result = '';
+    while (offset < a.length) {
+      var length = a.length - offset;
+      if (length > maxLength)
+        length = maxLength;
+
+      result += String.fromCharCode.apply(null,
+                                          a.subarray(offset, offset + length));
+      offset += length;
+    }
+    return result;
+  };
+
   var naclModuleDirective = ['$interpolate', '$timeout', '$rootScope',
       function ($interpolate, $timeout, $rootScope) {
     return {
@@ -432,7 +450,7 @@
             var requestId = new Uint32Array(e.data, 0, 4)[0];
             console.log('Got screenshot with request id: ' + requestId);
             var imageData = new Uint8Array(e.data, 4);
-            var stringImageData = String.fromCharCode.apply(null, imageData);
+            var stringImageData = stringFromArray(imageData);
             var url = 'data:image/jpeg;base64,' + btoa(stringImageData);
 
             var callback = scope.requestCallbacks[requestId];
