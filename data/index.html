@@ -32,6 +32,7 @@ found in the LICENSE file.
         <li><a href="#tabs-about">About</a></li>
         <li><a href="#tabs-presets">Patterns</a></li>
         <li><a href="#tabs-colors">Colors</a></li>
+        <li><a href="#tabs-brush">Brush</a></li>
         <li><a href="#tabs-advanced">Advanced</a></li>
       </ul>
       <div id="tabs-about">
@@ -82,6 +83,20 @@ found in the LICENSE file.
           <button class="plus-button-div" ng-click="addColorstop()">
             <span class="ui-icon ui-icon-plusthick"></span>
           </button>
+        </div>
+      </div>
+      <div id="tabs-brush">
+        <div class="brush">
+          <slider-row data-label="brush radius"
+              data-model="brush.radius"
+              data-min="0" data-max="100" data-prec="0"
+              title="Radius of the brush in pixels.">
+          </slider-row>
+          <slider-row data-label="brush intensity"
+              data-model="brush.color"
+              data-min="0" data-max="1" data-prec="3"
+              title="0 erases cells, 1 paints live cells, 0.5 is 'half alive'.">
+          </slider-row>
         </div>
       </div>
       <div id="tabs-advanced">

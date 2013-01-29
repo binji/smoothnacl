@@ -47,6 +47,7 @@ class SmoothlifeInstance : public pp::Instance {
   void MessageSetDrawOptions(const ParamList& params);
   void MessageSetFullscreen(const ParamList& params);
   void MessageScreenshot(const ParamList& params);
+  void MessageSetBrush(const ParamList& params);
 
   void ScheduleUpdate();
   void UpdateCallback(int32_t result);
@@ -58,6 +59,9 @@ class SmoothlifeInstance : public pp::Instance {
   MessageMap message_map_;
   pp::Fullscreen fullscreen_;
   bool is_initial_view_change_;
+
+  double brush_radius_;
+  double brush_color_;
 
   // Disallow copy constructor and assignment operator.
   SmoothlifeInstance(const SmoothlifeInstance&);

@@ -395,6 +395,9 @@
           palette: undefined
         };
 
+        scope.$watch('brush', function () {
+          postMessage(scope.getBrushMessage());
+        }, true);
         scope.$watch('kernel', function () {
           postMessage(scope.getKernelMessage());
           postedValues.kernel = angular.copy(scope.kernel);

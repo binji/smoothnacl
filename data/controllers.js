@@ -14,6 +14,14 @@ var controller = function ($scope) {
     view: 0,
   };
 
+  $scope.brush = {
+    radius: 10,
+    color: 1.0,
+  };
+  $scope.getBrushMessage = function () {
+    return 'SetBrush:' + $scope.brush.radius + ',' + $scope.brush.color;
+  };
+
   // Kernel
   $scope.kernel = {
     discRadius: 0,

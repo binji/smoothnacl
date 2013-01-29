@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 #include "smoothlife_instance.h"
+#include <algorithm>
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -30,6 +31,7 @@
 namespace {
 
 const int kUpdateInterval = 1000;
+const double kMaxBrushRadius = 100.0;
 
 double GetTimeTicks() {
   return pp::Module::Get()->core()->GetTimeTicks();
@@ -67,7 +69,9 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
       thread_(NULL),
       sim_size_(512, 512),
       fullscreen_(this),
-      is_initial_view_change_(true) {
+      is_initial_view_change_(true),
+      brush_radius_(10),
+      brush_color_(1.0) {
   // Request to receive input events.
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
@@ -133,6 +137,8 @@ void SmoothlifeInstance::InitMessageMap() {
         "SetFullscreen", &SmoothlifeInstance::MessageSetFullscreen));
   message_map_.insert(MessageMap::value_type(
         "Screenshot", &SmoothlifeInstance::MessageScreenshot));
+  message_map_.insert(MessageMap::value_type(
+        "SetBrush", &SmoothlifeInstance::MessageSetBrush));
 }
 
 void SmoothlifeInstance::DidChangeView(const pp::View& view) {
@@ -167,8 +173,8 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
               &SimulationThread::TaskDrawFilledCircle,
               sim_point.x(),
               sim_point.y(),
-              10,
-              1.0));
+              brush_radius_,
+              brush_color_));
       }
       return false;
     }
@@ -409,6 +415,18 @@ void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
 
   thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot,
                                         config));
+}
+
+void SmoothlifeInstance::MessageSetBrush(const ParamList& params) {
+  if (params.size() < 2)
+    return;
+
+  brush_radius_ = strtod(params[0].c_str(), NULL);
+  brush_color_ = strtod(params[1].c_str(), NULL);
+
+  // Clamp values.
+  brush_radius_ = std::max(std::min(brush_radius_, kMaxBrushRadius), 0.0);
+  brush_color_ = std::max(std::min(brush_color_, 1.0), 0.0);
 }
 
 void SmoothlifeInstance::ScheduleUpdate() {
