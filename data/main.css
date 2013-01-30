@@ -161,11 +161,16 @@
   list-style-type: none;
 }
 
+#brushCanvas {
+  border: 1px solid #ccc;
+}
+
 .setting-row {
   border-bottom: 1px solid #ccc;
   display: -webkit-flex;
   padding: 15px 0;
   -webkit-align-items: center;
+  -webkit-justify-content: center;
 }
 
 .setting-row > label {

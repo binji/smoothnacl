@@ -487,7 +487,40 @@
     };
   };
 
+  var brushCanvasDirective = function () {
+    return {
+      restrict: 'A',
+      link: function (scope, iElement, iAttrs) {
+        var ctx = iElement[0].getContext('2d');
+        var width = iAttrs.width;
+        var height = iAttrs.height;
+        var getColor = scope[iAttrs.getColor];
+
+        var drawBrush = function (radius, color) {
+          var x = width / 2;
+          var y = height / 2;
+          ctx.fillStyle = getColor(0);
+          ctx.fillRect(0, 0, width, height);
+          ctx.fillStyle = getColor(color * 100);
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI*2, true);
+          ctx.fill();
+        };
+
+        scope.$watch(iAttrs.model, function (newValue) {
+          drawBrush(newValue.radius, newValue.color);
+        }, true);
+
+        scope.$watch(iAttrs.palette, function () {
+          var brush = scope[iAttrs.model];
+          drawBrush(brush.radius, brush.color);
+        }, true);
+      },
+    }
+  };
+
   window.module
+      .directive('brushCanvas', brushCanvasDirective)
       .directive('button', buttonDirective)
       .directive('buttonset', buttonsetDirective)
       .directive('buttonsetRow', buttonsetRowDirective)
