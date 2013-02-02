@@ -4,6 +4,7 @@
 
 #include "smoothlife_instance.h"
 #include <algorithm>
+#include <array>
 #include <stdio.h>
 #include <string.h>
 #include <string>
@@ -363,13 +364,24 @@ void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
 }
 
 void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
-  if (params.size() < 1)
+  if (params.size() < 2)
     return;
 
   ScreenshotConfig config;
   config.request_id = atoi(params[0].c_str());
 
-  for (int i = 1; i < params.size(); ++i) {
+  config.file_format = params[1];
+  static const std::array<std::string, 2> valid_file_formats = {
+    "PNG", "JPEG" };
+  const std::string* found = std::find(valid_file_formats.begin(),
+                                       valid_file_formats.end(),
+                                       config.file_format);
+  if (found == valid_file_formats.end()) {
+    printf("Unknown file format for Screenshot, ignoring.\n");
+    return;
+  }
+
+  for (int i = 2; i < params.size(); ++i) {
     const std::string& param = params[i];
     // Split each param at spaces.
     std::vector<std::string> operation_params = Split(param, ' ');

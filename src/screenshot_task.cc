@@ -88,7 +88,7 @@ FilePtr ScreenshotTask::WriteImageToFile(imBinMemoryFileName* filename,
                                          ImagePtr image) {
   int err;
   FilePtr file(imFileNew(reinterpret_cast<const char*>(filename),
-                         "JPEG", &err));
+                         config_.file_format.c_str(), &err));
   if (err != IM_ERR_NONE) {
     printf("imFileNew failed. Error: %d\n", err);
     return FilePtr();

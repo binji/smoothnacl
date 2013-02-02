@@ -430,13 +430,14 @@
         });
 
         scope.requestId = 0;
-        scope.requestCallbacks = {};
+        var screenshotRequests = {};
 
-        scope.$on('takeScreenshot', function (event, params, callback) {
+        scope.$on('takeScreenshot', function (event, fileFormat, params, callback) {
           var requestId = scope.requestId++;
-          scope.requestCallbacks[requestId] = callback;
-          params = angular.copy(params)
-          params.unshift(requestId)
+          screenshotRequests[requestId] = [callback, fileFormat];
+          params = angular.copy(params);
+          params.unshift(fileFormat.toUpperCase());
+          params.unshift(requestId);
           postMessage('Screenshot:' + params.join(','))
         });
 
@@ -451,15 +452,18 @@
             });
           } else {
             var requestId = new Uint32Array(e.data, 0, 4)[0];
+            var callback = screenshotRequests[requestId][0];
+            var fileFormat = screenshotRequests[requestId][1];
+
             console.log('Got screenshot with request id: ' + requestId);
             var imageData = new Uint8Array(e.data, 4);
             var stringImageData = stringFromArray(imageData);
-            var url = 'data:image/jpeg;base64,' + btoa(stringImageData);
+            var url = 'data:image/' + fileFormat +
+                ';base64,' + btoa(stringImageData);
 
-            var callback = scope.requestCallbacks[requestId];
             if (callback)
-              callback(url);
-            delete scope.requestCallbacks[requestId];
+              callback(url, fileFormat);
+            delete screenshotRequests[requestId];
           }
         }, true);
 

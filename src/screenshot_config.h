@@ -6,6 +6,7 @@
 #define SCREENSHOT_CONFIG_H_
 
 #include <memory>
+#include <string>
 #include <vector>
 
 class ImageOperation;
@@ -14,6 +15,7 @@ struct ScreenshotConfig {
   typedef std::shared_ptr<ImageOperation> OperationPtr;
   typedef std::vector<OperationPtr> Operations;
   int request_id;
+  std::string file_format;
   Operations operations;
 };
 

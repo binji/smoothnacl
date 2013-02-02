@@ -212,7 +212,7 @@ var presetController = function ($scope, staticPreset, localStoragePreset) {
     // Clear the input box.
     $scope.addPresetName = '';
 
-    $scope.$emit('takeScreenshot', [
+    $scope.$emit('takeScreenshot', 'jpeg', [
         'reduce 256',
         'crop 0.5 0.5 128',
     ], function (url) {
