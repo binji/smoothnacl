@@ -87,9 +87,9 @@
       restrict: 'E',
       replace: true,
       template:
-        '<div class="range setting-row">' +
+        '<div class="setting-row">' +
           '<label></label>' +
-          '<div class="value">' +
+          '<div class="slider-value">' +
             '<span></span>' +
             '<slider/>' +
           '</div>' +
@@ -117,8 +117,8 @@
       restrict: 'E',
       replace: true,
       template:
-        '<div class="enum setting-row">' +
-          '<buttonset class="value">' +
+        '<div class="setting-row">' +
+          '<buttonset class="buttonset-value">' +
           '</buttonset>' +
         '</div>',
       compile: function (tElement, tAttrs) {
@@ -177,9 +177,9 @@
       restrict: 'E',
       replace: true,
       template:
-        '<div class="color setting-row">' +
+        '<div class="setting-row">' +
           '<span class="handle ui-icon ui-icon-grip-dotted-vertical"/>' +
-          '<div class="value">' +
+          '<div class="colorstop-value">' +
             '<color-picker></color-picker>' +
             '<slider data-min="0" data-max="100" data-prec="0"></slider>' +
           '</div>' +
