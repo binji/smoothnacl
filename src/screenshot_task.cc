@@ -68,7 +68,7 @@ ImagePtr ScreenshotTask::BufferToImage() {
   uint32_t* data = buffer_->data();
   for (size_t src_y = 0; src_y < height; ++src_y)
   for (size_t x = 0; x < width; ++x) {
-    size_t dst_y = height - src_y;
+    size_t dst_y = height - 1 - src_y;
     uint32_t src_pixel = data[src_y * width + x];
     uint8_t r = src_pixel >> 16;
     uint8_t g = src_pixel >> 8;
