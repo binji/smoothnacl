@@ -482,6 +482,7 @@
           }
         });
 
+        iElement.addClass('tabs');
         iElement.tabs(tabOptions);
       },
     };
