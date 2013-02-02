@@ -24,6 +24,7 @@
       var result = {
         name: preset[0],
         canRemove: false,
+        shouldSave: false,
         kernel: {},
         smoother: {},
         palette: {
@@ -62,6 +63,16 @@
   };
 
   var localStoragePresetService = function () {
+    var getPresetsToSave = function (presets) {
+      var result = [];
+      angular.forEach(presets, function (preset) {
+        if (preset.shouldSave)
+          result.push(preset);
+      });
+
+      return result;
+    };
+
     // Use chrome.storage (Chrome Packaged Apps).
     if (chrome !== undefined && chrome.storage !== undefined) {
       return {
@@ -76,7 +87,8 @@
         },
 
         set: function (presets) {
-          chrome.storage.local.set({'presets': JSON.stringify(presets)});
+          var presetsToSave = getPresetsToSave(presets);
+          chrome.storage.local.set({'presets': JSON.stringify(presetsToSave)});
         }
       };
     }
@@ -94,7 +106,8 @@
         },
 
         set: function (presets) {
-          window.localStorage.setItem('presets', JSON.stringify(presets));
+          var presetsToSave = getPresetsToSave(presets);
+          window.localStorage.setItem('presets', JSON.stringify(presetsToSave));
         }
       };
     }
@@ -106,29 +119,7 @@
     };
   };
 
-  var localStaticPresetService = function (staticPreset, localStoragePreset) {
-    return {
-      get: function (callback) {
-        localStoragePreset.get(function (presets) {
-          if (presets.length > 0) {
-            callback(presets);
-            return;
-          }
-
-          staticPreset.get(function (presets) {
-            callback(presets);
-          });
-        });
-      },
-
-      set: function (presets) {
-        localStoragePreset.set(presets);
-      },
-    };
-  };
-
   window.module
       .factory('staticPreset', staticPresetService)
-      .factory('localStoragePreset', localStoragePresetService)
-      .factory('localStaticPreset', localStaticPresetService);
+      .factory('localStoragePreset', localStoragePresetService);
 })();

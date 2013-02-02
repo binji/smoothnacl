@@ -187,24 +187,27 @@ var controller = function ($scope) {
   };
 };
 
-var presetController = function ($scope, localStaticPreset) {
-  var presetsLoaded = false;
+var presetController = function ($scope, staticPreset, localStoragePreset) {
+  var localStorageLoaded = false;
+  var saveLocalStorageWhenLoaded = false;
 
   $scope.savePresets = function () {
-    if (!presetsLoaded) return;
-    localStaticPreset.set($scope.presets);
+    if (!localStorageLoaded) {
+      saveLocalStorageWhenLoaded = true;
+      return;
+    }
+    localStoragePreset.set($scope.presets);
   };
 
   $scope.choosePreset = function (presetIndex) {
-    if (!presetsLoaded) return;
     $scope.$emit('presetChanged', $scope.presets[presetIndex]);
   };
 
   $scope.addPreset = function () {
-    if (!presetsLoaded) return;
     var presetObject = angular.copy($scope.getValues());
     presetObject.name = $scope.addPresetName;
     presetObject.canRemove = true;
+    presetObject.shouldSave = true;
 
     // Clear the input box.
     $scope.addPresetName = '';
@@ -222,14 +225,22 @@ var presetController = function ($scope, localStaticPreset) {
   };
 
   $scope.removePreset = function (index) {
-    if (!presetsLoaded) return;
     $scope.presets.splice(index, 1);
     $scope.savePresets();
   };
 
-  localStaticPreset.get(function (presets) {
+  staticPreset.get(function (presets) {
     $scope.presets = presets;
-    presetsLoaded = true;
     $scope.choosePreset(0);
+  });
+
+  localStoragePreset.get(function (presets) {
+    $scope.presets = presets.concat($scope.presets);
+    localStorageLoaded = true;
+    // If we have a queued save call, now save it.
+    if (saveLocalStorageWhenLoaded) {
+      $scope.savePresets();
+      saveLocalStorageWhenLoaded = false;
+    }
   });
 };
