@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "smoothlife_instance.h"
+#include "instance.h"
 #include <algorithm>
 #include <array>
 #include <stdio.h>
@@ -73,7 +73,7 @@ std::vector<std::string> Split(const std::string& s, char delim) {
 }  // namespace
 
 
-SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
+Instance::Instance(PP_Instance instance)
     : pp::Instance(instance),
       factory_(this),
       view_(NULL),
@@ -87,12 +87,12 @@ SmoothlifeInstance::SmoothlifeInstance(PP_Instance instance)
   RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_KEYBOARD);
 }
 
-SmoothlifeInstance::~SmoothlifeInstance() {
+Instance::~Instance() {
   delete thread_;
   delete view_;
 }
 
-bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
+bool Instance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
   glInitializePPAPI(pp::Module::Get()->get_browser_interface());
   InitMessageMap();
@@ -118,7 +118,7 @@ bool SmoothlifeInstance::Init(uint32_t argc, const char* argn[],
   return true;
 }
 
-void SmoothlifeInstance::ParseInitMessages(
+void Instance::ParseInitMessages(
     uint32_t argc,
     const char* argn[], const char* argv[],
     SimulationThreadContext* context) {
@@ -129,30 +129,30 @@ void SmoothlifeInstance::ParseInitMessages(
   }
 }
 
-void SmoothlifeInstance::InitMessageMap() {
+void Instance::InitMessageMap() {
   message_map_.insert(MessageMap::value_type(
-        "SetKernel", &SmoothlifeInstance::MessageSetKernel));
+        "SetKernel", &Instance::MessageSetKernel));
   message_map_.insert(MessageMap::value_type(
-        "SetSmoother", &SmoothlifeInstance::MessageSetSmoother));
+        "SetSmoother", &Instance::MessageSetSmoother));
   message_map_.insert(MessageMap::value_type(
-        "SetPalette", &SmoothlifeInstance::MessageSetPalette));
+        "SetPalette", &Instance::MessageSetPalette));
   message_map_.insert(MessageMap::value_type(
-        "Clear", &SmoothlifeInstance::MessageClear));
+        "Clear", &Instance::MessageClear));
   message_map_.insert(MessageMap::value_type(
-        "Splat", &SmoothlifeInstance::MessageSplat));
+        "Splat", &Instance::MessageSplat));
   message_map_.insert(MessageMap::value_type(
-        "SetRunOptions", &SmoothlifeInstance::MessageSetRunOptions));
+        "SetRunOptions", &Instance::MessageSetRunOptions));
   message_map_.insert(MessageMap::value_type(
-        "SetDrawOptions", &SmoothlifeInstance::MessageSetDrawOptions));
+        "SetDrawOptions", &Instance::MessageSetDrawOptions));
   message_map_.insert(MessageMap::value_type(
-        "SetFullscreen", &SmoothlifeInstance::MessageSetFullscreen));
+        "SetFullscreen", &Instance::MessageSetFullscreen));
   message_map_.insert(MessageMap::value_type(
-        "Screenshot", &SmoothlifeInstance::MessageScreenshot));
+        "Screenshot", &Instance::MessageScreenshot));
   message_map_.insert(MessageMap::value_type(
-        "SetBrush", &SmoothlifeInstance::MessageSetBrush));
+        "SetBrush", &Instance::MessageSetBrush));
 }
 
-void SmoothlifeInstance::DidChangeView(const pp::View& view) {
+void Instance::DidChangeView(const pp::View& view) {
   if (!view_->DidChangeView(this, view)) {
     PostMessage(pp::Var(
         "ERROR DidChangeView failed. Could not bind graphics?"));
@@ -166,7 +166,7 @@ void SmoothlifeInstance::DidChangeView(const pp::View& view) {
   is_initial_view_change_ = false;
 }
 
-bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
+bool Instance::HandleInputEvent(const pp::InputEvent& event) {
   static bool left_down_ = false;
 
   switch (event.GetType()) {
@@ -226,7 +226,7 @@ bool SmoothlifeInstance::HandleInputEvent(const pp::InputEvent& event) {
   }
 }
 
-void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
+void Instance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string())
     return;
   std::string message = var_message.AsString();
@@ -248,7 +248,7 @@ void SmoothlifeInstance::HandleMessage(const pp::Var& var_message) {
   }
 }
 
-void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
+void Instance::MessageSetKernel(const ParamList& params) {
   if (params.size() != 3)
     return;
 
@@ -260,7 +260,7 @@ void SmoothlifeInstance::MessageSetKernel(const ParamList& params) {
                                         config));
 }
 
-void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
+void Instance::MessageSetSmoother(const ParamList& params) {
   if (params.size() != 11)
     return;
 
@@ -280,7 +280,7 @@ void SmoothlifeInstance::MessageSetSmoother(const ParamList& params) {
                                         config));
 }
 
-void SmoothlifeInstance::MessageSetPalette(const ParamList& params) {
+void Instance::MessageSetPalette(const ParamList& params) {
   PaletteConfig config;
   if (params.size() % 2 != 1)
     return;
@@ -301,7 +301,7 @@ void SmoothlifeInstance::MessageSetPalette(const ParamList& params) {
                                         config));
 }
 
-void SmoothlifeInstance::MessageClear(const ParamList& params) {
+void Instance::MessageClear(const ParamList& params) {
   if (params.size() != 1)
     return;
 
@@ -309,14 +309,14 @@ void SmoothlifeInstance::MessageClear(const ParamList& params) {
   thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskClear, color));
 }
 
-void SmoothlifeInstance::MessageSplat(const ParamList& params) {
+void Instance::MessageSplat(const ParamList& params) {
   if (params.size() != 0)
     return;
 
   thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSplat));
 }
 
-void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
+void Instance::MessageSetRunOptions(const ParamList& params) {
   if (params.size() > 2)
     return;
 
@@ -342,7 +342,7 @@ void SmoothlifeInstance::MessageSetRunOptions(const ParamList& params) {
   thread_->Step();
 }
 
-void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
+void Instance::MessageSetDrawOptions(const ParamList& params) {
   if (params.size() != 1)
     return;
 
@@ -366,14 +366,14 @@ void SmoothlifeInstance::MessageSetDrawOptions(const ParamList& params) {
                                draw_options));
 }
 
-void SmoothlifeInstance::MessageSetFullscreen(const ParamList& params) {
+void Instance::MessageSetFullscreen(const ParamList& params) {
   if (params.size() != 1)
     return;
 
   fullscreen_.SetFullscreen(params[0] == "true");
 }
 
-void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
+void Instance::MessageScreenshot(const ParamList& params) {
   if (params.size() < 2)
     return;
 
@@ -439,7 +439,7 @@ void SmoothlifeInstance::MessageScreenshot(const ParamList& params) {
                                         config));
 }
 
-void SmoothlifeInstance::MessageSetBrush(const ParamList& params) {
+void Instance::MessageSetBrush(const ParamList& params) {
   if (params.size() < 2)
     return;
 
@@ -451,13 +451,13 @@ void SmoothlifeInstance::MessageSetBrush(const ParamList& params) {
   brush_color_ = std::max(std::min(brush_color_, 1.0), 0.0);
 }
 
-void SmoothlifeInstance::ScheduleUpdate() {
+void Instance::ScheduleUpdate() {
   pp::Module::Get()->core()->CallOnMainThread(
       kUpdateInterval,
-      factory_.NewCallback(&SmoothlifeInstance::UpdateCallback));
+      factory_.NewCallback(&Instance::UpdateCallback));
 }
 
-void SmoothlifeInstance::UpdateCallback(int32_t result) {
+void Instance::UpdateCallback(int32_t result) {
   // This is the game loop; UpdateCallback schedules another call to itself to
   // occur kUpdateInterval milliseconds later.
   ScheduleUpdate();

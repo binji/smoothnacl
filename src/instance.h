@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
-#define EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
+#ifndef INSTANCE_H_
+#define INSTANCE_H_
 
 #include <map>
 #include <string>
@@ -30,10 +30,10 @@ class SimulationThreadContext;
 class ViewBase;
 
 
-class SmoothlifeInstance : public pp::Instance {
+class Instance : public pp::Instance {
  public:
-  explicit SmoothlifeInstance(PP_Instance instance);
-  virtual ~SmoothlifeInstance();
+  explicit Instance(PP_Instance instance);
+  virtual ~Instance();
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]);
   virtual void DidChangeView(const pp::View& view);
   virtual bool HandleInputEvent(const pp::InputEvent& event);
@@ -41,7 +41,7 @@ class SmoothlifeInstance : public pp::Instance {
 
  private:
   typedef std::vector<std::string> ParamList;
-  typedef void (SmoothlifeInstance::*MessageFunc)(const ParamList&);
+  typedef void (Instance::*MessageFunc)(const ParamList&);
   typedef std::map<std::string, MessageFunc> MessageMap;
 
   void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
@@ -62,7 +62,7 @@ class SmoothlifeInstance : public pp::Instance {
   void ScheduleUpdate();
   void UpdateCallback(int32_t result);
 
-  pp::CompletionCallbackFactory<SmoothlifeInstance> factory_;
+  pp::CompletionCallbackFactory<Instance> factory_;
   ViewBase* view_;
   SimulationThread* thread_;
   pp::Size sim_size_;
@@ -74,8 +74,8 @@ class SmoothlifeInstance : public pp::Instance {
   double brush_color_;
 
   // Disallow copy constructor and assignment operator.
-  SmoothlifeInstance(const SmoothlifeInstance&);
-  SmoothlifeInstance& operator=(const SmoothlifeInstance&);
+  Instance(const Instance&);
+  Instance& operator=(const Instance&);
 };
 
-#endif  // EXAMPLES_SMOOTHLIFE_SMOOTHLIFE_H_
+#endif  // INSTANCE_H_

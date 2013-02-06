@@ -14,19 +14,19 @@
 
 #include <ppapi/cpp/module.h>
 
-#include "smoothlife_instance.h"
+#include "instance.h"
 
 // The Module class.  The browser calls the CreateInstance() method to create
 // an instance of your NaCl module on the web page.  The browser creates a new
 // instance for each <embed> tag with type="application/x-nacl".
-class SmoothlifeModule : public pp::Module {
+class Module : public pp::Module {
  public:
-  SmoothlifeModule() : pp::Module() {}
-  virtual ~SmoothlifeModule() {}
+  Module() : pp::Module() {}
+  virtual ~Module() {}
 
-  // Create and return a SmoothlifeInstance object.
+  // Create and return a Instance object.
   virtual pp::Instance* CreateInstance(PP_Instance instance) {
-    return new SmoothlifeInstance(instance);
+    return new Instance(instance);
   }
 };
 
@@ -37,6 +37,6 @@ class SmoothlifeModule : public pp::Module {
 // point for your NaCl module with the browser.
 namespace pp {
 Module* CreateModule() {
-  return new SmoothlifeModule();
+  return new ::Module();
 }
 }  // namespace pp
