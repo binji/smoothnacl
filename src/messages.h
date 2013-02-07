@@ -28,16 +28,16 @@ namespace msg {
 
 typedef std::vector<std::string> ParamList;
 
-void SetKernel(SimulationThread* thread, const ParamList& params);
-void SetSmoother(SimulationThread* thread, const ParamList& params);
-void SetPalette(SimulationThread* thread, const ParamList& params);
 void Clear(SimulationThread* thread, const ParamList& params);
-void Splat(SimulationThread* thread, const ParamList& params);
-void SetRunOptions(SimulationThread* thread, const ParamList& params);
-void SetDrawOptions(SimulationThread* thread, const ParamList& params);
-void SetFullscreen(const ParamList& params, pp::Fullscreen* fullscreen);
 void Screenshot(SimulationThread* thread, const ParamList& params);
 void SetBrush(const ParamList& params, double* out_radius, double* out_color);
+void SetDrawOptions(SimulationThread* thread, const ParamList& params);
+void SetFullscreen(const ParamList& params, pp::Fullscreen* fullscreen);
+void SetKernel(SimulationThread* thread, const ParamList& params);
+void SetPalette(SimulationThread* thread, const ParamList& params);
+void SetRunOptions(SimulationThread* thread, const ParamList& params);
+void SetSmoother(SimulationThread* thread, const ParamList& params);
+void Splat(SimulationThread* thread, const ParamList& params);
 
 }  // namespace msg
 
