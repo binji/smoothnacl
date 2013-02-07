@@ -23,6 +23,7 @@
 #include <ppapi/cpp/instance.h>
 #include <ppapi/utility/completion_callback_factory.h>
 #include "fft_allocation.h"
+#include "message_handler.h"
 #include "simulation_thread.h"
 
 
@@ -40,24 +41,8 @@ class Instance : public pp::Instance {
   virtual void HandleMessage(const pp::Var& var_message);
 
  private:
-  typedef std::vector<std::string> ParamList;
-  typedef void (Instance::*MessageFunc)(const ParamList&);
-  typedef std::map<std::string, MessageFunc> MessageMap;
-
-  void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[],
-                         SimulationThreadContext* context);
-
+  void ParseInitMessages(uint32_t argc, const char* argn[], const char* argv[]);
   void InitMessageMap();
-  void MessageSetKernel(const ParamList& params);
-  void MessageSetSmoother(const ParamList& params);
-  void MessageSetPalette(const ParamList& params);
-  void MessageClear(const ParamList& params);
-  void MessageSplat(const ParamList& params);
-  void MessageSetRunOptions(const ParamList& params);
-  void MessageSetDrawOptions(const ParamList& params);
-  void MessageSetFullscreen(const ParamList& params);
-  void MessageScreenshot(const ParamList& params);
-  void MessageSetBrush(const ParamList& params);
 
   void ScheduleUpdate();
   void UpdateCallback(int32_t result);
@@ -66,9 +51,9 @@ class Instance : public pp::Instance {
   ViewBase* view_;
   SimulationThread* thread_;
   pp::Size sim_size_;
-  MessageMap message_map_;
   pp::Fullscreen fullscreen_;
   bool is_initial_view_change_;
+  MessageHandler message_handler_;
 
   double brush_radius_;
   double brush_color_;

@@ -14,11 +14,9 @@
 
 #include "instance.h"
 #include <algorithm>
-#include <array>
 #include <stdio.h>
 #include <string.h>
 #include <string>
-#include <vector>
 #include <ppapi/c/pp_time.h>
 #include <ppapi/cpp/core.h>
 #include <ppapi/cpp/module.h>
@@ -28,46 +26,19 @@
 
 #include "cpu/initializer_factory.h"
 #include "gpu/initializer_factory.h"
-#include "image_operation.h"
-#include "kernel_config.h"
-#include "palette.h"
-#include "screenshot_config.h"
+#include "messages.h"
 #include "simulation_config.h"
 #include "simulation_thread.h"
 #include "simulation_thread_options.h"
-#include "smoother_config.h"
 #include "task.h"
 #include "view_base.h"
 
 namespace {
 
 const int kUpdateInterval = 1000;
-const double kMaxBrushRadius = 100.0;
 
 double GetTimeTicks() {
   return pp::Module::Get()->core()->GetTimeTicks();
-}
-
-std::vector<std::string> Split(const std::string& s, char delim) {
-  const char kWhitespace[] = " \t\n";
-  std::vector<std::string> components;
-  size_t start = 0;
-  size_t delim_pos;
-  do {
-    start = s.find_first_not_of(kWhitespace, start);
-    if (start == std::string::npos)
-      break;
-
-    delim_pos = s.find(delim, start);
-    size_t end = s.find_last_not_of(kWhitespace, delim_pos);
-    if (end != delim_pos)
-      end++;
-
-    components.push_back(s.substr(start, end - start));
-    start = delim_pos + 1;
-  } while (delim_pos != std::string::npos);
-
-  return components;
 }
 
 }  // namespace
@@ -95,7 +66,6 @@ Instance::~Instance() {
 bool Instance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
   glInitializePPAPI(pp::Module::Get()->get_browser_interface());
-  InitMessageMap();
   SimulationConfig config;
   config.size = sim_size_;
 
@@ -112,16 +82,15 @@ bool Instance::Init(uint32_t argc, const char* argn[],
   thread_ = new SimulationThread(context);
   view_ = initializer_factory->CreateView();
 
-  ParseInitMessages(argc, argn, argv, &context);
+  InitMessageMap();
+  ParseInitMessages(argc, argn, argv);
   thread_->Start();
 
   return true;
 }
 
 void Instance::ParseInitMessages(
-    uint32_t argc,
-    const char* argn[], const char* argv[],
-    SimulationThreadContext* context) {
+    uint32_t argc, const char* argn[], const char* argv[]) {
   for (uint32_t i = 0; i < argc; ++i) {
     if (strncmp(argn[i], "msg", 3) == 0) {
       HandleMessage(pp::Var(argv[i]));
@@ -130,26 +99,28 @@ void Instance::ParseInitMessages(
 }
 
 void Instance::InitMessageMap() {
-  message_map_.insert(MessageMap::value_type(
-        "SetKernel", &Instance::MessageSetKernel));
-  message_map_.insert(MessageMap::value_type(
-        "SetSmoother", &Instance::MessageSetSmoother));
-  message_map_.insert(MessageMap::value_type(
-        "SetPalette", &Instance::MessageSetPalette));
-  message_map_.insert(MessageMap::value_type(
-        "Clear", &Instance::MessageClear));
-  message_map_.insert(MessageMap::value_type(
-        "Splat", &Instance::MessageSplat));
-  message_map_.insert(MessageMap::value_type(
-        "SetRunOptions", &Instance::MessageSetRunOptions));
-  message_map_.insert(MessageMap::value_type(
-        "SetDrawOptions", &Instance::MessageSetDrawOptions));
-  message_map_.insert(MessageMap::value_type(
-        "SetFullscreen", &Instance::MessageSetFullscreen));
-  message_map_.insert(MessageMap::value_type(
-        "Screenshot", &Instance::MessageScreenshot));
-  message_map_.insert(MessageMap::value_type(
-        "SetBrush", &Instance::MessageSetBrush));
+  using namespace std::placeholders;
+
+  message_handler_.AddHandler(
+      "SetKernel", std::bind(&msg::SetKernel, thread_, _1));
+  message_handler_.AddHandler(
+      "SetSmoother", std::bind(&msg::SetSmoother, thread_, _1));
+  message_handler_.AddHandler(
+      "SetPalette", std::bind(&msg::SetPalette, thread_, _1));
+  message_handler_.AddHandler(
+      "Clear", std::bind(&msg::Clear, thread_, _1));
+  message_handler_.AddHandler(
+      "Splat", std::bind(&msg::Splat, thread_, _1));
+  message_handler_.AddHandler(
+      "SetRunOptions", std::bind(&msg::SetRunOptions, thread_, _1));
+  message_handler_.AddHandler(
+      "SetDrawOptions", std::bind(&msg::SetDrawOptions, thread_, _1));
+  message_handler_.AddHandler(
+      "Screenshot", std::bind(&msg::Screenshot, thread_, _1));
+  message_handler_.AddHandler(
+      "SetBrush", std::bind(&msg::SetBrush, _1, &brush_radius_, &brush_color_));
+  message_handler_.AddHandler(
+      "SetFullscreen", std::bind(&msg::SetFullscreen, _1, &fullscreen_));
 }
 
 void Instance::DidChangeView(const pp::View& view) {
@@ -230,225 +201,7 @@ void Instance::HandleMessage(const pp::Var& var_message) {
   if (!var_message.is_string())
     return;
   std::string message = var_message.AsString();
-  size_t colon = message.find(':');
-
-  std::string function = message.substr(0, colon);
-  std::vector<std::string> params;
-
-  if (colon != std::string::npos) {
-    params = Split(message.substr(colon + 1), ',');
-  }
-
-  MessageMap::iterator func_iter = message_map_.find(function);
-  if (func_iter != message_map_.end()) {
-    printf("Got message: %s\n", message.c_str());
-    (this->*func_iter->second)(params);
-  } else {
-    printf("Unknown message: %s\n", message.c_str());
-  }
-}
-
-void Instance::MessageSetKernel(const ParamList& params) {
-  if (params.size() != 3)
-    return;
-
-  KernelConfig config;
-  config.disc_radius = strtod(params[0].c_str(), NULL);
-  config.ring_radius = strtod(params[1].c_str(), NULL);
-  config.blend_radius = strtod(params[2].c_str(), NULL);
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetKernel,
-                                        config));
-}
-
-void Instance::MessageSetSmoother(const ParamList& params) {
-  if (params.size() != 11)
-    return;
-
-  SmootherConfig config;
-  config.timestep.type = static_cast<Timestep>(atoi(params[0].c_str()));
-  config.timestep.dt = strtod(params[1].c_str(), NULL);
-  config.b1 = strtod(params[2].c_str(), NULL);
-  config.d1 = strtod(params[3].c_str(), NULL);
-  config.b2 = strtod(params[4].c_str(), NULL);
-  config.d2 = strtod(params[5].c_str(), NULL);
-  config.mode = static_cast<SigmoidMode>(atoi(params[6].c_str()));
-  config.sigmoid = static_cast<Sigmoid>(atoi(params[7].c_str()));
-  config.mix = static_cast<Sigmoid>(atoi(params[8].c_str()));
-  config.sn = strtod(params[9].c_str(), NULL);
-  config.sm = strtod(params[10].c_str(), NULL);
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetSmoother,
-                                        config));
-}
-
-void Instance::MessageSetPalette(const ParamList& params) {
-  PaletteConfig config;
-  if (params.size() % 2 != 1)
-    return;
-
-  config.repeating = static_cast<bool>(atoi(params[0].c_str()));
-
-  for (int i = 1; i < params.size(); i += 2) {
-    if (params[i].size() < 1)
-      continue;
-
-    const char* color_string = &params[i].c_str()[1];  // Skip the #
-    uint32_t color = static_cast<uint32_t>(strtoul(color_string, NULL, 16));
-    color |= 0xff000000;  // Set alpha to full.
-    double stop = strtod(params[i + 1].c_str(), NULL) / 100.0;
-    config.stops.push_back(ColorStop(color, stop));
-  }
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetPalette,
-                                        config));
-}
-
-void Instance::MessageClear(const ParamList& params) {
-  if (params.size() != 1)
-    return;
-
-  double color = strtod(params[0].c_str(), NULL);
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskClear, color));
-}
-
-void Instance::MessageSplat(const ParamList& params) {
-  if (params.size() != 0)
-    return;
-
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSplat));
-}
-
-void Instance::MessageSetRunOptions(const ParamList& params) {
-  if (params.size() > 2)
-    return;
-
-  SimulationThreadRunOptions run_options = 0;
-  for (int i = 0; i < params.size(); ++i) {
-    if (params[i] == "simulation")
-      run_options |= kRunOptions_Simulation;
-    else if (params[i] == "noSimulation")
-      run_options &= ~kRunOptions_Simulation;
-    else if (params[i] == "pause")
-      run_options |= kRunOptions_Pause;
-    else if (params[i] == "run")
-      run_options &= ~kRunOptions_Pause;
-    else {
-      printf("Unknown value %s for SetRunOptions, ignoring.\n",
-          params[i].c_str());
-      continue;
-    }
-  }
-
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetRunOptions,
-                               run_options));
-  thread_->Step();
-}
-
-void Instance::MessageSetDrawOptions(const ParamList& params) {
-  if (params.size() != 1)
-    return;
-
-  SimulationThreadDrawOptions draw_options;
-  if (params[0] == "simulation")
-    draw_options = kDrawOptions_Simulation;
-  else if (params[0] == "disc")
-    draw_options = kDrawOptions_KernelDisc;
-  else if (params[0] == "ring")
-    draw_options = kDrawOptions_KernelRing;
-  else if (params[0] == "smoother")
-    draw_options = kDrawOptions_Smoother;
-  else if (params[0] == "palette")
-    draw_options = kDrawOptions_Palette;
-  else {
-    printf("Unknown value for SetDrawOptions, ignoring.\n");
-    return;
-  }
-
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskSetDrawOptions,
-                               draw_options));
-}
-
-void Instance::MessageSetFullscreen(const ParamList& params) {
-  if (params.size() != 1)
-    return;
-
-  fullscreen_.SetFullscreen(params[0] == "true");
-}
-
-void Instance::MessageScreenshot(const ParamList& params) {
-  if (params.size() < 2)
-    return;
-
-  ScreenshotConfig config;
-  config.request_id = atoi(params[0].c_str());
-
-  config.file_format = params[1];
-  static const std::array<std::string, 2> valid_file_formats = {
-    "PNG", "JPEG" };
-  const std::string* found = std::find(valid_file_formats.begin(),
-                                       valid_file_formats.end(),
-                                       config.file_format);
-  if (found == valid_file_formats.end()) {
-    printf("Unknown file format for Screenshot, ignoring.\n");
-    return;
-  }
-
-  for (int i = 2; i < params.size(); ++i) {
-    const std::string& param = params[i];
-    // Split each param at spaces.
-    std::vector<std::string> operation_params = Split(param, ' ');
-
-    if (operation_params.size() == 0) {
-      printf("Ignoring empty operation.\n");
-      continue;
-    }
-
-    std::string operation = operation_params[0];
-    operation_params.erase(operation_params.begin());
-
-    ImageOperation* op = NULL;
-    if (operation == "reduce") {
-      if (operation_params.size() != 1)
-        continue;
-
-      int max_length = atoi(operation_params[0].c_str());
-      op = new ReduceImageOperation(max_length);
-    } else if (operation == "crop") {
-      if (operation_params.size() != 3)
-        continue;
-
-      double x_scale = strtod(operation_params[0].c_str(), NULL);
-      double y_scale = strtod(operation_params[1].c_str(), NULL);
-      int max_length = atoi(operation_params[2].c_str());
-      op = new CropImageOperation(x_scale, y_scale, max_length);
-    } else if (operation == "brightness_contrast") {
-      if (operation_params.size() != 2)
-        continue;
-
-      double brightness_shift = strtod(operation_params[0].c_str(), NULL);
-      double contrast_factor = strtod(operation_params[1].c_str(), NULL);
-      op = new BrightnessContrastImageOperation(brightness_shift,
-                                                contrast_factor);
-    } else {
-      printf("Unknown operation %s, ignoring.\n", operation.c_str());
-    }
-
-    if (op)
-      config.operations.push_back(ScreenshotConfig::OperationPtr(op));
-  }
-
-  thread_->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot,
-                                        config));
-}
-
-void Instance::MessageSetBrush(const ParamList& params) {
-  if (params.size() < 2)
-    return;
-
-  brush_radius_ = strtod(params[0].c_str(), NULL);
-  brush_color_ = strtod(params[1].c_str(), NULL);
-
-  // Clamp values.
-  brush_radius_ = std::max(std::min(brush_radius_, kMaxBrushRadius), 0.0);
-  brush_color_ = std::max(std::min(brush_color_, 1.0), 0.0);
+  message_handler_.HandleMessage(message);
 }
 
 void Instance::ScheduleUpdate() {
