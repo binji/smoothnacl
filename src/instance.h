@@ -15,18 +15,13 @@
 #ifndef INSTANCE_H_
 #define INSTANCE_H_
 
-#include <map>
-#include <string>
-#include <vector>
-#include <ppapi/cpp/size.h>
 #include <ppapi/cpp/fullscreen.h>
 #include <ppapi/cpp/instance.h>
 #include <ppapi/utility/completion_callback_factory.h>
-#include "fft_allocation.h"
 #include "message_handler.h"
-#include "simulation_thread.h"
 
 
+class SimulationThread;
 class SimulationThreadContext;
 class ViewBase;
 
@@ -50,7 +45,6 @@ class Instance : public pp::Instance {
   pp::CompletionCallbackFactory<Instance> factory_;
   ViewBase* view_;
   SimulationThread* thread_;
-  pp::Size sim_size_;
   pp::Fullscreen fullscreen_;
   bool is_initial_view_change_;
   MessageHandler message_handler_;

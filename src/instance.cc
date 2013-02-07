@@ -14,8 +14,8 @@
 
 #include "instance.h"
 #include <algorithm>
+#include <functional>
 #include <stdio.h>
-#include <string.h>
 #include <string>
 #include <ppapi/c/pp_time.h>
 #include <ppapi/cpp/core.h>
@@ -36,6 +36,7 @@
 namespace {
 
 const int kUpdateInterval = 1000;
+const pp::Size kSimSize(512, 512);
 
 double GetTimeTicks() {
   return pp::Module::Get()->core()->GetTimeTicks();
@@ -49,7 +50,6 @@ Instance::Instance(PP_Instance instance)
       factory_(this),
       view_(NULL),
       thread_(NULL),
-      sim_size_(512, 512),
       fullscreen_(this),
       is_initial_view_change_(true),
       brush_radius_(10),
@@ -67,7 +67,7 @@ bool Instance::Init(uint32_t argc, const char* argn[],
                               const char* argv[]) {
   glInitializePPAPI(pp::Module::Get()->get_browser_interface());
   SimulationConfig config;
-  config.size = sim_size_;
+  config.size = kSimSize;
 
   InitializerFactoryBase* initializer_factory;
   initializer_factory = new cpu::InitializerFactory(this, config.size);
@@ -101,26 +101,21 @@ void Instance::ParseInitMessages(
 void Instance::InitMessageMap() {
   using namespace std::placeholders;
 
-  message_handler_.AddHandler(
-      "SetKernel", std::bind(&msg::SetKernel, thread_, _1));
-  message_handler_.AddHandler(
-      "SetSmoother", std::bind(&msg::SetSmoother, thread_, _1));
-  message_handler_.AddHandler(
-      "SetPalette", std::bind(&msg::SetPalette, thread_, _1));
-  message_handler_.AddHandler(
-      "Clear", std::bind(&msg::Clear, thread_, _1));
-  message_handler_.AddHandler(
-      "Splat", std::bind(&msg::Splat, thread_, _1));
-  message_handler_.AddHandler(
-      "SetRunOptions", std::bind(&msg::SetRunOptions, thread_, _1));
-  message_handler_.AddHandler(
-      "SetDrawOptions", std::bind(&msg::SetDrawOptions, thread_, _1));
-  message_handler_.AddHandler(
-      "Screenshot", std::bind(&msg::Screenshot, thread_, _1));
-  message_handler_.AddHandler(
-      "SetBrush", std::bind(&msg::SetBrush, _1, &brush_radius_, &brush_color_));
-  message_handler_.AddHandler(
-      "SetFullscreen", std::bind(&msg::SetFullscreen, _1, &fullscreen_));
+#define MESSAGE(NAME, ...) \
+  message_handler_.AddHandler(#NAME, std::bind(&msg::NAME, __VA_ARGS__));
+
+  MESSAGE(Clear, thread_, _1);
+  MESSAGE(Screenshot, thread_, _1);
+  MESSAGE(SetBrush, _1, &brush_radius_, &brush_color_);
+  MESSAGE(SetDrawOptions, thread_, _1);
+  MESSAGE(SetFullscreen, _1, &fullscreen_);
+  MESSAGE(SetKernel, thread_, _1);
+  MESSAGE(SetPalette, thread_, _1);
+  MESSAGE(SetRunOptions, thread_, _1);
+  MESSAGE(SetSmoother, thread_, _1);
+  MESSAGE(Splat, thread_, _1);
+
+#undef M
 }
 
 void Instance::DidChangeView(const pp::View& view) {
@@ -150,7 +145,7 @@ bool Instance::HandleInputEvent(const pp::InputEvent& event) {
 
       if (left_down_) {
         pp::Point sim_point =
-            view_->ScreenToSim(mouse_event.GetPosition(), sim_size_);
+            view_->ScreenToSim(mouse_event.GetPosition(), kSimSize);
         thread_->EnqueueTask(MakeFunctionTask(
               &SimulationThread::TaskDrawFilledCircle,
               sim_point.x(),
@@ -160,24 +155,9 @@ bool Instance::HandleInputEvent(const pp::InputEvent& event) {
       }
       return false;
     }
-    case PP_INPUTEVENT_TYPE_KEYUP:
-      return true;
-    case PP_INPUTEVENT_TYPE_KEYDOWN: {
-      const uint32_t kKeyEnter = 0x0D;
-      const uint32_t kKeyEscape = 0x1B;
-      pp::KeyboardInputEvent key_event(event);
-      if (key_event.GetKeyCode() == kKeyEnter) {
-        if (!fullscreen_.IsFullscreen()) {
-          fullscreen_.SetFullscreen(true);
-        } else {
-          fullscreen_.SetFullscreen(false);
-        }
-      } else if (key_event.GetKeyCode() == kKeyEscape) {
-        fullscreen_.SetFullscreen(false);
-      }
-      return true;
-    }
     default:
+    case PP_INPUTEVENT_TYPE_KEYUP:
+    case PP_INPUTEVENT_TYPE_KEYDOWN:
     case PP_INPUTEVENT_TYPE_UNDEFINED:
     case PP_INPUTEVENT_TYPE_MOUSEENTER:
     case PP_INPUTEVENT_TYPE_MOUSELEAVE:
