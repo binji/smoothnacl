@@ -1,0 +1,86 @@
+diff -Naur fftw-3.2.2/config.sub fftw-3.2.2.nacl/config.sub
+--- fftw-3.2.2/config.sub	2009-05-03 16:55:47.000000000 -0700
++++ fftw-3.2.2.nacl/config.sub	2011-09-06 14:55:11.434185841 -0700
+@@ -759,6 +759,10 @@
+ 		basic_machine=i370-ibm
+ 		os=-mvs
+ 		;;
++        nacl)
++                basic_machine=i686-pc
++                os=-nacl
++                ;;
+ 	ncr3000)
+ 		basic_machine=i486-ncr
+ 		os=-sysv4
+@@ -1283,7 +1287,7 @@
+ 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
+ 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
+ 	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
+-	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops*)
++	      | -skyos* | -haiku* | -rdos* | -toppers* | -drops* | -nacl*)
+ 	# Remember, each alternative MUST END IN *, to match a version number.
+ 		;;
+ 	-qnx*)
+diff -Naur fftw-3.2.2/simd/sse2.c fftw-3.2.2.nacl/simd/sse2.c
+--- fftw-3.2.2/simd/sse2.c	2009-07-12 03:35:49.000000000 -0700
++++ fftw-3.2.2.nacl/simd/sse2.c	2011-09-06 14:55:06.415003566 -0700
+@@ -47,6 +47,11 @@
+ 
+   static int sse2_works(void)
+   {
++#ifdef __native_client__
++    /* NaCl doesn't support signal() to test whether SSE2 works, so we just 
++       trust cpuid when it says that SSE2 is supported */
++    return 1;
++#else
+        void (*oldsig)(int);
+        oldsig = signal(SIGILL, sighandler);
+        if (setjmp(jb)) {
+@@ -62,6 +67,7 @@
+ 	    signal(SIGILL, oldsig);
+ 	    return 1;
+        }
++#endif
+   }
+ 
+   extern void X(check_alignment_of_sse2_pm)(void);
+diff -Naur fftw-3.2.2/simd/x86-cpuid.h fftw-3.2.2.nacl/simd/x86-cpuid.h
+--- fftw-3.2.2/simd/x86-cpuid.h	2009-07-12 03:35:49.000000000 -0700
++++ fftw-3.2.2.nacl/simd/x86-cpuid.h	2011-09-06 15:18:19.344065183 -0700
+@@ -29,6 +29,13 @@
+ 
+ static inline int is_386() 
+ {
++#ifdef __native_client__
++  /* NaCl is not supported on 386 or any system that does not have the cpuid
++   instruction. Furthermore, pushf/popf are illegal instructions. So we
++   short-circuit these functions, returning false for is_386 and true for
++   has_cpuid */
++  return 0;
++#else
+ #ifdef _MSC_VER
+     unsigned int result,tst;
+     _asm {
+@@ -63,10 +70,14 @@
+     );
+ #endif
+     return (result == tst);
++#endif
+ }
+ 
+ static inline int has_cpuid() 
+ {
++#ifdef __native_client__
++  return 1;
++#else
+ #ifdef _MSC_VER
+     unsigned int result,tst;
+     _asm {
+@@ -101,6 +112,7 @@
+     );
+ #endif
+     return (result != tst);
++#endif
+ }
+ 
+ static inline int cpuid_edx(int op)

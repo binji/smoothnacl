@@ -32,8 +32,8 @@ def Prefix(prefix, items):
     items = items.split()
   return ' '.join(prefix + x for x in items)
 
-def SourceToObj(source, bits):
-  return os.path.join('out', '%s.%s.o' % (os.path.splitext(source)[0], bits))
+def SourceToObj(source, arch):
+  return os.path.join('out', '%s.%s.o' % (os.path.splitext(source)[0], arch))
 
 def SplitPath(path):
   result = []
@@ -363,8 +363,9 @@ DST_DATA_FILES = Repath('out', DATA_FILES)
 
 BUILT_FILES = [
   'out/smoothlife.nmf',
-  'out/smoothlife_32.nexe',
-  'out/smoothlife_64.nexe',
+  'out/smoothlife_x86_32.nexe',
+  'out/smoothlife_x86_64.nexe',
+  'out/smoothlife_arm.nexe',
 ]
 
 
@@ -411,8 +412,20 @@ def main():
   }
 
   w.variable('nacl_sdk_root', Path('nacl_sdk/pepper_canary'))
-  w.variable('toolchain_dir', Path('$nacl_sdk_root/toolchain/%s_x86_newlib' % (
+  w.variable('toolchain_dir', Path('$nacl_sdk_root/toolchain'))
+  w.variable('toolchain_dir_x86', Path('$toolchain_dir/%s_x86_newlib' % (
       platform_dict[sys.platform])))
+  w.variable('toolchain_dir_arm', Path('$toolchain_dir/%s_arm_newlib' % (
+      platform_dict[sys.platform])))
+  w.variable('cc-x86_32', Path('$toolchain_dir_x86/bin/i686-nacl-gcc'))
+  w.variable('cxx-x86_32', Path('$toolchain_dir_x86/bin/i686-nacl-g++'))
+  w.variable('ar-x86_32', Path('$toolchain_dir_x86/bin/i686-nacl-ar'))
+  w.variable('cc-x86_64', Path('$toolchain_dir_x86/bin/x86_64-nacl-gcc'))
+  w.variable('cxx-x86_64', Path('$toolchain_dir_x86/bin/x86_64-nacl-g++'))
+  w.variable('ar-x86_64', Path('$toolchain_dir_x86/bin/x86_64-nacl-ar'))
+  w.variable('cc-arm', Path('$toolchain_dir_arm/bin/arm-nacl-gcc'))
+  w.variable('cxx-arm', Path('$toolchain_dir_arm/bin/arm-nacl-g++'))
+  w.variable('ar-arm', Path('$toolchain_dir_arm/bin/arm-nacl-ar'))
 
   Gen(w)
   Code(w)
@@ -444,30 +457,30 @@ def BuildProject(w, name, rule, sources,
   libdirs = sorted(set([os.path.dirname(l) for l in libfiles]))
   libs = [PathToLibname(l) for l in libfiles] + libnames
 
-  for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
-    bit_incdirs = Prefix('-I', [x.format(**vars()) for x in includedirs])
-    bit_libdirs = Prefix('-L', [x.format(**vars()) for x in libdirs])
-    bit_libs = Prefix('-l', [x.format(**vars()) for x in libs])
-    bit_libfiles = [x.format(**vars()) for x in libfiles]
-    bit_defines = Prefix('-D', [x.format(**vars()) for x in defines])
+  for arch in ('x86_32', 'x86_64', 'arm'):
+    arch_incdirs = Prefix('-I', [x.format(**vars()) for x in includedirs])
+    arch_libdirs = Prefix('-L', [x.format(**vars()) for x in libdirs])
+    arch_libs = Prefix('-l', [x.format(**vars()) for x in libs])
+    arch_libfiles = [x.format(**vars()) for x in libfiles]
+    arch_defines = Prefix('-D', [x.format(**vars()) for x in defines])
 
-    ccflags_name = 'ccflags{bits}_{name}'.format(**vars())
-    cxxflags_name = 'cxxflags{bits}_{name}'.format(**vars())
-    ldflags_name = 'ldflags{bits}_{name}'.format(**vars())
+    ccflags_name = 'ccflags{arch}_{name}'.format(**vars())
+    cxxflags_name = 'cxxflags{arch}_{name}'.format(**vars())
+    ldflags_name = 'ldflags{arch}_{name}'.format(**vars())
     w.variable(ccflags_name,
-               '$base_ccflags {bit_incdirs} {bit_defines}'.format(**vars()))
+               '$base_ccflags {arch_incdirs} {arch_defines}'.format(**vars()))
     w.variable(cxxflags_name,
-               '$base_cxxflags {bit_incdirs} {bit_defines}'.format(**vars()))
-    w.variable(ldflags_name, '{bit_libdirs} {bit_libs}'.format(**vars()))
+               '$base_cxxflags {arch_incdirs} {arch_defines}'.format(**vars()))
+    w.variable(ldflags_name, '{arch_libdirs} {arch_libs}'.format(**vars()))
 
-    objs = [SourceToObj(x, bits) for x in sources]
+    objs = [SourceToObj(x, arch) for x in sources]
     for source, obj in zip(sources, objs):
       ext = os.path.splitext(source)[1]
       if ext in ('.cc', '.cpp'):
-        cc = '$cxx' + bits
+        cc = '$cxx-' + arch
         ccflags = '$' + cxxflags_name
       elif ext == '.c':
-        cc = '$cc' + bits
+        cc = '$cc-' + arch
         ccflags = '$' + ccflags_name
 
       w.build(obj, 'cc', source,
@@ -475,13 +488,13 @@ def BuildProject(w, name, rule, sources,
               variables={'ccflags': ccflags, 'cc': cc})
 
     if rule == 'link':
-      out_name = 'out/{name}_{bits}.nexe'.format(**vars())
-      variables= {'ldflags': '$' + ldflags_name, 'cc': '$cxx' + bits}
+      out_name = 'out/{name}_{arch}.nexe'.format(**vars())
+      variables= {'ldflags': '$' + ldflags_name, 'cc': '$cxx-' + arch}
     elif rule == 'ar':
-      out_name = 'out/{name}_{bits}.a'.format(**vars())
-      variables= {'ar': '$ar' + bits}
+      out_name = 'out/{name}_{arch}.a'.format(**vars())
+      variables= {'ar': '$ar-' + arch}
 
-    w.build(out_name, rule, objs + bit_libfiles, variables=variables)
+    w.build(out_name, rule, objs + arch_libfiles, variables=variables)
 
 
 def Code(w):
@@ -497,17 +510,10 @@ def Code(w):
       command='$cc $in $ldflags -o $out',
       description='LINK $out')
 
-#  w.variable('base_ccflags', '-g -msse2')
-#  w.variable('base_cxxflags', '-g -std=c++0x -msse2')
-  w.variable('base_ccflags', '-g -O2 -msse2')
-  w.variable('base_cxxflags', '-g -std=c++0x -O2 -msse2')
-  for bits, flavor in (('32', 'i686-nacl'), ('64', 'x86_64-nacl')):
-    w.variable('cc' + bits,
-               Path('$toolchain_dir/bin/{flavor}-gcc'.format(**vars())))
-    w.variable('cxx' + bits,
-               Path('$toolchain_dir/bin/{flavor}-g++'.format(**vars())))
-    w.variable('ar' + bits,
-               Path('$toolchain_dir/bin/{flavor}-ar'.format(**vars())))
+#  w.variable('base_ccflags', '-g')
+#  w.variable('base_cxxflags', '-g -std=c++0x')
+  w.variable('base_ccflags', '-g -O3')
+  w.variable('base_cxxflags', '-g -std=c++0x -O3')
 
   BuildProject(
     w, 'libim', 'ar',
@@ -550,28 +556,29 @@ def Code(w):
       'src',
       'out',
       '$nacl_sdk_root/include',
-      'third_party/fftw-prebuilt/newlib_x86_{bits}/include',
+      'third_party/fftw-prebuilt/newlib_{arch}/include',
       'third_party/im/include'],
     libs=[
       'ppapi_gles2',
       'ppapi_cpp',
       'ppapi',
-      'third_party/fftw-prebuilt/newlib_x86_{bits}/lib/libfftw3.a',
-      'out/libim_{bits}.a',
-      'out/libjpeg_{bits}.a',
-      'out/libpng_{bits}.a',
-      'out/libzlib_{bits}.a',
-      'out/libexif_{bits}.a'],
+      'third_party/fftw-prebuilt/newlib_{arch}/lib/libfftw3.a',
+      'out/libim_{arch}.a',
+      'out/libjpeg_{arch}.a',
+      'out/libpng_{arch}.a',
+      'out/libzlib_{arch}.a',
+      'out/libexif_{arch}.a'],
     order_only=OUT_SHADER_H)
 
   w.newline()
   w.rule('nmf',
-      command='$nmf $in -o $out -D$objdump',
+      command='$nmf $in -o $out',
       description='NMF $out')
   w.variable('nmf', Python('$nacl_sdk_root/tools/create_nmf.py'))
-  w.build('out/smoothlife.nmf', 'nmf',
-      ['out/smoothlife_32.nexe', 'out/smoothlife_64.nexe'],
-      variables={'objdump': '$toolchain_dir/bin/x86_64-nacl-objdump'})
+  w.build('out/smoothlife.nmf', 'nmf', [
+    'out/smoothlife_x86_32.nexe',
+    'out/smoothlife_x86_64.nexe',
+    'out/smoothlife_arm.nexe'])
 
 
 def Data(w):
