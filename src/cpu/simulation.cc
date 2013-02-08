@@ -146,9 +146,9 @@ void Simulation::DrawFilledCircle(double x, double y, double radius,
   int overlap_x = 0;
   int overlap_y = 0;
   if (ix - radius < 0) overlap_x |= kOverlapLeft;
-  if (ix + radius + 1 < width) overlap_x |= kOverlapRight;
+  if (ix + radius + 1 > width) overlap_x |= kOverlapRight;
   if (iy - radius < 0) overlap_y |= kOverlapTop;
-  if (iy + radius + 1 < height) overlap_y |= kOverlapBottom;
+  if (iy + radius + 1 > height) overlap_y |= kOverlapBottom;
 
   for (int ox = 0; ox < 3; ++ox) {
     int nx = ix;
