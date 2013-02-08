@@ -410,8 +410,8 @@ def main():
     'darwin': 'mac'
   }
 
-  w.variable('nacl_sdk_usr', Path('nacl_sdk/pepper_23'))
-  w.variable('toolchain_dir', Path('$nacl_sdk_usr/toolchain/%s_x86_newlib' % (
+  w.variable('nacl_sdk_root', Path('nacl_sdk/pepper_canary'))
+  w.variable('toolchain_dir', Path('$nacl_sdk_root/toolchain/%s_x86_newlib' % (
       platform_dict[sys.platform])))
 
   Gen(w)
@@ -549,6 +549,7 @@ def Code(w):
     includedirs=[
       'src',
       'out',
+      '$nacl_sdk_root/include',
       'third_party/fftw-prebuilt/newlib_x86_{bits}/include',
       'third_party/im/include'],
     libs=[
@@ -565,9 +566,9 @@ def Code(w):
 
   w.newline()
   w.rule('nmf',
-      command='$nmf $in -o $out -t newlib -D$objdump',
+      command='$nmf $in -o $out -D$objdump',
       description='NMF $out')
-  w.variable('nmf', Python('$nacl_sdk_usr/tools/create_nmf.py'))
+  w.variable('nmf', Python('$nacl_sdk_root/tools/create_nmf.py'))
   w.build('out/smoothlife.nmf', 'nmf',
       ['out/smoothlife_32.nexe', 'out/smoothlife_64.nexe'],
       variables={'objdump': '$toolchain_dir/bin/x86_64-nacl-objdump'})
