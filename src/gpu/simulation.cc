@@ -80,11 +80,11 @@ void Simulation::SetSmoother(const SmootherConfig& config) {
   smoother_.SetConfig(config);
 }
 
-AlignedReals Simulation::GetBuffer() {
+AlignedReals* Simulation::GetBuffer() {
   // It should probably be something like this... doesn't work now without a
   // way to block on a future result.
 
-  AlignedReals result(size_);
+  AlignedReals* result = new AlignedReals(size_);
 #if 0
   aa_.BindFramebuffer();
   glReadPixels(0, 0, size_.width(), size_.height(), GL_LUMINANCE, GL_FLOAT,

@@ -26,7 +26,7 @@ class SimulationBase {
   virtual ~SimulationBase() {}
   virtual void SetKernel(const KernelConfig& config) = 0;
   virtual void SetSmoother(const SmootherConfig& config) = 0;
-  virtual AlignedReals GetBuffer() = 0;
+  virtual AlignedReals* GetBuffer() = 0;
 
   virtual void ViewSmoother() = 0;
   virtual void Step() = 0;

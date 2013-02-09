@@ -66,6 +66,10 @@ limitations under the License.
         <span id="fps">FPS: {{fps}}</span>
       </div>
       <div id="tabs-presets" ng-controller="presetController">
+        <button ng-click="upload()">Upload</button>
+        <button ng-click="screenshot()">Screenshot</button>
+        <a href="{{screenshotUrl}}">{{screenshotUrl}}</a>
+        <a href="{{bufferUrl}}">{{bufferUrl}}</a>
         <form name="savePresetForm" id="savePreset" class="setting-row"
             ng-submit="addPreset()">
           <input type="text" id="savePresetName" placeholder="Save name"

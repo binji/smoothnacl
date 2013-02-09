@@ -105,6 +105,7 @@ void Instance::InitMessageMap() {
   message_handler_.AddHandler(#NAME, std::bind(&msg::NAME, __VA_ARGS__));
 
   MESSAGE(Clear, thread_, _1);
+  MESSAGE(GetBuffer, thread_, _1);
   MESSAGE(Screenshot, thread_, _1);
   MESSAGE(SetBrush, _1, &brush_radius_, &brush_color_);
   MESSAGE(SetDrawOptions, thread_, _1);

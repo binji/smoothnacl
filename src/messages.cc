@@ -36,6 +36,15 @@ void Clear(SimulationThread* thread, const ParamList& params) {
   thread->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskClear, color));
 }
 
+void GetBuffer(SimulationThread* thread, const ParamList& params) {
+  if (params.size() < 1)
+    return;
+
+  int request_id = atoi(params[0].c_str());
+  thread->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskGetBuffer,
+                                       request_id));
+}
+
 void Screenshot(SimulationThread* thread, const ParamList& params) {
   if (params.size() < 2)
     return;

@@ -133,6 +133,7 @@ SOURCE_FILES = [
   'src/message_handler.cc',
   'src/messages.cc',
   'src/palette.cc',
+  'src/post_buffer_task.cc',
   'src/screenshot_task.cc',
   'src/simulation_thread.cc',
   'src/instance.cc',

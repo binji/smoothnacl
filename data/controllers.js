@@ -130,6 +130,21 @@ var controller = function ($scope, colors) {
   $scope.splat = function () {
     $scope.$broadcast('splat');
   };
+
+  $scope.screenshot = function () {
+    $scope.$emit('takeScreenshot', 'png', [], function (url) {
+      $scope.screenshotUrl = url;
+    });
+  };
+
+  $scope.upload = function () {
+    $scope.$broadcast('getBuffer', function (data) {
+      console.log('buffer length' + data.length);
+      var blob = new Blob([data], {type: 'application/octet-stream'});
+      var url = URL.createObjectURL(blob);
+      $scope.bufferUrl = url;
+    });
+  };
 };
 
 var presetController = function ($scope, staticPreset, localStoragePreset) {

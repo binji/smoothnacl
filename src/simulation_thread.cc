@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "draw_strategy_base.h"
 #include "initializer_factory_base.h"
+#include "post_buffer_task.h"
 #include "screenshot_task.h"
 #include "simulation_base.h"
 #include "task.h"
@@ -112,8 +113,10 @@ void SimulationThread::TaskScreenshot(const ScreenshotConfig& config) {
     EnqueueWork(new ScreenshotTask(instance_, buffer, config));
 }
 
-void SimulationThread::TaskGetBuffer() {
-  AlignedReals buffer = simulation_->GetBuffer();
+void SimulationThread::TaskGetBuffer(int request_id) {
+  AlignedReals* buffer = simulation_->GetBuffer();
+  if (buffer)
+    EnqueueWork(new PostBufferTask(instance_, buffer, request_id));
 }
 
 // static

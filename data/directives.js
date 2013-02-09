@@ -440,15 +440,28 @@
         });
 
         scope.requestId = 0;
-        var screenshotRequests = {};
+        var requests = {};
 
         scope.$on('takeScreenshot', function (event, fileFormat, params, callback) {
           var requestId = scope.requestId++;
-          screenshotRequests[requestId] = [callback, fileFormat];
+          requests[requestId] = {
+            type: 'screenshot',
+            callback: callback,
+            fileFormat: fileFormat
+          };
           params = angular.copy(params);
           params.unshift(fileFormat.toUpperCase());
           params.unshift(requestId);
           postMessage('Screenshot:' + params.join(','))
+        });
+
+        scope.$on('getBuffer', function (event, callback) {
+          var requestId = scope.requestId++;
+          requests[requestId] = {
+            type: 'getBuffer',
+            callback: callback
+          };
+          postMessage('GetBuffer:' + requestId);
         });
 
         // bind/on doesn't work for messages from NaCl module.
@@ -462,18 +475,27 @@
             });
           } else {
             var requestId = new Uint32Array(e.data, 0, 4)[0];
-            var callback = screenshotRequests[requestId][0];
-            var fileFormat = screenshotRequests[requestId][1];
+            var request = requests[requestId];
+            var callback = requests[requestId].callback;
 
-            console.log('Got screenshot with request id: ' + requestId);
-            var imageData = new Uint8Array(e.data, 4);
-            var stringImageData = stringFromArray(imageData);
-            var url = 'data:image/' + fileFormat +
-                ';base64,' + btoa(stringImageData);
+            if (request.type == 'screenshot') {
+              var fileFormat = requests[requestId].fileFormat;
 
-            if (callback)
-              callback(url, fileFormat);
-            delete screenshotRequests[requestId];
+              console.log('Got screenshot with request id: ' + requestId);
+              var imageData = new Uint8Array(e.data, 4);
+              var stringImageData = stringFromArray(imageData);
+              var url = 'data:image/' + fileFormat +
+                  ';base64,' + btoa(stringImageData);
+              if (callback)
+                callback(url, fileFormat);
+            } else if (request.type == 'getBuffer') {
+              console.log('Got buffer with request id: ' + requestId);
+              var data = new Uint8Array(e.data, 4);
+              if (callback)
+                callback(data);
+            }
+
+            delete requests[requestId];
           }
         }, true);
 

@@ -54,6 +54,7 @@ class FftAllocation {
   T* data() { return data_; }
   const T* data() const { return data_; }
   pp::Size size() const { return size_; }
+  size_t byte_size() const { return sizeof(T) * count_; }
   int count() const { return count_; }
   T* begin() { return data_; }
   const T* begin() const { return data_; }
