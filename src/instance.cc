@@ -70,7 +70,7 @@ bool Instance::Init(uint32_t argc, const char* argn[],
   config.size = kSimSize;
 
   InitializerFactoryBase* initializer_factory;
-  initializer_factory = new cpu::InitializerFactory(this, config.size);
+  initializer_factory = new cpu::InitializerFactory(config.size);
   //initializer_factory = new gpu::InitializerFactory(config.size);
 
   SimulationThreadContext context;
@@ -79,7 +79,7 @@ bool Instance::Init(uint32_t argc, const char* argn[],
   context.draw_options = kDrawOptions_Simulation;
   context.initializer_factory = initializer_factory;
 
-  thread_ = new SimulationThread(context);
+  thread_ = new SimulationThread(this, context);
   view_ = initializer_factory->CreateView();
 
   InitMessageMap();
