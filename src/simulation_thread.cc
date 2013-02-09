@@ -18,8 +18,10 @@
 #include <stdio.h>
 #include "draw_strategy_base.h"
 #include "initializer_factory_base.h"
+#include "screenshot_task.h"
 #include "simulation_base.h"
 #include "task.h"
+#include "worker_thread.h"
 
 namespace {
 
@@ -28,8 +30,10 @@ const int kMaxTaskQueueSize = 25;
 
 }  // namespace
 
-SimulationThread::SimulationThread(const SimulationThreadContext& context)
+SimulationThread::SimulationThread(pp::Instance* instance,
+                                   const SimulationThreadContext& context)
     : Thread<SimulationThread>(),
+      instance_(instance),
       task_queue_(new ThreadTaskQueue),
       context_(context),
       frames_drawn_(new int),
@@ -103,7 +107,9 @@ void SimulationThread::TaskSetDrawOptions(
 }
 
 void SimulationThread::TaskScreenshot(const ScreenshotConfig& config) {
-  draw_strategy_->PostScreenshot(config);
+  AlignedUint32* buffer = draw_strategy_->GetDrawBuffer();
+  if (buffer)
+    EnqueueWork(new ScreenshotTask(instance_, buffer, config));
 }
 
 void SimulationThread::TaskGetBuffer() {

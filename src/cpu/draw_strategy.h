@@ -21,25 +21,19 @@
 #include "palette.h"
 #include "screenshot_config.h"
 
-namespace pp {
-class Instance;
-}  // namespace pp
-
 namespace cpu {
 
 class DrawStrategy : public DrawStrategyBase {
  public:
-  DrawStrategy(pp::Instance* instance,
-               LockedObject<AlignedUint32>* locked_buffer);
+  explicit DrawStrategy(LockedObject<AlignedUint32>* locked_buffer);
   virtual void Draw(SimulationThreadDrawOptions options,
                     SimulationBase* simulation);
   virtual void SetPalette(const PaletteConfig& config);
-  virtual void PostScreenshot(const ScreenshotConfig& config);
+  virtual AlignedUint32* GetDrawBuffer();
 
  private:
   void CopyBuffer(const AlignedReals& src);
 
-  pp::Instance* instance_;  // Weak.
   LockedObject<AlignedUint32>* locked_buffer_;  // Weak.
   Palette palette_;
 

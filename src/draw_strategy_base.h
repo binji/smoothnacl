@@ -15,6 +15,7 @@
 #ifndef DRAW_STRATEGY_BASE_H_
 #define DRAW_STRATEGY_BASE_H_
 
+#include "fft_allocation.h"
 #include "simulation_thread_options.h"
 
 struct PaletteConfig;
@@ -27,7 +28,7 @@ class DrawStrategyBase {
   virtual void Draw(SimulationThreadDrawOptions options,
                     SimulationBase* simulation) = 0;
   virtual void SetPalette(const PaletteConfig& config) {}
-  virtual void PostScreenshot(const ScreenshotConfig& config) {}
+  virtual AlignedUint32* GetDrawBuffer() { return NULL; }
 };
 
 #endif  // DRAW_STRATEGY_BASE_H_

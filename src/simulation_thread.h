@@ -27,6 +27,10 @@
 #include "task.h"
 #include "thread.h"
 
+namespace pp {
+class Instance;
+}  // namespace pp
+
 class DrawStrategyBase;
 class InitializerFactoryBase;
 class SimulationBase;
@@ -47,7 +51,8 @@ class SimulationThread : public Thread<SimulationThread> {
  public:
   typedef Task<SimulationThread> ThreadTask;
 
-  explicit SimulationThread(const SimulationThreadContext& context);
+  SimulationThread(pp::Instance* instance_,
+                   const SimulationThreadContext& context);
 
   void Step();
   void EnqueueTask(ThreadTask* task);
@@ -75,6 +80,7 @@ class SimulationThread : public Thread<SimulationThread> {
   typedef std::shared_ptr<ThreadTask> ThreadTaskPtr;
   typedef std::vector<ThreadTaskPtr> ThreadTaskQueue;
 
+  pp::Instance* instance_;
   SimulationThreadContext context_;
   LockedObject<ThreadTaskQueue> task_queue_;
   LockedObject<int> frames_drawn_;

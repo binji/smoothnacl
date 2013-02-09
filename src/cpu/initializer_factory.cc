@@ -20,9 +20,7 @@
 
 namespace cpu {
 
-InitializerFactory::InitializerFactory(pp::Instance* instance,
-                                       const pp::Size& size)
-    : instance_(instance) {
+InitializerFactory::InitializerFactory(const pp::Size& size) {
   AlignedUint32* buffer = new AlignedUint32(size);
   locked_buffer_ = new LockedObject<AlignedUint32>(buffer);
 }
@@ -32,7 +30,7 @@ InitializerFactory::~InitializerFactory() {
 }
 
 DrawStrategyBase* InitializerFactory::CreateDrawStrategy() {
-  return new cpu::DrawStrategy(instance_, locked_buffer_);
+  return new cpu::DrawStrategy(locked_buffer_);
 }
 
 SimulationBase* InitializerFactory::CreateSimulation(
