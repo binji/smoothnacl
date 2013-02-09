@@ -106,6 +106,10 @@ void SimulationThread::TaskScreenshot(const ScreenshotConfig& config) {
   draw_strategy_->PostScreenshot(config);
 }
 
+void SimulationThread::TaskGetBuffer() {
+  AlignedReals buffer = simulation_->GetBuffer();
+}
+
 // static
 void SimulationThread::MainLoop() {
   simulation_ = context_.initializer_factory->CreateSimulation(context_.config);

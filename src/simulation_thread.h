@@ -63,6 +63,7 @@ class SimulationThread : public Thread<SimulationThread> {
   void TaskSetRunOptions(SimulationThreadRunOptions run_options);
   void TaskSetDrawOptions(SimulationThreadDrawOptions draw_options);
   void TaskScreenshot(const ScreenshotConfig& config);
+  void TaskGetBuffer();
 
  protected:
   virtual void Destroy();
