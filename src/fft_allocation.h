@@ -25,6 +25,8 @@ struct ReduceSizeForComplex {};
 template<typename T>
 class FftAllocation {
  public:
+  typedef T ElementType;
+
   explicit FftAllocation(const pp::Size& size)
       : size_(size) {
     count_ = size.width() * size.height();

@@ -13,6 +13,7 @@
 // limitations under the License.
 
 #include "post_buffer_task.h"
+#include <assert.h>
 #include <algorithm>
 #include <ppapi/cpp/completion_callback.h>
 #include <ppapi/cpp/instance.h>
@@ -38,11 +39,24 @@ PostBufferTask::PostBufferTask(pp::Instance* instance, AlignedReals* buffer,
 }
 
 void PostBufferTask::Run(WorkerThread*) {
-  size_t size = buffer_->byte_size();
-  pp::VarArrayBuffer array_buffer(sizeof(request_id_) + size);
-  char* var_data = static_cast<char*>(array_buffer.Map());
+  size_t real_size = buffer_->byte_size();
+
+  const size_t kElementSize = sizeof(AlignedReals::ElementType);
+  assert((real_size & (kElementSize - 1)) == 0);
+  size_t byte_size = real_size / kElementSize;
+
+  pp::VarArrayBuffer array_buffer(sizeof(request_id_) + byte_size);
+  uint8_t* var_data = static_cast<uint8_t*>(array_buffer.Map());
   memcpy(var_data, &request_id_, sizeof(request_id_));
-  memcpy(var_data + sizeof(request_id_), buffer_->data(), size);
+
+  // Convert buffer from 1 float/pixel -> 1 byte/pixel.
+  // Float range [0, 1] -> byte range [0, 255].
+  uint8_t* dst = var_data + sizeof(request_id_);
+  for (size_t i = 0; i < byte_size; ++i) {
+    double real_value = std::min(std::max((*buffer_)[i], 0.0), 1.0);
+    *dst++ = static_cast<uint8_t>(real_value * 255);
+  }
+
   array_buffer.Unmap();
 
   PostMessageData* post_message_data = new PostMessageData;
