@@ -16,7 +16,8 @@
     "128": "icon128.png"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "http://localhost:*/*"
   ],
   "key": "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCewIcWpdZ/YCBWEBOFUelhAEXaveyzZldG0I2DxijED4h1yJ7mQCI3Fcacv4djTtqy7ygrA7bcskynOwV6aWLZgMbdp9niZXo0A5RVNhabT4gb4Idji32ALmW1nSkzYOjkESEhDB1p1NbnU/JB6znp/+xylCkBuWQu8TqcPd5kfwIDAQAB"
 }

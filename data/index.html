@@ -67,9 +67,6 @@ limitations under the License.
       </div>
       <div id="tabs-presets" ng-controller="presetController">
         <button ng-click="upload()">Upload</button>
-        <button ng-click="screenshot()">Screenshot</button>
-        <a href="{{screenshotUrl}}" target="_blank">{{screenshotUrl}}</a>
-        <a href="{{bufferUrl}}" target="_blank">{{bufferUrl}}</a>
         <form name="savePresetForm" id="savePreset" class="setting-row"
             ng-submit="addPreset()">
           <input type="text" id="savePresetName" placeholder="Save name"

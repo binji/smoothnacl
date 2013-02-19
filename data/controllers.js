@@ -19,7 +19,7 @@ var kernelOrder = ['discRadius', 'ringRadius', 'antiAliasRadius'];
 var smootherOrder = ['timestep', 'dt', 'b1', 'd1', 'b2', 'd2',
                      'sigmoidMode', 'sigmoid', 'mix', 'sn', 'sm'];
 
-var controller = function ($scope, colors) {
+var controller = function ($scope, colors, $http) {
   $scope.drawOptions = {
     view: 0,
   };
@@ -131,18 +131,28 @@ var controller = function ($scope, colors) {
     $scope.$broadcast('splat');
   };
 
-  $scope.screenshot = function () {
-    $scope.$emit('takeScreenshot', 'png', [], function (url) {
-      $scope.screenshotUrl = url;
-    });
-  };
-
   $scope.upload = function () {
     $scope.$broadcast('getBuffer', function (data) {
-      console.log('buffer length' + data.length);
       var blob = new Blob([data], {type: 'application/octet-stream'});
-      var url = URL.createObjectURL(blob);
-      $scope.bufferUrl = url;
+
+      var fd = new FormData();
+      fd.append('name', 'Test');
+      fd.append('values', JSON.stringify($scope.getValues()));
+      fd.append('buffer', blob);
+      $http({
+        method: 'POST',
+        url: 'http://localhost:8080/api/patterns',
+        data: fd,
+        headers: {
+          // Auto-generate multipart/form-data with boundary.
+          'Content-Type': undefined,
+        },
+        transformRequest: angular.identity
+      }).success(function (response) {
+        console.log('Success!');
+      }).error(function (response) {
+        console.log('error...');
+      });
     });
   };
 };
