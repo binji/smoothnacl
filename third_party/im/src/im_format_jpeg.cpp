@@ -30,7 +30,6 @@ extern "C" {
 #include "exif-data.h"
 #include "exif-entry.h"
 #include "exif-utils.h"
-#endif
 
 
 static int iExifGetGPSTagInfo(int tag, ExifFormat* format, unsigned long *components)
@@ -254,6 +253,7 @@ static int iExifGetTagInfo(ExifTag tag, ExifFormat* format, unsigned long *compo
 
   return 1;
 }
+#endif
 
 /* libjpeg error handlers */
 
