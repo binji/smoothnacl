@@ -1,0 +1,199 @@
+# vim: set syntax=python
+
+ARCHES=('x86_32', 'x86_64', 'arm')
+CONFIGS=('debug', 'release')
+arch_config={'arch': ARCHES, 'config': CONFIGS}
+
+Variable('nacl_sdk_root', Args['nacl_sdk_root'])
+Variable('toolchain_dir', '$nacl_sdk_root/toolchain')
+Variable('toolchain_dir_x86', '$toolchain_dir/%s_x86_newlib' % Args['platform'])
+Variable('toolchain_dir_arm', '$toolchain_dir/%s_arm_newlib' % Args['platform'])
+Variable('cc-x86_32', '$toolchain_dir_x86/bin/i686-nacl-gcc')
+Variable('cxx-x86_32', '$toolchain_dir_x86/bin/i686-nacl-g++')
+Variable('ar-x86_32', '$toolchain_dir_x86/bin/i686-nacl-ar')
+Variable('cc-x86_64', '$toolchain_dir_x86/bin/x86_64-nacl-gcc')
+Variable('cxx-x86_64', '$toolchain_dir_x86/bin/x86_64-nacl-g++')
+Variable('ar-x86_64', '$toolchain_dir_x86/bin/x86_64-nacl-ar')
+Variable('cc-arm', '$toolchain_dir_arm/bin/arm-nacl-gcc')
+Variable('cxx-arm', '$toolchain_dir_arm/bin/arm-nacl-g++')
+Variable('ar-arm', '$toolchain_dir_arm/bin/arm-nacl-ar')
+Variable('nmf', '$nacl_sdk_root/tools/create_nmf.py')
+
+Rule('cc', '$cc $ccflags -MMD -MF $out.d -c $in -o $out', 'CC $out',
+     depfile='$out.d')
+Rule('ar', '$ar rc $out $in', 'AR $out')
+Rule('link', '$cc $in $ldflags -o $out', 'LINK $out')
+Rule('nmf', '$nmf $in -o $out', 'NMF $out')
+
+sources = Build('out/{arch}/{config}/{inf:-ext}.o', 'cc', '{inf}') \
+    .Tag('{name}-sources')
+lib = Build('out/{arch}/{config}/lib{name}.a', 'ar').Tag('{name}-lib')
+exe = Build('out/{name}_{arch}_{config}.nexe', 'link').Tag('{name}-exe')
+nmf = Build('out/{name}_{config}.nmf', 'nmf').Tag('{name}-nmf')
+
+# ZLIB #########################################################################
+
+ZLIB_SOURCES = GlobList(
+  'third_party/im/src/zlib/*.c',
+)
+
+sources.ForEach(name='zlib', inf=ZLIB_SOURCES, **arch_config)
+for b in lib.ForEach(name='zlib', **arch_config):
+  b.Set('inputs', Select('zlib-sources').And(keys=b.keys).outputs)
+
+# PNG ##########################################################################
+
+PNG_SOURCES = GlobList(
+  'third_party/im/src/libpng/*.c',
+)
+PNG_INCLUDE_DIRS = 'third_party/im/src/zlib'
+
+for b in sources.ForEach(name='png', inf=PNG_SOURCES, **arch_config):
+  b.Append('ccflags', Prefix('-I', PNG_INCLUDE_DIRS))
+for b in lib.ForEach(name='png', **arch_config):
+  b.Set('inputs', Select('png-sources').And(keys=b.keys).outputs)
+
+# EXIF #########################################################################
+
+EXIF_SOURCES = GlobList(
+  'third_party/im/src/libexif/*.c',
+  'third_party/im/src/libexif/canon/*.c',
+  'third_party/im/src/libexif/fuji/*.c',
+  'third_party/im/src/libexif/olympus/*.c',
+  'third_party/im/src/libexif/pentax/*.c',
+)
+EXIF_INCLUDE_DIRS = [
+  'third_party/im/src',
+  'third_party/im/src/libexif',
+]
+
+for b in sources.ForEach(name='exif', inf=EXIF_SOURCES, **arch_config):
+  b.Append('ccflags', Prefix('-I', EXIF_INCLUDE_DIRS))
+for b in lib.ForEach(name='exif', **arch_config):
+  b.Set('inputs', Select('exif-sources').And(keys=b.keys).outputs)
+
+# JPEG #########################################################################
+
+JPEG_SOURCES = GlobList(
+  'third_party/im/src/libjpeg/*.c',
+)
+JPEG_INCLUDE_DIRS = 'third_party/im/include'
+
+for b in sources.ForEach(name='jpeg', inf=JPEG_SOURCES, **arch_config):
+  b.Append('ccflags', Prefix('-I', JPEG_INCLUDE_DIRS))
+for b in lib.ForEach(name='jpeg', **arch_config):
+  b.Set('inputs', Select('jpeg-sources').And(keys=b.keys).outputs)
+
+# IM ###########################################################################
+
+IM_SOURCES = GlobList(
+  'third_party/im/src/*.cpp',
+  'third_party/im/src/process/*.cpp',
+)
+IM_SOURCES = Exclude(IM_SOURCES,
+   'im_capture',
+   'im_compress',
+   'im_dib',
+   'im_fft',
+   'im_format',
+   'im_sysfile',
+)
+IM_SOURCES += [
+  'third_party/im/src/im_format.cpp',
+  'third_party/im/src/im_format_jpeg.cpp',
+  'third_party/im/src/im_format_png.cpp',
+]
+IM_INCLUDE_DIRS = [
+  'third_party/im/include',
+  'third_party/im/src',
+  'third_party/im/src/libexif',
+  'third_party/im/src/libpng',
+  'third_party/im/src/libjpeg',
+]
+IM_DEFINES='USE_EXIF'
+
+for b in sources.ForEach(name='im', inf=IM_SOURCES, **arch_config):
+  b.Append('ccflags', Prefix('-I', IM_INCLUDE_DIRS))
+  b.Append('ccflags', Prefix('-D', IM_DEFINES))
+for b in lib.ForEach(name='im', **arch_config):
+  b.Set('inputs', Select('im-sources').And(keys=b.keys).outputs)
+
+# SMOOTHLIFE ###################################################################
+SHADER_SOURCES = [
+  'data/shaders/1tex.vert',
+  'data/shaders/2tex.vert',
+  'data/shaders/3tex.vert',
+  'data/shaders/draw_circle.vert',
+  'data/shaders/complex_real.frag',
+  'data/shaders/real_complex.frag',
+  'data/shaders/draw.frag',
+  'data/shaders/draw_circle.frag',
+  'data/shaders/fft.frag',
+  'data/shaders/kernelmul.frag',
+  'data/shaders/smoother.frag',
+]
+OUT_SHADER_CC = 'out/gen/shader_source.cc'
+OUT_SHADER_H = 'out/gen/shader_source.h'
+
+Rule('shader_to_c', 'script/shader_to_c.py -r out -o $outbase $in',
+    'SHADER_TO_C $out',
+    implicit='script/shader_to_c.py')
+Build([OUT_SHADER_CC, OUT_SHADER_H], 'shader_to_c',
+    SHADER_SOURCES,
+    outbase=Filename(OUT_SHADER_CC).NoExtension)
+
+SMOOTHLIFE_SOURCES = GlobList(
+  'src/*.cc',
+  'src/cpu/*.cc',
+  'src/gpu/*.cc',
+  OUT_SHADER_CC,
+)
+
+SMOOTHLIFE_INCLUDE_DIRS=[
+  'src',
+  'out',
+  '$nacl_sdk_root/include',
+  'third_party/fftw-prebuilt/newlib_{arch}/include',
+  'third_party/im/include'
+]
+
+SMOOTHLIFE_LIBS = [
+  'ppapi_gles2',
+  'ppapi_cpp',
+  'ppapi',
+]
+
+for b in sources.ForEach(name='smoothlife', inf=SMOOTHLIFE_SOURCES, **arch_config):
+  b.Append('ccflags', Prefix('-I', SMOOTHLIFE_INCLUDE_DIRS))
+  b.Append('ccflags', '-std=c++0x')
+  b.Append('order_only', OUT_SHADER_H)
+
+for b in exe.ForEach(name='smoothlife', **arch_config):
+  b.Append('ldflags', Prefix('-l', SMOOTHLIFE_LIBS))
+  b.Append('inputs', Select('smoothlife-sources').And(keys=b.keys).outputs)
+  subkeys = b.SubKeys('arch', 'config')
+  for libname in ('im', 'exif', 'jpeg', 'png', 'zlib'):
+    b.Append('inputs', Select('%s-lib' % libname).And(keys=subkeys).outputs)
+  b.Append('inputs', 'third_party/fftw-prebuilt/newlib_{arch}/lib/libfftw3.a')
+
+for b in nmf.ForEach(name='smoothlife', config=CONFIGS):
+  b.Append('inputs',
+    Select('smoothlife-exe').And(keys=b.SubKeys('config')).outputs)
+
+
+################################################################################
+
+for b in Select(keys={'config': 'debug'}).And(rule='cc'):
+  b.Append('ccflags', '-g -O0')
+for b in Select(keys={'config': 'release'}).And(rule='cc'):
+  b.Append('ccflags', '-g -O3')
+for b in Select(rule='cc'):
+  ext = Filename(b.inputs).Extension
+  if ext in ('.cc', '.cpp'):
+    b.Set('cc', '$cxx-{arch}')
+  elif ext == '.c':
+    b.Set('cc', '$cc-{arch}')
+for b in Select(rule='link'):
+  b.Set('cc', '$cxx-{arch}')
+for b in Select(rule='ar'):
+  b.Set('ar', '$ar-{arch}')
