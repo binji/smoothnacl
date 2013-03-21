@@ -1,7 +1,7 @@
-nacl_sdk/
-fftw/
-out/
-build.ninja
-.ninja_log
-httpd.pid
+/nacl_sdk
+/out/
+/build.ninja
+/.ninja_log
+/third_party/fftw-clean
 *.pyc
+package.pem

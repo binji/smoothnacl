@@ -1,12 +1,13 @@
 DATA_DIR?=out/chromium-data-dir
 CHROME_PATH?=/home/binji/dev/chromium/src/out/Release/chrome
 NEXE_ARGS?=--load-extension=${CURDIR}/out/package --user-data-dir=${DATA_DIR}
+NACL_SDK_ROOT?=nacl_sdk/pepper_canary
 
 all: build.ninja
 	@ninja
 
-build.ninja: build/make_ninja.py build/build.nw
-	@python build/ninja_wrap.py build/build.nw -o build.ninja -D nacl_sdk_root=nacl_sdk/pepper_canary
+build.ninja: build/build.nw build/ninja_wrap.py
+	@python build/ninja_wrap.py $< -o $@ -D nacl_sdk_root=${NACL_SDK_ROOT}
 
 clean:
 	@rm -rf out build.ninja
