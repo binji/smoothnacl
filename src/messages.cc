@@ -17,11 +17,9 @@
 #include <algorithm>
 #include <ppapi/cpp/fullscreen.h>
 #include <stdlib.h>
-#include "image_operation.h"
 #include "kernel_config.h"
 #include "message_handler.h"
 #include "palette.h"
-#include "screenshot_config.h"
 #include "simulation_thread.h"
 #include "simulation_thread_options.h"
 #include "smoother_config.h"
@@ -34,72 +32,6 @@ void Clear(SimulationThread* thread, const ParamList& params) {
 
   double color = strtod(params[0].c_str(), NULL);
   thread->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskClear, color));
-}
-
-void Screenshot(SimulationThread* thread, const ParamList& params) {
-  if (params.size() < 2)
-    return;
-
-  ScreenshotConfig config;
-  config.request_id = atoi(params[0].c_str());
-
-  config.file_format = params[1];
-  static const std::array<std::string, 2> valid_file_formats = {
-    "PNG", "JPEG" };
-  const std::string* found = std::find(valid_file_formats.begin(),
-                                       valid_file_formats.end(),
-                                       config.file_format);
-  if (found == valid_file_formats.end()) {
-    printf("Unknown file format for Screenshot, ignoring.\n");
-    return;
-  }
-
-  for (int i = 2; i < params.size(); ++i) {
-    const std::string& param = params[i];
-    // Split each param at spaces.
-    std::vector<std::string> operation_params = Split(param, ' ');
-
-    if (operation_params.size() == 0) {
-      printf("Ignoring empty operation.\n");
-      continue;
-    }
-
-    std::string operation = operation_params[0];
-    operation_params.erase(operation_params.begin());
-
-    ImageOperation* op = NULL;
-    if (operation == "reduce") {
-      if (operation_params.size() != 1)
-        continue;
-
-      int max_length = atoi(operation_params[0].c_str());
-      op = new ReduceImageOperation(max_length);
-    } else if (operation == "crop") {
-      if (operation_params.size() != 3)
-        continue;
-
-      double x_scale = strtod(operation_params[0].c_str(), NULL);
-      double y_scale = strtod(operation_params[1].c_str(), NULL);
-      int max_length = atoi(operation_params[2].c_str());
-      op = new CropImageOperation(x_scale, y_scale, max_length);
-    } else if (operation == "brightness_contrast") {
-      if (operation_params.size() != 2)
-        continue;
-
-      double brightness_shift = strtod(operation_params[0].c_str(), NULL);
-      double contrast_factor = strtod(operation_params[1].c_str(), NULL);
-      op = new BrightnessContrastImageOperation(brightness_shift,
-                                                contrast_factor);
-    } else {
-      printf("Unknown operation %s, ignoring.\n", operation.c_str());
-    }
-
-    if (op)
-      config.operations.push_back(ScreenshotConfig::OperationPtr(op));
-  }
-
-  thread->EnqueueTask(MakeFunctionTask(&SimulationThread::TaskScreenshot,
-                                       config));
 }
 
 void SetBrush(const ParamList& params, double* out_radius, double* out_color) {

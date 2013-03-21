@@ -19,7 +19,6 @@
 #include "fft_allocation.h"
 #include "locked_object.h"
 #include "palette.h"
-#include "screenshot_config.h"
 
 namespace cpu {
 

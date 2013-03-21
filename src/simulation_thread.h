@@ -21,7 +21,6 @@
 #include "condvar.h"
 #include "locked_object.h"
 #include "palette.h"
-#include "screenshot_config.h"
 #include "simulation_config.h"
 #include "simulation_thread_options.h"
 #include "task.h"
@@ -67,7 +66,6 @@ class SimulationThread : public Thread<SimulationThread> {
   void TaskDrawFilledCircle(double x, double y, double radius, double color);
   void TaskSetRunOptions(SimulationThreadRunOptions run_options);
   void TaskSetDrawOptions(SimulationThreadDrawOptions draw_options);
-  void TaskScreenshot(const ScreenshotConfig& config);
 
  protected:
   virtual void Destroy();

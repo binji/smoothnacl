@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include "draw_strategy_base.h"
 #include "initializer_factory_base.h"
-#include "screenshot_task.h"
 #include "simulation_base.h"
 #include "task.h"
 #include "worker_thread.h"
@@ -104,12 +103,6 @@ void SimulationThread::TaskSetRunOptions(
 void SimulationThread::TaskSetDrawOptions(
     SimulationThreadDrawOptions draw_options) {
   context_.draw_options = draw_options;
-}
-
-void SimulationThread::TaskScreenshot(const ScreenshotConfig& config) {
-  AlignedUint32* buffer = draw_strategy_->GetDrawBuffer();
-  if (buffer)
-    EnqueueWork(new ScreenshotTask(instance_, buffer, config));
 }
 
 // static
