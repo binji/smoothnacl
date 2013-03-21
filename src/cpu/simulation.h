@@ -31,6 +31,7 @@ class Simulation : public SimulationBase {
 
   virtual void SetKernel(const KernelConfig& config);
   virtual void SetSmoother(const SmootherConfig& config);
+  virtual AlignedReals* GetBuffer() { return new AlignedReals(aa_); }
   const Kernel& kernel() const { return kernel_; }
   const Smoother& smoother() const { return smoother_; }
   const AlignedReals& buffer() const { return aa_; }

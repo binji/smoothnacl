@@ -66,6 +66,7 @@ class SimulationThread : public Thread<SimulationThread> {
   void TaskDrawFilledCircle(double x, double y, double radius, double color);
   void TaskSetRunOptions(SimulationThreadRunOptions run_options);
   void TaskSetDrawOptions(SimulationThreadDrawOptions draw_options);
+  void TaskGetBuffer(int request_id);
 
  protected:
   virtual void Destroy();

@@ -29,6 +29,7 @@ namespace msg {
 typedef std::vector<std::string> ParamList;
 
 void Clear(SimulationThread* thread, const ParamList& params);
+void GetBuffer(SimulationThread* thread, const ParamList& params);
 void SetBrush(const ParamList& params, double* out_radius, double* out_color);
 void SetDrawOptions(SimulationThread* thread, const ParamList& params);
 void SetFullscreen(const ParamList& params, pp::Fullscreen* fullscreen);

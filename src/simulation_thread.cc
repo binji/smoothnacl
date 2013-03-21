@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "draw_strategy_base.h"
 #include "initializer_factory_base.h"
+#include "post_buffer_task.h"
 #include "simulation_base.h"
 #include "task.h"
 #include "worker_thread.h"
@@ -103,6 +104,12 @@ void SimulationThread::TaskSetRunOptions(
 void SimulationThread::TaskSetDrawOptions(
     SimulationThreadDrawOptions draw_options) {
   context_.draw_options = draw_options;
+}
+
+void SimulationThread::TaskGetBuffer(int request_id) {
+  AlignedReals* buffer = simulation_->GetBuffer();
+  if (buffer)
+    EnqueueWork(new PostBufferTask(instance_, buffer, request_id));
 }
 
 // static
