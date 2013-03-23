@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<!--
+Copyright (c) 2012 The Chromium Authors. All rights reserved.
+Use of this source code is governed by a BSD-style license that can be
+found in the LICENSE file.
+-->
+<head>
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="-1">
+  <title>SmoothNaCl Test</title>
+</head>
+<body>
+  <h1>SmoothNaCl Test</h1>
+  <h2>Status: <code id="statusField">NO-STATUS</code></h2>
+  <div>
+    <select id="functionValue">
+      <option value="clear">Clear</option>
+      <option value="getBuffer">GetBuffer</option>
+      <option value="setBrush">SetBrush</option>
+      <option value="setDrawOptions">SetDrawOptions</option>
+      <option value="setFullscreen">SetFullscreen</option>
+      <option value="setKernel">SetKernel</option>
+      <option value="setPalette">SetPalette</option>
+      <option value="setRunOptions">SetRunOptions</option>
+      <option value="setSmoother">SetSmoother</option>
+      <option value="splat">Splat</option>
+    </select>
+    <button id="execute">Run</button>
+  </div>
+  <div class="function" id="clear">
+    <div>Color:<input type="text" id="clearColor"></div>
+  </div>
+  <div class="function" id="getBuffer" hidden>
+    <div>RequestId:<input type="text" id="getBufferRequestId"></div>
+  </div>
+  <div class="function" id="setBrush" hidden>
+    <div>Radius:<input type="text" id="setBrushRadius"></div>
+    <div>Color:<input type="text" id="setBrushColor"></div>
+  </div>
+  <div class="function" id="setDrawOptions" hidden>
+    <select id="setDrawOptionsValue">
+      <option value="simulation">Simulation</option>
+      <option value="disc">Disc</option>
+      <option value="ring">Ring</option>
+      <option value="smoother">Smoother</option>
+      <option value="palette">Palette</option>
+    </select>
+  </div>
+  <div class="function" id="setFullscreen" hidden>
+    <div>Fullscreen:<input type="checkbox" id="setFullscreenValue"></div>
+  </div>
+  <div class="function" id="setKernel" hidden>
+    <div>DiscRadius:<input type="text" id="setKernelDiscRadius"></div>
+    <div>RingRadius:<input type="text" id="setKernelRingRadius"></div>
+    <div>BlendRadius:<input type="text" id="setKernelBlendRadius"></div>
+  </div>
+  <div class="function" id="setPalette" hidden>
+    <div>Repeating:<input type="checkbox" id="setPaletteRepeating"></div>
+    <div>#ColorStops:<input type="text" id="setPaletteNumColorstops"></div>
+    <div id="colorstops">
+    </div>
+  </div>
+  <div class="function" id="setRunOptions" hidden>
+    <div>Simulate:<input type="checkbox" id="setRunOptionsSimulate"></div>
+    <div>Run:<input type="checkbox" id="setRunOptionsRun"></div>
+  </div>
+  <div class="function" id="setSmoother" hidden>
+    <div>Type:<input type="text" id="setSmootherType"></div>
+    <div>dt:<input type="text" id="setSmootherDt"></div>
+    <div>b1:<input type="text" id="setSmootherB1"></div>
+    <div>b2:<input type="text" id="setSmootherB2"></div>
+    <div>d1:<input type="text" id="setSmootherD1"></div>
+    <div>d2:<input type="text" id="setSmootherD2"></div>
+    <div>mode:<input type="text" id="setSmootherMode"></div>
+    <div>sigmoid:<input type="text" id="setSmootherSigmoid"></div>
+    <div>mix:<input type="text" id="setSmootherMix"></div>
+    <div>sn:<input type="text" id="setSmootherSn"></div>
+    <div>sm:<input type="text" id="setSmootherSm"></div>
+  </div>
+  <div class="function" id="splat" hidden>
+  </div>
+  <!-- The NaCl plugin will be embedded inside the element with id "listener".
+      See common.js.-->
+  <div id="listener"></div>
+    <embed id="naclModule"
+           width=512 height=512
+           src="smoothlife_debug.nmf"
+           type="application/x-nacl"
+           msg1="SetPalette:0,#00000,0,#ffffff,100"
+           msg2="SetBrush:10,1.0"
+           msg3="SetRunOptions:noSimulation,run" />
+  <div id="log"></div>
+  <script>
+    document.getElementById('functionValue').addEventListener('change', onFunctionChanged);
+    document.getElementById('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged);
+    document.getElementById('execute').addEventListener('click', onExecute);
+
+    function onFunctionChanged(e) {
+      var divId = this.value;
+      var functionEls = document.querySelectorAll('.function');
+      for (var i = 0; i < functionEls.length; ++i) {
+        var visible = functionEls[i].id === divId;
+        if (functionEls[i].id === divId)
+          functionEls[i].removeAttribute('hidden');
+        else
+          functionEls[i].setAttribute('hidden');
+      }
+    }
+
+    function onNumColorstopsChanged(e) {
+      var colorstops = parseInt(this.value, 10);
+      var colorstopEl = document.getElementById('colorstops');
+
+      // remove all child elements.
+      while (colorstopEl.firstChild) {
+        colorstopEl.removeChild(colorstopEl.firstChild);
+      }
+
+      if (colorstops >= 0 && colorstops < 8) {
+        for (var i = 0; i < colorstops; ++i) {
+          var myEl = document.createElement('div');
+          myEl.appendChild(document.createTextNode('Color'+i+':'));
+          var inputEl = document.createElement('input');
+          inputEl.setAttribute('type', 'text');
+          myEl.appendChild(inputEl);
+          colorstopEl.appendChild(myEl);
+
+          myEl = document.createElement('div');
+          myEl.appendChild(document.createTextNode('Stop'+i+':'));
+          inputEl = document.createElement('input');
+          inputEl.setAttribute('type', 'text');
+          myEl.appendChild(inputEl);
+          colorstopEl.appendChild(myEl);
+        }
+      }
+    }
+
+    function onExecute(e) {
+      var fun = document.getElementById('functionValue').value;
+      window[fun].apply(null);
+    }
+
+    function makeMessage(cmd) {
+      cmd = cmd[0].toUpperCase() + cmd.slice(1);
+      var args = Array.prototype.slice.call(arguments, 1);
+      if (args.length)
+        return cmd + ':' + Array.prototype.join.call(args, ',');
+      return cmd
+    }
+
+    function getIntById(id) {
+      return parseInt(document.getElementById(id).value, 10);
+    }
+
+    function getFloatById(id) {
+      return parseFloat(document.getElementById(id).value);
+    }
+
+    function getValueById(id) {
+      return document.getElementById(id).value;
+    }
+
+    function getCheckedById(id) {
+      return document.getElementById(id).checked;
+    }
+
+    function clear() {
+      var color = getFloatById('clearColor');
+      var msg = makeMessage('clear', color);
+      postMessage(msg);
+    }
+
+    function getBuffer() {
+      var requestId = getIntById('getBufferRequestId');
+      var msg = makeMessage('getBuffer', requestId);
+      postMessage(msg);
+    }
+
+    function setBrush() {
+      var radius = getFloatById('setBrushRadius');
+      var color = getFloatById('setBrushColor');
+      var msg = makeMessage('setBrush', radius, color);
+      postMessage(msg);
+    }
+
+    function setDrawOptions() {
+      var value = getValueById('setDrawOptionsValue');
+      var msg = makeMessage('setDrawOptions', value);
+      postMessage(msg);
+    }
+
+    function setFullscreen() {
+      var value = getCheckedById('setFullscreenValue') ? 'true' : 'false';
+      var msg = makeMessage('setFullscreen', value);
+      postMessage(msg);
+    }
+
+    function setKernel() {
+      var discRadius = getFloatById('setKernelDiscRadius');
+      var ringRadius = getFloatById('setKernelRingRadius');
+      var blendRadius = getFloatById('setKernelBlendRadius');
+      var msg = makeMessage('setKernel', discRadius, ringRadius, blendRadius);
+      postMessage(msg);
+    }
+
+    function setPalette() {
+      var repeating = getCheckedById('setPaletteRepeating') ? 1 : 0;
+      var inputEls = document.querySelectorAll('#colorstops input');
+      var colorstops = [];
+      for (var i = 0; i < inputEls.length; ++i) {
+        colorstops.push(inputEls[i].value);
+      }
+
+      var msg = makeMessage.apply(null, ['setPalette', repeating].concat(colorstops));
+      postMessage(msg);
+    }
+
+    function setRunOptions() {
+      var simulate = getCheckedById('setRunOptionsSimulate') ? 'simulation' : 'noSimulation';
+      var run = getCheckedById('setRunOptionsRun') ? 'run' : 'pause';
+      var msg = makeMessage('setRunOptions', simulate, run);
+      postMessage(msg);
+    }
+
+    function setSmoother() {
+      var type = getFloatById('setSmootherType');
+      var dt = getFloatById('setSmootherDt');
+      var b1 = getFloatById('setSmootherB1');
+      var b2 = getFloatById('setSmootherB2');
+      var d1 = getFloatById('setSmootherD1');
+      var d2 = getFloatById('setSmootherD2');
+      var mode = getFloatById('setSmootherMode');
+      var sigmoid = getFloatById('setSmootherSigmoid');
+      var mix = getFloatById('setSmootherMix');
+      var sn = getFloatById('setSmootherSn');
+      var sm = getFloatById('setSmootherSm');
+      var msg = makeMessage('setSmoother', type, dt, b1, d1, b2, d2, mode, sigmoid, mix, sn, sm);
+      postMessage(msg);
+    }
+
+    function splat() {
+      var msg = makeMessage('splat');
+      postMessage(msg);
+    }
+
+    function postMessage(msg) {
+      console.log(msg);
+      document.getElementById('naclModule').postMessage(msg);
+    }
+
+  </script>
+</body>
+</html>
