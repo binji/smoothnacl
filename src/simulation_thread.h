@@ -17,7 +17,6 @@
 
 #include <memory>
 #include <vector>
-#include <sys/time.h>
 #include "condvar.h"
 #include "locked_object.h"
 #include "palette.h"
@@ -85,7 +84,6 @@ class SimulationThread : public Thread<SimulationThread> {
   CondVar step_cond_;
   DrawStrategyBase* draw_strategy_;
   SimulationBase* simulation_;
-  struct timeval last_time_;
 
   SimulationThread(const SimulationThread&);  // Undefined.
   SimulationThread& operator =(const SimulationThread&);  // Undefined.

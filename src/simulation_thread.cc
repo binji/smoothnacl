@@ -14,8 +14,9 @@
 
 #include "simulation_thread.h"
 #include <algorithm>
-#include <time.h>
 #include <stdio.h>
+#include <sys/time.h>
+#include <time.h>
 #include "draw_strategy_base.h"
 #include "initializer_factory_base.h"
 #include "post_buffer_task.h"
@@ -28,6 +29,23 @@ namespace {
 const int kMinMS = 10;  // 10ms = 100fps
 const int kMaxTaskQueueSize = 25;
 
+int TimevalToMs(struct timeval* t) {
+    return (t->tv_sec * 1000 + t->tv_usec / 1000);
+}
+
+int TimeDeltaMs(struct timeval* start, struct timeval* end) {
+  return TimevalToMs(end) - TimevalToMs(start);
+}
+
+void SleepMs(int ms) {
+  struct timespec sleep_time;
+  struct timespec rem_time;
+  sleep_time.tv_sec = ms / 1000;
+  sleep_time.tv_nsec = (ms - ms / 1000) * 1000000;
+  while (nanosleep(&sleep_time, &rem_time) == -1)
+    sleep_time = rem_time;
+}
+
 }  // namespace
 
 SimulationThread::SimulationThread(pp::Instance* instance,
@@ -38,8 +56,6 @@ SimulationThread::SimulationThread(pp::Instance* instance,
       context_(context),
       frames_drawn_(new int),
       simulation_(NULL) {
-  last_time_.tv_sec = 0;
-  last_time_.tv_usec = 0;
 }
 
 void SimulationThread::Destroy() {
@@ -118,6 +134,9 @@ void SimulationThread::MainLoop() {
   draw_strategy_ = context_.initializer_factory->CreateDrawStrategy();
 
   while (!ShouldQuit()) {
+    struct timeval frame_start_time;
+    gettimeofday(&frame_start_time, NULL);
+
     int* frames = frames_drawn_.Lock();
     (*frames)++;
     frames_drawn_.Unlock();
@@ -138,20 +157,12 @@ void SimulationThread::MainLoop() {
       step_cond_.Unlock();
     }
 
-    struct timeval this_time;
-    gettimeofday(&this_time, NULL);
-    int diff_ms = (this_time.tv_sec * 1000 + this_time.tv_usec / 1000) -
-        (last_time_.tv_sec * 1000 + last_time_.tv_usec / 1000);
-    if (diff_ms < kMinMS) {
-      struct timespec sleep_time;
-      struct timespec rem_time;
-      sleep_time.tv_sec = 0;
-      sleep_time.tv_nsec = (kMinMS - diff_ms) * 1000000;
-      while (nanosleep(&sleep_time, &rem_time) == -1)
-        sleep_time = rem_time;
-    }
+    struct timeval frame_end_time;
+    gettimeofday(&frame_end_time, NULL);
 
-    last_time_ = this_time;
+    int diff_ms = TimeDeltaMs(&frame_start_time, &frame_end_time);
+    if (diff_ms >= 0 && diff_ms < kMinMS)
+      SleepMs(kMinMS - diff_ms);
   }
 }
 
