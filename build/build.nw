@@ -48,9 +48,9 @@ SHADER_SOURCES = [
 OUT_SHADER_CC = 'out/gen/shader_source.cc'
 OUT_SHADER_H = 'out/gen/shader_source.h'
 
-Rule('shader_to_c', 'script/shader_to_c.py -r out -o $outbase $in',
+Rule('shader_to_c', 'build/script/shader_to_c.py -r out -o $outbase $in',
     'SHADER_TO_C $out',
-    implicit='script/shader_to_c.py')
+    implicit='build/script/shader_to_c.py')
 Build([OUT_SHADER_CC, OUT_SHADER_H], 'shader_to_c',
     SHADER_SOURCES,
     outbase=Filename(OUT_SHADER_CC).NoExtension)
@@ -66,15 +66,14 @@ SMOOTHLIFE_INCLUDE_DIRS = [
   'src',
   'out',
   '$nacl_sdk_root/include',
-  '$nacl_sdk_root/ports/include',
-  'third_party/fftw-prebuilt/newlib_{arch}/include',
 ]
 
 SMOOTHLIFE_LIB_DIRS=[
-  '$nacl_sdk_root/ports/lib/newlib_{arch}/Release',
+  '$nacl_sdk_root/lib/newlib_{arch}/Release',
 ]
 
 SMOOTHLIFE_LIBS = [
+  'fftw3',
   'ppapi_gles2',
   'ppapi_cpp',
   'ppapi',
@@ -89,7 +88,6 @@ for b in exe.ForEach(name='smoothlife', **arch_config):
   b.Append('ldflags', Prefix('-L', SMOOTHLIFE_LIB_DIRS))
   b.Append('ldflags', Prefix('-l', SMOOTHLIFE_LIBS))
   b.Append('inputs', Select('smoothlife-sources').And(keys=b.keys).outputs)
-  b.Append('inputs', 'third_party/fftw-prebuilt/newlib_{arch}/lib/libfftw3.a')
 
 for b in nmf.ForEach(name='smoothlife', config=CONFIGS):
   b.Append('inputs',
