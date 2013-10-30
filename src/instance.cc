@@ -136,22 +136,32 @@ bool Instance::HandleInputEvent(const pp::InputEvent& event) {
   static bool left_down_ = false;
 
   switch (event.GetType()) {
-    case PP_INPUTEVENT_TYPE_MOUSEUP:
-    case PP_INPUTEVENT_TYPE_MOUSEDOWN:
-    case PP_INPUTEVENT_TYPE_MOUSEMOVE: {
+    case PP_INPUTEVENT_TYPE_MOUSEUP: {
       pp::MouseInputEvent mouse_event(event);
       if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT)
-        left_down_ = event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN;
+        left_down_ = false;
+      break;
+    }
+
+    case PP_INPUTEVENT_TYPE_MOUSEDOWN: {
+      pp::MouseInputEvent mouse_event(event);
+      if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT)
+        left_down_ = true;
+      // fall through
+    }
+
+    case PP_INPUTEVENT_TYPE_MOUSEMOVE: {
+      pp::MouseInputEvent mouse_event(event);
 
       if (left_down_) {
         pp::Point sim_point =
             view_->ScreenToSim(mouse_event.GetPosition(), kSimSize);
         thread_->EnqueueTask(MakeFunctionTask(
-              &SimulationThread::TaskDrawFilledCircle,
-              sim_point.x(),
-              sim_point.y(),
-              brush_radius_,
-              brush_color_));
+            &SimulationThread::TaskDrawFilledCircle,
+            sim_point.x(),
+            sim_point.y(),
+            brush_radius_,
+            brush_color_));
       }
       return false;
     }
