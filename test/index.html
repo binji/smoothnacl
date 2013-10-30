@@ -14,6 +14,20 @@ found in the LICENSE file.
   <h1>SmoothNaCl Test</h1>
   <h2>Status: <code id="statusField">NO-STATUS</code></h2>
   <div>
+    <p>
+      <select id="preset">
+        <option value="0">Subdividers</option>
+        <option value="1">Green Hex</option>
+        <option value="2">Fire Jellies</option>
+        <option value="3">Magical Maze</option>
+        <option value="4">Waterbug Gliders</option>
+        <option value="5">Stitches 'n' Jitters</option>
+        <option value="6">Blink Tubes</option>
+        <option value="7">Oil Slick</option>
+        <option value="8">Worms</option>
+      </select>
+      <button id="loadPreset">Load</button>
+    </p>
     <select id="functionValue">
       <option value="clear">Clear</option>
       <option value="getBuffer">GetBuffer</option>
@@ -24,12 +38,12 @@ found in the LICENSE file.
       <option value="setPalette">SetPalette</option>
       <option value="setRunOptions">SetRunOptions</option>
       <option value="setSmoother">SetSmoother</option>
-      <option value="splat">Splat</option>
+      <option value="splat" selected>Splat</option>
     </select>
     <button id="execute">Run</button>
   </div>
-  <div class="function" id="clear">
-    <div>Color:<input type="text" id="clearColor"></div>
+  <div class="function" id="clear" hidden>
+    <div>Color:<input type="text" id="clearColor" value="0"></div>
   </div>
   <div class="function" id="getBuffer" hidden>
     <div>RequestId:<input type="text" id="getBufferRequestId"></div>
@@ -78,7 +92,7 @@ found in the LICENSE file.
     <div>sn:<input type="text" id="setSmootherSn"></div>
     <div>sm:<input type="text" id="setSmootherSm"></div>
   </div>
-  <div class="function" id="splat" hidden>
+  <div class="function" id="splat">
   </div>
   <!-- The NaCl plugin will be embedded inside the element with id "listener".
       See common.js.-->
@@ -87,14 +101,41 @@ found in the LICENSE file.
            width=512 height=512
            src="smoothlife_debug.nmf"
            type="application/x-nacl"
-           msg1="SetPalette:0,#00000,0,#ffffff,100"
-           msg2="SetBrush:10,1.0"
-           msg3="SetRunOptions:noSimulation,run" />
+           msg1="setBrush:10,1.0">
   <div id="log"></div>
   <script>
+    var presets = [
+      [[15.2,32.1,7.6],[3,0.329,0.15,0.321,0.145,0.709,3,2,4,0.269,0.662],[0,"#000000",3,"#f5f5c1",12,"#158a34",68,"#89e681",100]],
+      [[15.2,32.1,5],[3,0.273,0.117,0.288,0.243,0.348,3,2,4,0.269,0.662],[1,"#000000",3,"#f5f5c1",8,"#158a34",17,"#89e681",20]],
+      [[4,12,1],[2,0.115,0.269,0.523,0.34,0.746,3,4,4,0.028,0.147],[0,"#36065e",0,"#c24242",77,"#8a19b0",91,"#ff9900",99,"#f5c816",99]],
+      [[4,12,1],[3,0.12,0.218,0.267,0.365,0.445,3,4,4,0.028,0.147],[0,"#000000",0,"#0f8a84",38,"#f5f5c1",43,"#158a34",70,"#89e681",100]],
+      [[4,12,1],[0,0.09,0.276,0.27,0.365,0.445,1,4,4,0.028,0.147],[0,"#93afd9",11,"#9cf0ff",92,"#edfdff",100]],
+      [[10.4,12,1],[2,0.082,0.302,0.481,0.35,0.749,2,3,4,0.028,0.147],[0,"#000000",11,"#ffffff",22,"#19a68a",85,"#6b0808",98]],
+      [[7.8,27.2,2.6],[3,0.21,0.714,0.056,0.175,0.838,2,0,2,0.132,0.311],[0,"#0a1340",0,"#ffffff",55,"#4da8a3",83,"#2652ab",99,"#2f1e75",46]],
+      [[4,12,1],[2,0.115,0.269,0.496,0.34,0.767,3,4,4,0.028,0.147],[0,"#b8cfcf",0,"#3f5a5c",77,"#1a330a",91,"#c0e0dc",99]],
+      [[10.6,31.8,1],[1,0.157,0.092,0.256,0.098,0.607,3,4,4,0.015,0.34],[0,"#4d3e3e",0,"#9a1ac9",77,"#aaf09e",100]],
+    ];
+
     document.getElementById('functionValue').addEventListener('change', onFunctionChanged);
     document.getElementById('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged);
     document.getElementById('execute').addEventListener('click', onExecute);
+    document.getElementById('loadPreset').addEventListener('click', onLoadPreset);
+
+    function onLoadPreset(e) {
+      var index = parseInt(document.getElementById('preset').value, 10);
+      loadPreset(index);
+    }
+
+    function loadPreset(index) {
+      var preset = presets[index];
+      clear('#000000');
+      setKernel.apply(null, preset[0]);
+      setSmoother.apply(null, preset[1]);
+      setPalette.apply(null, preset[2]);
+      setDrawOptions('simulation');
+      setRunOptions('simulation', 'run');
+      splat();
+    }
 
     function onFunctionChanged(e) {
       var divId = this.value;
@@ -166,50 +207,55 @@ found in the LICENSE file.
     }
 
     function clear() {
-      var color = getFloatById('clearColor');
+      var color = arguments[0] || getFloatById('clearColor');
       var msg = makeMessage('clear', color);
       postMessage(msg);
     }
 
     function getBuffer() {
-      var requestId = getIntById('getBufferRequestId');
+      var requestId = arguments[0] || getIntById('getBufferRequestId');
       var msg = makeMessage('getBuffer', requestId);
       postMessage(msg);
     }
 
     function setBrush() {
-      var radius = getFloatById('setBrushRadius');
-      var color = getFloatById('setBrushColor');
+      var radius = arguments[0] || getFloatById('setBrushRadius');
+      var color = arguments[1] || getFloatById('setBrushColor');
       var msg = makeMessage('setBrush', radius, color);
       postMessage(msg);
     }
 
     function setDrawOptions() {
-      var value = getValueById('setDrawOptionsValue');
+      var value = arguments[0] || getValueById('setDrawOptionsValue');
       var msg = makeMessage('setDrawOptions', value);
       postMessage(msg);
     }
 
     function setFullscreen() {
-      var value = getCheckedById('setFullscreenValue') ? 'true' : 'false';
+      var value = arguments[0] ||
+          getCheckedById('setFullscreenValue') ? 'true' : 'false';
       var msg = makeMessage('setFullscreen', value);
       postMessage(msg);
     }
 
     function setKernel() {
-      var discRadius = getFloatById('setKernelDiscRadius');
-      var ringRadius = getFloatById('setKernelRingRadius');
-      var blendRadius = getFloatById('setKernelBlendRadius');
+      var discRadius = arguments[0] || getFloatById('setKernelDiscRadius');
+      var ringRadius = arguments[1] || getFloatById('setKernelRingRadius');
+      var blendRadius = arguments[2] || getFloatById('setKernelBlendRadius');
       var msg = makeMessage('setKernel', discRadius, ringRadius, blendRadius);
       postMessage(msg);
     }
 
     function setPalette() {
-      var repeating = getCheckedById('setPaletteRepeating') ? 1 : 0;
-      var inputEls = document.querySelectorAll('#colorstops input');
+      var repeating = arguments[0] || getCheckedById('setPaletteRepeating') ? 1 : 0;
       var colorstops = [];
-      for (var i = 0; i < inputEls.length; ++i) {
-        colorstops.push(inputEls[i].value);
+      if (arguments.length > 1) {
+        colorstops = Array.prototype.slice.call(arguments, 1);
+      } else {
+        var inputEls = document.querySelectorAll('#colorstops input');
+        for (var i = 0; i < inputEls.length; ++i) {
+          colorstops.push(inputEls[i].value);
+        }
       }
 
       var msg = makeMessage.apply(null, ['setPalette', repeating].concat(colorstops));
@@ -217,24 +263,28 @@ found in the LICENSE file.
     }
 
     function setRunOptions() {
-      var simulate = getCheckedById('setRunOptionsSimulate') ? 'simulation' : 'noSimulation';
-      var run = getCheckedById('setRunOptionsRun') ? 'run' : 'pause';
+      var simulate = arguments[0] ||
+          (getCheckedById('setRunOptionsSimulate') ?
+              'simulation' :
+              'noSimulation');
+      var run = arguments[1] ||
+          (getCheckedById('setRunOptionsRun') ?  'run' : 'pause');
       var msg = makeMessage('setRunOptions', simulate, run);
       postMessage(msg);
     }
 
     function setSmoother() {
-      var type = getFloatById('setSmootherType');
-      var dt = getFloatById('setSmootherDt');
-      var b1 = getFloatById('setSmootherB1');
-      var b2 = getFloatById('setSmootherB2');
-      var d1 = getFloatById('setSmootherD1');
-      var d2 = getFloatById('setSmootherD2');
-      var mode = getFloatById('setSmootherMode');
-      var sigmoid = getFloatById('setSmootherSigmoid');
-      var mix = getFloatById('setSmootherMix');
-      var sn = getFloatById('setSmootherSn');
-      var sm = getFloatById('setSmootherSm');
+      var type = arguments[0] || getFloatById('setSmootherType');
+      var dt = arguments[1] || getFloatById('setSmootherDt');
+      var b1 = arguments[2] || getFloatById('setSmootherB1');
+      var d1 = arguments[3] || getFloatById('setSmootherD1');
+      var b2 = arguments[4] || getFloatById('setSmootherB2');
+      var d2 = arguments[5] || getFloatById('setSmootherD2');
+      var mode = arguments[6] || getFloatById('setSmootherMode');
+      var sigmoid = arguments[7] || getFloatById('setSmootherSigmoid');
+      var mix = arguments[8] || getFloatById('setSmootherMix');
+      var sn = arguments[9] || getFloatById('setSmootherSn');
+      var sm = arguments[10] || getFloatById('setSmootherSm');
       var msg = makeMessage('setSmoother', type, dt, b1, d1, b2, d2, mode, sigmoid, mix, sn, sm);
       postMessage(msg);
     }
@@ -248,7 +298,6 @@ found in the LICENSE file.
       console.log(msg);
       document.getElementById('naclModule').postMessage(msg);
     }
-
   </script>
 </body>
 </html>
