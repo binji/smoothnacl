@@ -73,6 +73,7 @@ SMOOTHLIFE_LIB_DIRS=[
 ]
 
 SMOOTHLIFE_LIBS = [
+  #'fftw3_threads',
   'fftw3',
   'ppapi_gles2',
   'ppapi_cpp',

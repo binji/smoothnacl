@@ -82,6 +82,8 @@ Simulation::Simulation(const SimulationConfig& config)
     aaf_(config.size, ReduceSizeForComplex()),
     anf_(config.size, ReduceSizeForComplex()),
     amf_(config.size, ReduceSizeForComplex()) {
+  //fftw_init_threads();
+  //fftw_plan_with_nthreads(2);
   aa_plan_ = fftw_plan_dft_r2c_2d(size_.width(), size_.height(),
                                   aa_.data(), aaf_.data(), FFTW_ESTIMATE);
   anf_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
@@ -97,6 +99,7 @@ Simulation::~Simulation() {
   fftw_destroy_plan(amf_plan_);
   fftw_destroy_plan(anf_plan_);
   fftw_destroy_plan(aa_plan_);
+  //fftw_cleanup_threads();
 }
 
 void Simulation::SetKernel(const KernelConfig& config) {

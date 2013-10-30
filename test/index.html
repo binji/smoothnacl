@@ -94,15 +94,14 @@ found in the LICENSE file.
   </div>
   <div class="function" id="splat">
   </div>
-  <!-- The NaCl plugin will be embedded inside the element with id "listener".
-      See common.js.-->
-  <div id="listener"></div>
+  <div id="listener">
     <embed id="naclModule"
            width=512 height=512
-           src="smoothlife_debug.nmf"
+           src="smoothlife_release.nmf"
            type="application/x-nacl"
            msg1="setBrush:10,1.0">
-  <div id="log"></div>
+  </div>
+  <div id="fps"></div>
   <script>
     var presets = [
       [[15.2,32.1,7.6],[3,0.329,0.15,0.321,0.145,0.709,3,2,4,0.269,0.662],[0,"#000000",3,"#f5f5c1",12,"#158a34",68,"#89e681",100]],
@@ -116,10 +115,15 @@ found in the LICENSE file.
       [[10.6,31.8,1],[1,0.157,0.092,0.256,0.098,0.607,3,4,4,0.015,0.34],[0,"#4d3e3e",0,"#9a1ac9",77,"#aaf09e",100]],
     ];
 
-    document.getElementById('functionValue').addEventListener('change', onFunctionChanged);
-    document.getElementById('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged);
-    document.getElementById('execute').addEventListener('click', onExecute);
-    document.getElementById('loadPreset').addEventListener('click', onLoadPreset);
+    document.getElementById('functionValue').addEventListener('change', onFunctionChanged, false);
+    document.getElementById('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged, false);
+    document.getElementById('execute').addEventListener('click', onExecute, false);
+    document.getElementById('loadPreset').addEventListener('click', onLoadPreset, false);
+    document.getElementById('listener').addEventListener('message', onMessage, true);
+
+    function onMessage(e) {
+      document.getElementById('fps').textContent = e.data;
+    }
 
     function onLoadPreset(e) {
       var index = parseInt(document.getElementById('preset').value, 10);
