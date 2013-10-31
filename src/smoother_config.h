@@ -48,6 +48,11 @@ enum SigmoidMode {
 };
 
 struct SmootherConfig {
+  SmootherConfig() :
+    b1(0), d1(0), b2(0), d2(0),
+    mode(SIGMOID_MODE_1), sigmoid(SIGMOID_HARD), mix(SIGMOID_HARD),
+    sn(0), sm(0) {}
+
   TimestepConfig timestep;
   double b1;
   double d1;

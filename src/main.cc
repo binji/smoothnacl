@@ -12,15 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef KERNEL_CONFIG_H_
-#define KERNEL_CONFIG_H_
+#include "ppapi_simple/ps_main.h"
 
-struct KernelConfig {
-  KernelConfig() : disc_radius(0), ring_radius(0), blend_radius(0) {}
+#include "app.h"
 
-  double disc_radius;
-  double ring_radius;
-  double blend_radius;
-};
-
-#endif  // KERNEL_CONFIG_H_
+int example_main(int argc, char* argv[]) {
+  App app;
+  app.Run();
+  return 0;
+}
+PPAPI_SIMPLE_REGISTER_MAIN(example_main);

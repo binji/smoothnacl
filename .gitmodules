@@ -1,9 +1,3 @@
-[submodule "build/ninja-wrap"]
-	path = build/ninja-wrap
-	url = https://github.com/binji/ninja-wrap
-[submodule "build/third_party/ninja"]
-	path = build/third_party/ninja
-	url = https://github.com/martine/ninja
 [submodule "build/naclports"]
 	path = build/naclports
 	url = https://github.com/binji/naclports.git

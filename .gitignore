@@ -1,8 +1,4 @@
-/nacl_sdk
-/out/
-/build.ninja
-/.ninja_deps
-/.ninja_log
-/third_party/fftw-clean
-*.pyc
+/newlib/
+/pnacl/
+/user-data-dir/
 package.pem

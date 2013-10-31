@@ -20,6 +20,7 @@
 #include "smoother_config.h"
 
 struct SimulationConfig {
+  explicit SimulationConfig(const pp::Size& size) : size(size) {}
   pp::Size size;
   KernelConfig kernel_config;
   SmootherConfig smoother_config;

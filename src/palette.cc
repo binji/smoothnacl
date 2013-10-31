@@ -87,7 +87,7 @@ uint32_t GradientPaletteGenerator::GetColor(double value) const {
     return stops_[0].color;
 
   double range_min = 0;
-  for (int i = 0; i < stops_.size() - 1; ++i) {
+  for (size_t i = 0; i < stops_.size() - 1; ++i) {
     range_min = std::max(range_min, stops_[i].pos);
     double range_max = stops_[i + 1].pos;
     if (range_min >= range_max)
@@ -112,7 +112,7 @@ double GradientPaletteGenerator::GetMaxStopPos() const {
     return 0;
 
   double maxpos = stops_[0].pos;
-  for (int i = 1; i < stops_.size(); ++i) {
+  for (size_t i = 1; i < stops_.size(); ++i) {
     maxpos = std::max(stops_[i].pos, maxpos);
   }
   return maxpos;
