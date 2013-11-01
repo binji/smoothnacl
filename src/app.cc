@@ -66,7 +66,6 @@ App::App() :
     screen_to_sim_scale_(1),
     screen_to_sim_x_offset_(0),
     screen_to_sim_y_offset_(0),
-    mouse_down_(false),
     brush_radius_(10),
     brush_color_(1) {
 }
@@ -154,6 +153,10 @@ void App::HandleDidChangeView(PSEvent* event) {
 }
 
 pp::Point App::ScreenToSim(const pp::Point& p) const {
+  return ScreenToSim(pp::FloatPoint(p.x(), p.y()));
+}
+
+pp::Point App::ScreenToSim(const pp::FloatPoint& p) const {
   double x_offset = screen_to_sim_x_offset_;
   double y_offset = screen_to_sim_y_offset_;
   double scale = screen_to_sim_scale_;
@@ -167,12 +170,15 @@ void App::HandleInput(const pp::InputEvent& event) {
       event.GetType() == PP_INPUTEVENT_TYPE_MOUSEMOVE) {
     pp::MouseInputEvent mouse_event(event);
 
-    if (event.GetType() != PP_INPUTEVENT_TYPE_MOUSEMOVE &&
-        mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT) {
-      mouse_down_ = event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN;
+    if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT) {
+      mouse_event_ = mouse_event;
+      if (event.GetType() == PP_INPUTEVENT_TYPE_MOUSEUP)
+        mouse_event_ = pp::MouseInputEvent();
     }
-
-    mouse_point_ = ScreenToSim(mouse_event.GetPosition());
+  } else if (event.GetType() == PP_INPUTEVENT_TYPE_TOUCHSTART ||
+             event.GetType() == PP_INPUTEVENT_TYPE_TOUCHMOVE ||
+             event.GetType() == PP_INPUTEVENT_TYPE_TOUCHEND) {
+    touch_event_ = pp::TouchInputEvent(event);
   }
 }
 
@@ -253,9 +259,22 @@ void App::HandleMessage(const pp::Var& var) {
 }
 
 void App::Update() {
-  if (mouse_down_) {
-    simulation_.DrawFilledCircle(mouse_point_.x(), mouse_point_.y(),
+  if (!mouse_event_.is_null()) {
+    pp::Point sim_point = ScreenToSim(mouse_event_.GetPosition());
+    simulation_.DrawFilledCircle(sim_point.x(), sim_point.y(),
                                  brush_radius_, brush_color_);
+  }
+
+  if (!touch_event_.is_null()) {
+    uint32_t touch_count =
+        touch_event_.GetTouchCount(PP_TOUCHLIST_TYPE_TOUCHES);
+    for (uint32_t i = 0; i < touch_count; ++i) {
+      pp::TouchPoint touch_point =
+          touch_event_.GetTouchByIndex(PP_TOUCHLIST_TYPE_TOUCHES, i);
+      pp::Point sim_point = ScreenToSim(touch_point.position());
+      simulation_.DrawFilledCircle(sim_point.x(), sim_point.y(),
+                                   brush_radius_, brush_color_);
+    }
   }
 
   simulation_.Step();

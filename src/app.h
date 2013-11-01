@@ -15,6 +15,7 @@
 #ifndef APP_H_
 #define APP_H_
 
+#include <ppapi/cpp/input_event.h>
 #include <ppapi/cpp/point.h>
 
 #include "ppapi_simple/ps_context_2d.h"
@@ -40,6 +41,7 @@ class App {
   void HandleEvent(PSEvent* event);
   void HandleDidChangeView(PSEvent* event);
   pp::Point ScreenToSim(const pp::Point& p) const;
+  pp::Point ScreenToSim(const pp::FloatPoint& p) const;
   void HandleInput(const pp::InputEvent& event);
   void HandleMessage(const pp::Var& var);
   void Render();
@@ -55,8 +57,9 @@ class App {
   double screen_to_sim_x_offset_;
   double screen_to_sim_y_offset_;
 
-  pp::Point mouse_point_;
-  bool mouse_down_;
+  pp::MouseInputEvent mouse_event_;
+  pp::TouchInputEvent touch_event_;
+
   double brush_radius_;
   double brush_color_;
 };
