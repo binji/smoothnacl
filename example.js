@@ -16,6 +16,7 @@ function $(id) {
 
 function attachListeners() {
   $('functionValue').addEventListener('change', onFunctionChanged, false);
+  $('setThreadCountThreadCount').addEventListener('change', onThreadCountChanged, false);
   $('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged, false);
   $('execute').addEventListener('click', onExecute, false);
   $('loadPreset').addEventListener('click', onLoadPreset, false);
@@ -52,6 +53,11 @@ function onFunctionChanged(e) {
     else
       functionEls[i].setAttribute('hidden');
   }
+}
+
+function onThreadCountChanged(e) {
+  var threadCount = parseInt(this.value, 10);
+  $('setThreadCountValue').textContent = threadCount;
 }
 
 function onNumColorstopsChanged(e) {
@@ -111,6 +117,11 @@ function clear() {
 function setSize() {
   var size = getIntArg(arguments[0], 'setSizeSize');
   postMessage({cmd: 'setSize', size: size});
+}
+
+function setThreadCount() {
+  var threadCount = getIntArg(arguments[0], 'setThreadCountThreadCount');
+  postMessage({cmd: 'setThreadCount', threadCount: threadCount});
 }
 
 function setBrush() {

@@ -47,6 +47,7 @@ found in the LICENSE file.
       <select id="functionValue">
         <option value="clear">Clear</option>
         <option value="setSize">SetSize</option>
+        <option value="setThreadCount">SetThreadCount</option>
         <option value="setBrush">SetBrush</option>
         <option value="setKernel">SetKernel</option>
         <option value="setPalette">SetPalette</option>
@@ -67,6 +68,14 @@ found in the LICENSE file.
         <option value="384">384x384</option>
         <option value="512" selected>512x512</option>
       </select>
+    </div>
+    <div class="function" id="setThreadCount" hidden>
+      <label for="setThreadCountThreadCount">
+        ThreadCount:
+      </label>
+      <input type="range" id="setThreadCountThreadCount"
+          min="1" max="32" step="1" value="1">
+      <span id="setThreadCountValue">1</span>
     </div>
     <div class="function" id="setBrush" hidden>
       <div>Radius:<input type="text" id="setBrushRadius"></div>

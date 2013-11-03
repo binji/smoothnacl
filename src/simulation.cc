@@ -54,16 +54,13 @@ real RND(real x) {
     } \
   } while(0)
 
-#ifdef USE_WISDOM
-#define PLAN_FLAGS FFTW_WISDOM_ONLY
-#else
-#define PLAN_FLAGS FFTW_ESTIMATE
-#endif
-
 Simulation::Simulation(const SimulationConfig& config)
   : size_(config.size),
     kernel_(config.size, config.kernel_config),
     smoother_(config.size, config.smoother_config),
+#ifdef USE_THREADS
+    thread_count_(config.thread_count),
+#endif
     aa_(config.size),
     an_(config.size),
     am_(config.size),
@@ -74,12 +71,13 @@ Simulation::Simulation(const SimulationConfig& config)
     am_plan_(NULL) {
 #ifdef USE_THREADS
   CHECK(fftw_init_threads());
-  fftw_plan_with_nthreads(4);
+  fftw_plan_with_nthreads(thread_count_);
 #endif
   // I haven't made any ARM wisdom yet; it requires building sel_ldr_arm, and
   // running fftw-wisdom under QEMU.
 #if defined(USE_WISDOM) && !defined(__arm__)
-  CHECK(fftw_import_wisdom_from_string(kWisdom512));
+  if (!fftw_import_wisdom_from_string(kWisdom512))
+    printf("Error importing wisdom.\n");
 #endif
 
   MakePlans();
@@ -88,11 +86,11 @@ Simulation::Simulation(const SimulationConfig& config)
 void Simulation::MakePlans() {
   DestroyPlans();
   aa_plan_ = fftw_plan_dft_r2c_2d(size_.width(), size_.height(),
-                                  aa_.data(), aaf_.data(), PLAN_FLAGS);
+                                  aa_.data(), aaf_.data(), FFTW_ESTIMATE);
   an_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
-                                  tempf_.data(), an_.data(), PLAN_FLAGS);
+                                  tempf_.data(), an_.data(), FFTW_ESTIMATE);
   am_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
-                                  tempf_.data(), am_.data(), PLAN_FLAGS);
+                                  tempf_.data(), am_.data(), FFTW_ESTIMATE);
   CHECK(aa_plan_);
   CHECK(an_plan_);
   CHECK(am_plan_);
@@ -113,6 +111,14 @@ Simulation::~Simulation() {
   fftw_cleanup_threads();
 #endif
 }
+
+#ifdef USE_THREADS
+void Simulation::SetThreadCount(int thread_count) {
+  thread_count_ = thread_count;
+  fftw_plan_with_nthreads(thread_count_);
+  MakePlans();
+}
+#endif
 
 void Simulation::SetSize(const pp::Size& size) {
   size_ = size;

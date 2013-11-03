@@ -34,6 +34,9 @@ class Simulation {
   const Smoother& smoother() const { return smoother_; }
   const AlignedReals& buffer() const { return aa_; }
 
+#ifdef USE_THREADS
+  void SetThreadCount(int thread_count);
+#endif
   void SetSize(const pp::Size& size);
   void SetKernel(const KernelConfig& config);
   void SetSmoother(const SmootherConfig& config);
@@ -51,6 +54,7 @@ class Simulation {
   pp::Size size_;
   Kernel kernel_;
   Smoother smoother_;
+  int thread_count_;
   AlignedReals aa_;
   AlignedReals an_;
   AlignedReals am_;

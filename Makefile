@@ -14,7 +14,7 @@ include $(NACL_SDK_ROOT)/tools/common.mk
 
 USE_FLOAT = 1
 USE_WISDOM = 1
-USE_THREADS = 0
+USE_THREADS = 1
 
 TARGET = smoothnacl
 

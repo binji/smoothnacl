@@ -48,6 +48,9 @@
 
 namespace {
 
+const int kDefaultThreadCount = 1;
+const int kMaxThreadCount = 32;
+
 //const pp::Size kSimSize(256, 256);
 //const pp::Size kSimSize(384, 384);
 const pp::Size kSimSize(512, 512);
@@ -68,7 +71,7 @@ class Instance : public pp::Instance {
   explicit Instance(PP_Instance instance)
       : pp::Instance(instance),
         callback_factory_(this),
-        simulation_config_(kSimSize),
+        simulation_config_(kDefaultThreadCount, kSimSize),
         simulation_(simulation_config_),
         palette_(palette_config_),
         scale_numer_(1),
@@ -138,10 +141,23 @@ class Instance : public pp::Instance {
       int size = dictionary.Get("size").AsInt();
       printf("setSize{size: %d}\n", size);
       if (size != 256 && size != 384 && size != 512) {
-        printf("  invalid size, ignoring.\n");
+        printf("  invalid size (%d), ignoring.\n", size);
+        return;
       }
       simulation_.SetSize(pp::Size(size, size));
       UpdateScreenScale();
+    } else if (cmd == "setThreadCount") {
+#ifdef USE_THREADS
+      int thread_count = dictionary.Get("threadCount").AsInt();
+      printf("setThreadCount{threadCount: %d}\n", thread_count);
+      if (thread_count < 1 || thread_count > kMaxThreadCount) {
+        printf("  invalid thread count (%d), ignoring.\n", thread_count);
+        return;
+      }
+      simulation_.SetThreadCount(thread_count);
+#else
+      printf("threads disabled, ignoring message.\n");
+#endif
     } else if (cmd == "setBrush") {
       brush_radius_ = dictionary.Get("radius").AsDouble();
       brush_color_ = dictionary.Get("color").AsDouble();
