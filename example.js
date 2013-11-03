@@ -108,6 +108,11 @@ function clear() {
   postMessage({cmd: 'clear', color: color});
 }
 
+function setSize() {
+  var size = getIntArg(arguments[0], 'setSizeSize');
+  postMessage({cmd: 'setSize', size: size});
+}
+
 function setBrush() {
   var radius = getFloatArg(arguments[0], 'setBrushRadius');
   var color = getFloatArg(arguments[1], 'setBrushColor');

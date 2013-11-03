@@ -30,11 +30,13 @@ class Simulation {
   ~Simulation();
 
   const pp::Size& size() const { return size_; }
-  void SetKernel(const KernelConfig& config);
-  void SetSmoother(const SmootherConfig& config);
   const Kernel& kernel() const { return kernel_; }
   const Smoother& smoother() const { return smoother_; }
   const AlignedReals& buffer() const { return aa_; }
+
+  void SetSize(const pp::Size& size);
+  void SetKernel(const KernelConfig& config);
+  void SetSmoother(const SmootherConfig& config);
 
   void Step();
   void Clear(real color);
@@ -42,6 +44,8 @@ class Simulation {
   void Splat();
 
  private:
+  void MakePlans();
+  void DestroyPlans();
   void DrawFilledCircleNoWrap(real x, real y, real radius, real color);
 
   pp::Size size_;

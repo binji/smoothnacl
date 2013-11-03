@@ -56,18 +56,20 @@ real clamp01(real x) {
 Smoother::Smoother(const pp::Size& size, const SmootherConfig& config)
     : size_(size),
       config_(config),
-      dirty_(true),
       lookup_(pp::Size(kLookupSize, kLookupSize)) {
+}
+
+void Smoother::SetSize(const pp::Size& size) {
+  size_ = size;
 }
 
 void Smoother::SetConfig(const SmootherConfig& config) {
   config_ = config;
-  dirty_ = true;
+  MakeLookup();
 }
 
 void Smoother::Apply(const AlignedReals& buf1, const AlignedReals& buf2,
                      AlignedReals* out) const {
-  assert(!dirty_);
   switch (config_.timestep.type) {
     default:
     case TIMESTEP_DISCRETE:
@@ -96,8 +98,6 @@ void Smoother::MakeLookup() {
       lookup_[i * kLookupSize + j] = clamp01(CalculateValue(n, m));
     }
   }
-
-  dirty_ = false;
 }
 
 real Smoother::CalculateValue(real n, real m) const {

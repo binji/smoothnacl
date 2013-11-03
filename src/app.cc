@@ -130,13 +130,14 @@ void App::HandleEvent(PSEvent* event) {
 void App::HandleDidChangeView(PSEvent* event) {
   struct PP_Rect rect;
   PSInterfaceView()->GetRect(event->as_resource, &rect);
+  UpdateScreenScale(rect.size.width, rect.size.height);
+}
 
-  // Update cached screen_to_sim_* vars.
+void App::UpdateScreenScale(int screen_width, int screen_height) {
+  // Update scale_{numer,denom}_ vars.
   // Keep the aspect ratio, and wrap in the longer dimension.
   int buffer_width = simulation_.size().width();
   int buffer_height = simulation_.size().height();
-  int screen_width = rect.size.width;
-  int screen_height = rect.size.height;
 
   if (buffer_width * screen_height > buffer_height * screen_width) {
     // tall
@@ -148,7 +149,7 @@ void App::HandleDidChangeView(PSEvent* event) {
     scale_denom_ = screen_height;
   }
 
-  printf("HandleDidChangeView: scale: %d/%d\n", scale_numer_, scale_denom_);
+  printf("UpdateScreenScale: scale: %d/%d\n", scale_numer_, scale_denom_);
 }
 
 pp::Point App::ScreenToSim(const pp::Point& p) const {
@@ -184,11 +185,18 @@ void App::HandleMessage(const pp::Var& var) {
     real color = dictionary.Get("color").AsDouble();
     printf("clear{color: %f}\n", color);
     simulation_.Clear(color);
+  } else if (cmd == "setSize") {
+    int size = dictionary.Get("size").AsInt();
+    printf("setSize{size: %d}\n", size);
+    if (size != 256 && size != 384 && size != 512) {
+      printf("  invalid size, ignoring.\n");
+    }
+    simulation_.SetSize(pp::Size(size, size));
+    UpdateScreenScale(context_->width, context_->height);
   } else if (cmd == "setBrush") {
     brush_radius_ = dictionary.Get("radius").AsDouble();
     brush_color_ = dictionary.Get("color").AsDouble();
     printf("setBrush{radius: %f, color: %f}\n", brush_radius_, brush_color_);
-  } else if (cmd == "setDrawOptions") {
   } else if (cmd == "setKernel") {
     KernelConfig config;
     config.disc_radius = dictionary.Get("discRadius").AsDouble();
@@ -217,7 +225,6 @@ void App::HandleMessage(const pp::Var& var) {
     }
     printf("]}\n");
     palette_.SetConfig(config);
-  } else if (cmd == "setRunOptions") {
   } else if (cmd == "setSmoother") {
     SmootherConfig config;
     config.timestep.type =

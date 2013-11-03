@@ -41,16 +41,24 @@ void Scale(AlignedComplexes* c, real scale) {
 Kernel::Kernel(const pp::Size& size, const KernelConfig& config)
     : size_(size),
       config_(config),
-      dirty_(true),
       kr_(size),
       kd_(size),
       krf_(size, ReduceSizeForComplex()),
       kdf_(size, ReduceSizeForComplex()) {
 }
 
+void Kernel::SetSize(const pp::Size& size) {
+  size_ = size;
+  AlignedReals(size).swap(kr_);
+  AlignedReals(size).swap(kd_);
+  AlignedComplexes(size, ReduceSizeForComplex()).swap(krf_);
+  AlignedComplexes(size, ReduceSizeForComplex()).swap(kdf_);
+  MakeKernel();
+}
+
 void Kernel::SetConfig(const KernelConfig& config) {
   config_ = config;
-  dirty_ = true;
+  MakeKernel();
 }
 
 void Kernel::MakeKernel() {
@@ -89,6 +97,4 @@ void Kernel::MakeKernel() {
 
   FFT(size_, kr_, &krf_);
   Scale(&krf_, 1.0 / kflr);
-
-  dirty_ = false;
 }

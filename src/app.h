@@ -39,6 +39,7 @@ class App {
  private:
   void HandleEvent(PSEvent* event);
   void HandleDidChangeView(PSEvent* event);
+  void UpdateScreenScale(int screen_width, int screen_height);
   pp::Point ScreenToSim(const pp::Point& p) const;
   void HandleInput(const pp::InputEvent& event);
   void HandleMessage(const pp::Var& var);

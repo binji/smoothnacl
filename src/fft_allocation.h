@@ -15,6 +15,8 @@
 #ifndef FFT_ALLOCATION_H_
 #define FFT_ALLOCATION_H_
 
+#include <algorithm>
+
 #include <stdint.h>
 #include <string.h>
 #include "ppapi/cpp/size.h"
@@ -63,6 +65,12 @@ class FftAllocation {
   const T* begin() const { return data_; }
   T* end() { return data_ + count_; }
   const T* end() const { return data_ + count_; }
+
+  void swap(FftAllocation& other) {
+    std::swap(data_, other.data_);
+    std::swap(size_, other.size_);
+    std::swap(count_, other.count_);
+  }
 
  private:
   FftAllocation& operator =(const FftAllocation&);  // undefined

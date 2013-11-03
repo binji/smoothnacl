@@ -27,18 +27,19 @@ class Kernel {
 
   const pp::Size& size() const { return size_; }
   const KernelConfig& config() const { return config_; }
-  void SetConfig(const KernelConfig& config);
-  const AlignedReals& kr() const { assert(!dirty_); return kr_; }
-  const AlignedReals& kd() const { assert(!dirty_); return kd_; }
-  const AlignedComplexes& krf() const { assert(!dirty_); return krf_; }
-  const AlignedComplexes& kdf() const { assert(!dirty_); return kdf_; }
+  const AlignedReals& kr() const { return kr_; }
+  const AlignedReals& kd() const { return kd_; }
+  const AlignedComplexes& krf() const { return krf_; }
+  const AlignedComplexes& kdf() const { return kdf_; }
 
-  void MakeKernel();
+  void SetSize(const pp::Size& size);
+  void SetConfig(const KernelConfig& config);
 
  private:
+  void MakeKernel();
+
   pp::Size size_;
   KernelConfig config_;
-  bool dirty_;
   AlignedReals kr_;
   AlignedReals kd_;
   AlignedComplexes krf_;

@@ -24,13 +24,15 @@ class Smoother {
 
   const pp::Size& size() const { return size_; }
   const SmootherConfig& config() const { return config_; }
+
+  void SetSize(const pp::Size& size);
   void SetConfig(const SmootherConfig& config);
   void Apply(const AlignedReals& buf1,
              const AlignedReals& buf2,
              AlignedReals* out) const;
-  void MakeLookup();
 
  private:
+  void MakeLookup();
   real CalculateValue(real n, real m) const;
   real Lookup(real n, real m) const;
   void Apply_Discrete(const real* an, const real* am, real* na) const;
@@ -41,7 +43,6 @@ class Smoother {
 
   pp::Size size_;
   SmootherConfig config_;
-  bool dirty_;
   AlignedReals lookup_;
 
   Smoother(const Smoother&);

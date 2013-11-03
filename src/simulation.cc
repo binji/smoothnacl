@@ -47,8 +47,8 @@ real RND(real x) {
 
 #define CHECK(x) \
   do { \
-    result = (int)x; \
-    if (!result) { \
+    int CHECK_result = (int)x; \
+    if (!CHECK_result) { \
       printf("%s failed.\n", #x); \
       exit(1); \
     } \
@@ -68,8 +68,10 @@ Simulation::Simulation(const SimulationConfig& config)
     an_(config.size),
     am_(config.size),
     aaf_(config.size, ReduceSizeForComplex()),
-    tempf_(config.size, ReduceSizeForComplex()) {
-  int result;
+    tempf_(config.size, ReduceSizeForComplex()),
+    aa_plan_(NULL),
+    an_plan_(NULL),
+    am_plan_(NULL) {
 #ifdef USE_THREADS
   CHECK(fftw_init_threads());
   fftw_plan_with_nthreads(4);
@@ -79,41 +81,58 @@ Simulation::Simulation(const SimulationConfig& config)
 #if defined(USE_WISDOM) && !defined(__arm__)
   CHECK(fftw_import_wisdom_from_string(kWisdom512));
 #endif
+
+  MakePlans();
+}
+
+void Simulation::MakePlans() {
+  DestroyPlans();
   aa_plan_ = fftw_plan_dft_r2c_2d(size_.width(), size_.height(),
                                   aa_.data(), aaf_.data(), PLAN_FLAGS);
-  CHECK(aa_plan_);
   an_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
                                   tempf_.data(), an_.data(), PLAN_FLAGS);
-  CHECK(an_plan_);
   am_plan_ = fftw_plan_dft_c2r_2d(size_.width(), size_.height(),
                                   tempf_.data(), am_.data(), PLAN_FLAGS);
+  CHECK(aa_plan_);
+  CHECK(an_plan_);
   CHECK(am_plan_);
+}
 
-  kernel_.MakeKernel();
-  smoother_.MakeLookup();
+void Simulation::DestroyPlans() {
+  if (aa_plan_)
+    fftw_destroy_plan(aa_plan_);
+  if (an_plan_)
+    fftw_destroy_plan(an_plan_);
+  if (am_plan_)
+    fftw_destroy_plan(am_plan_);
 }
 
 Simulation::~Simulation() {
-  fftw_destroy_plan(am_plan_);
-  fftw_destroy_plan(an_plan_);
-  fftw_destroy_plan(aa_plan_);
+  DestroyPlans();
 #ifdef USE_THREADS
   fftw_cleanup_threads();
 #endif
 }
 
+void Simulation::SetSize(const pp::Size& size) {
+  size_ = size;
+  AlignedReals(size).swap(aa_);
+  AlignedReals(size).swap(an_);
+  AlignedReals(size).swap(am_);
+  AlignedComplexes(size, ReduceSizeForComplex()).swap(aaf_);
+  AlignedComplexes(size, ReduceSizeForComplex()).swap(tempf_);
+  kernel_.SetSize(size);
+  smoother_.SetSize(size);
+  MakePlans();
+}
+
 void Simulation::SetKernel(const KernelConfig& config) {
   kernel_.SetConfig(config);
-  kernel_.MakeKernel();
 }
 
 void Simulation::SetSmoother(const SmootherConfig& config) {
   smoother_.SetConfig(config);
-  smoother_.MakeLookup();
 }
-
-//#undef TIME
-//#define TIME(x) x
 
 void Simulation::Step() {
   TIME(fftw_execute(aa_plan_));

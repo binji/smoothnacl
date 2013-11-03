@@ -46,6 +46,7 @@ found in the LICENSE file.
     <div>
       <select id="functionValue">
         <option value="clear">Clear</option>
+        <option value="setSize">SetSize</option>
         <option value="setBrush">SetBrush</option>
         <option value="setKernel">SetKernel</option>
         <option value="setPalette">SetPalette</option>
@@ -56,6 +57,16 @@ found in the LICENSE file.
     </div>
     <div class="function" id="clear" hidden>
       <div>Color:<input type="text" id="clearColor" value="0"></div>
+    </div>
+    <div class="function" id="setSize" hidden>
+      <label for="setSizeSize">
+        BufferSize:
+      </label>
+      <select id="setSizeSize">
+        <option value="256">256x256</option>
+        <option value="384">384x384</option>
+        <option value="512" selected>512x512</option>
+      </select>
     </div>
     <div class="function" id="setBrush" hidden>
       <div>Radius:<input type="text" id="setBrushRadius"></div>
