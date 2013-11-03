@@ -85,11 +85,11 @@ class Instance : public pp::Instance {
   }
 
   virtual void DidChangeView(const pp::View& view) {
-    pp::Size new_size = view.GetRect().size();
-    if (!CreateContext(new_size))
+    context_size_ = view.GetRect().size();
+    if (!CreateContext())
       return;
 
-    UpdateScreenScale(new_size.width(), new_size.height());
+    UpdateScreenScale();
 
     // When flush_context_ is null, it means there is no Flush callback in
     // flight. This may have happened if the context was not created
@@ -141,8 +141,7 @@ class Instance : public pp::Instance {
         printf("  invalid size, ignoring.\n");
       }
       simulation_.SetSize(pp::Size(size, size));
-      UpdateScreenScale(image_data_.size().width(),
-                        image_data_.size().height());
+      UpdateScreenScale();
     } else if (cmd == "setBrush") {
       brush_radius_ = dictionary.Get("radius").AsDouble();
       brush_color_ = dictionary.Get("color").AsDouble();
@@ -205,24 +204,22 @@ class Instance : public pp::Instance {
   }
 
  private:
-  bool CreateContext(const pp::Size& new_size) {
+  bool CreateContext() {
     const bool kIsAlwaysOpaque = true;
-    context_ = pp::Graphics2D(this, new_size, kIsAlwaysOpaque);
+    context_ = pp::Graphics2D(this, context_size_, kIsAlwaysOpaque);
     if (!BindGraphics(context_)) {
       fprintf(stderr, "Unable to bind 2d context!\n");
       context_ = pp::Graphics2D();
       return false;
     }
-
-    const bool kInitToZero = true;
-    PP_ImageDataFormat format = PP_IMAGEDATAFORMAT_BGRA_PREMUL;
-    image_data_ = pp::ImageData(this, format, new_size, kInitToZero);
     return true;
   }
 
-  void UpdateScreenScale(int screen_width, int screen_height) {
+  void UpdateScreenScale() {
     // Update scale_{numer,denom}_ vars.
     // Keep the aspect ratio, and wrap in the longer dimension.
+    int screen_width = context_size_.width();
+    int screen_height = context_size_.height();
     int buffer_width = simulation_.size().width();
     int buffer_height = simulation_.size().height();
 
@@ -249,15 +246,18 @@ class Instance : public pp::Instance {
   }
 
   void Render() {
-    uint32_t* pixels = static_cast<uint32_t*>(image_data_.data());
+    PP_ImageDataFormat format = pp::ImageData::GetNativeImageDataFormat();
+    const bool kDontInitToZero = false;
+    pp::ImageData image_data(this, format, context_size_, kDontInitToZero);
+    uint32_t* pixels = static_cast<uint32_t*>(image_data.data());
     if (!pixels) {
       printf("No pixels.\n");
       return;
     }
 
     const AlignedReals& buffer = simulation_.buffer();
-    int screen_width = image_data_.size().width();
-    int screen_height = image_data_.size().height();
+    int screen_width = image_data.size().width();
+    int screen_height = image_data.size().height();
     int buffer_width = buffer.size().width();
     int buffer_height = buffer.size().height();
 
@@ -300,7 +300,7 @@ class Instance : public pp::Instance {
         color = palette_.GetColor(*src);
       }
     }
-    context_.PaintImageData(image_data_, pp::Point());
+    context_.ReplaceContents(&image_data);
   }
 
   void MainLoop(int32_t) {
@@ -339,7 +339,7 @@ class Instance : public pp::Instance {
   pp::CompletionCallbackFactory<Instance> callback_factory_;
   pp::Graphics2D context_;
   pp::Graphics2D flush_context_;
-  pp::ImageData image_data_;
+  pp::Size context_size_;
 
   SimulationConfig simulation_config_;
   Simulation simulation_;

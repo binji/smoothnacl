@@ -16,6 +16,9 @@
 #include <algorithm>
 #include <math.h>
 
+#include <ppapi/c/ppb_image_data.h>
+#include <ppapi/cpp/image_data.h>
+
 namespace {
 
 const uint32_t kBlack = 0xff000000;
@@ -32,7 +35,15 @@ void Uint32ToRGB(uint32_t c, uint8_t* r, uint8_t* g, uint8_t* b) {
 }
 
 uint32_t RGBToUint32(uint8_t r, uint8_t g, uint8_t b) {
-  return 0xff000000 | (r << 16) | (g << 8) | b;
+  static PP_ImageDataFormat format = pp::ImageData::GetNativeImageDataFormat();
+  if (format == PP_IMAGEDATAFORMAT_BGRA_PREMUL) {
+    return 0xff000000 | (r << 16) | (g << 8) | b;
+  } else if (format == PP_IMAGEDATAFORMAT_RGBA_PREMUL) {
+    return 0xff000000 | (b << 16) | (g << 8) | r;
+  } else {
+    assert(0);
+    return 0xff000000;
+  }
 }
 
 template <typename T>
