@@ -86,14 +86,16 @@ class Instance : public pp::Instance {
 
   virtual void DidChangeView(const pp::View& view) {
     pp::Size new_size = view.GetRect().size();
-    bool had_context = !context_.is_null();
-
     if (!CreateContext(new_size))
       return;
 
     UpdateScreenScale(new_size.width(), new_size.height());
 
-    if (!had_context)
+    // When flush_context_ is null, it means there is no Flush callback in
+    // flight. This may have happened if the context was not created
+    // successfully, or if this is the first call to DidChangeView (when the
+    // module first starts). In either case, start the main loop.
+    if (flush_context_.is_null())
       MainLoop(0);
   }
 
@@ -302,9 +304,21 @@ class Instance : public pp::Instance {
   }
 
   void MainLoop(int32_t) {
+    if (context_.is_null()) {
+      // The current Graphics2D context is null, so updating and rendering is
+      // pointless. Set flush_context_ to null as well, so if we get another
+      // DidChangeView call, the main loop is started again.
+      flush_context_ = context_;
+      return;
+    }
+
     Update();
     Render();
-    context_.Flush( callback_factory_.NewCallback(&Instance::MainLoop));
+    // Store a reference to the context that is being flushed; this ensures
+    // the callback is called, even if context_ changes before the flush
+    // completes.
+    flush_context_ = context_;
+    context_.Flush(callback_factory_.NewCallback(&Instance::MainLoop));
     frames_drawn_++;
     UpdateFps();
   }
@@ -324,6 +338,7 @@ class Instance : public pp::Instance {
 
   pp::CompletionCallbackFactory<Instance> callback_factory_;
   pp::Graphics2D context_;
+  pp::Graphics2D flush_context_;
   pp::ImageData image_data_;
 
   SimulationConfig simulation_config_;
