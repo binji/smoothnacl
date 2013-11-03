@@ -21,7 +21,7 @@ namespace {
 const uint32_t kBlack = 0xff000000;
 const uint32_t kWhite = 0xffffffff;
 
-double NonnegativeFmod(double x, double y) {
+real NonnegativeFmod(real x, real y) {
   return fmod(fmod(x, y) + y, y);
 }
 
@@ -36,11 +36,11 @@ uint32_t RGBToUint32(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 template <typename T>
-T Mix(T t0, T t1, double x) {
+T Mix(T t0, T t1, real x) {
   return static_cast<T>(t0 * (1 - x) + t1 * x);
 }
 
-uint32_t MixColor(uint32_t c0, uint32_t c1, double x) {
+uint32_t MixColor(uint32_t c0, uint32_t c1, real x) {
   uint8_t r0, g0, b0;
   uint8_t r1, g1, b1;
   Uint32ToRGB(c0, &r0, &g0, &b0);
@@ -50,22 +50,22 @@ uint32_t MixColor(uint32_t c0, uint32_t c1, double x) {
 
 class PaletteGenerator {
  public:
-  virtual uint32_t GetColor(double value) const = 0;
+  virtual uint32_t GetColor(real value) const = 0;
 };
 
 class GradientPaletteGenerator : public PaletteGenerator {
  public:
   GradientPaletteGenerator(const ColorStops& stops, bool repeating);
-  virtual uint32_t GetColor(double value) const;
+  virtual uint32_t GetColor(real value) const;
 
  private:
-  double GetMinStopPos() const;
-  double GetMaxStopPos() const;
+  real GetMinStopPos() const;
+  real GetMaxStopPos() const;
 
   ColorStops stops_;
   bool repeating_;
-  double min_pos_;
-  double max_pos_;
+  real min_pos_;
+  real max_pos_;
 };
 
 GradientPaletteGenerator::GradientPaletteGenerator(const ColorStops& stops,
@@ -76,7 +76,7 @@ GradientPaletteGenerator::GradientPaletteGenerator(const ColorStops& stops,
       max_pos_(GetMaxStopPos()) {
 }
 
-uint32_t GradientPaletteGenerator::GetColor(double value) const {
+uint32_t GradientPaletteGenerator::GetColor(real value) const {
   if (stops_.empty())
     return kBlack;
 
@@ -86,32 +86,32 @@ uint32_t GradientPaletteGenerator::GetColor(double value) const {
   if (value < min_pos_)
     return stops_[0].color;
 
-  double range_min = 0;
+  real range_min = 0;
   for (size_t i = 0; i < stops_.size() - 1; ++i) {
     range_min = std::max(range_min, stops_[i].pos);
-    double range_max = stops_[i + 1].pos;
+    real range_max = stops_[i + 1].pos;
     if (range_min >= range_max)
       continue;
 
     if (value < range_min || value > range_max)
       continue;
 
-    double mix_fraction = (value - range_min) / (range_max - range_min);
+    real mix_fraction = (value - range_min) / (range_max - range_min);
     return MixColor(stops_[i].color, stops_[i + 1].color, mix_fraction);
   }
 
   return stops_[stops_.size() - 1].color;
 }
 
-double GradientPaletteGenerator::GetMinStopPos() const {
+real GradientPaletteGenerator::GetMinStopPos() const {
   return stops_.empty() ? 0 : stops_[0].pos;
 }
 
-double GradientPaletteGenerator::GetMaxStopPos() const {
+real GradientPaletteGenerator::GetMaxStopPos() const {
   if (stops_.empty())
     return 0;
 
-  double maxpos = stops_[0].pos;
+  real maxpos = stops_[0].pos;
   for (size_t i = 1; i < stops_.size(); ++i) {
     maxpos = std::max(stops_[i].pos, maxpos);
   }
@@ -122,13 +122,13 @@ template <size_t size>
 void MakeLookupTable(const PaletteGenerator& generator,
                      uint32_t (*color_map)[size]) {
   for (size_t i = 0; i < size; ++i) {
-    (*color_map)[i] = generator.GetColor(static_cast<double>(i) / size);
+    (*color_map)[i] = generator.GetColor(static_cast<real>(i) / size);
   }
 }
 
 }  // namespace
 
-ColorStop::ColorStop(uint32_t color, double pos)
+ColorStop::ColorStop(uint32_t color, real pos)
     : color(color),
       pos(pos) {
 }
@@ -141,7 +141,7 @@ Palette::Palette(const PaletteConfig& config) {
   SetConfig(config);
 }
 
-uint32_t Palette::GetColor(double value) const {
+uint32_t Palette::GetColor(real value) const {
   size_t index = static_cast<size_t>(value * kColorMapSize);
   index = std::max<size_t>(0, std::min(kColorMapSize - 1, index));
   return value_color_map_[index];

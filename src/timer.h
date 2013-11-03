@@ -12,13 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FUNCTIONS_H_
-#define FUNCTIONS_H_
+#include <sys/time.h>
+#include <stdio.h>
 
-real func_hard(real x, real a);
-real func_linear(real x, real a, real ea);
-real func_hermite(real x, real a, real ea);
-real func_sin(real x, real a, real ea);
-real func_smooth(real x, real a, real ea);
+struct Timer {
+  Timer(const char* name) :
+      name(name) {
+    gettimeofday(&start_time, NULL);
+  }
 
-#endif  // FUNCTIONS_H_
+  ~Timer() {
+    struct timeval end_time;
+    gettimeofday(&end_time, NULL);
+
+    unsigned long long us = (end_time.tv_sec - start_time.tv_sec) * 1000000;
+    us += (end_time.tv_usec - start_time.tv_usec);
+    //printf("%s: %lldus\n", name, us);
+  }
+
+  struct timeval start_time;
+  const char* name;
+};
+
+#define TIME(x) do { Timer t(#x); x; } while(0)

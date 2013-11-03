@@ -20,6 +20,7 @@
 #include "kernel.h"
 #include "smoother.h"
 
+#include "fftw.h"
 #include "fft_allocation.h"
 #include "simulation_config.h"
 
@@ -35,16 +36,13 @@ class Simulation {
   const Smoother& smoother() const { return smoother_; }
   const AlignedReals& buffer() const { return aa_; }
 
-  void ViewSmoother();
   void Step();
-  void Clear(double color);
-  void DrawFilledCircle(double x, double y, double radius,
-                        double color);
+  void Clear(real color);
+  void DrawFilledCircle(real x, real y, real radius, real color);
   void Splat();
 
  private:
-  void DrawFilledCircleNoWrap(double x, double y, double radius,
-                              double color);
+  void DrawFilledCircleNoWrap(real x, real y, real radius, real color);
 
   pp::Size size_;
   Kernel kernel_;
@@ -53,11 +51,10 @@ class Simulation {
   AlignedReals an_;
   AlignedReals am_;
   AlignedComplexes aaf_;
-  AlignedComplexes anf_;
-  AlignedComplexes amf_;
+  AlignedComplexes tempf_;
   fftw_plan aa_plan_;
-  fftw_plan anf_plan_;
-  fftw_plan amf_plan_;
+  fftw_plan an_plan_;
+  fftw_plan am_plan_;
 
   Simulation(const Simulation&);  // Undefined.
   Simulation& operator =(const Simulation&);  // Undefined.

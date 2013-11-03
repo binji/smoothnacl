@@ -18,9 +18,9 @@
 struct KernelConfig {
   KernelConfig() : disc_radius(0), ring_radius(0), blend_radius(0) {}
 
-  double disc_radius;
-  double ring_radius;
-  double blend_radius;
+  real disc_radius;
+  real ring_radius;
+  real blend_radius;
 };
 
 #endif  // KERNEL_CONFIG_H_

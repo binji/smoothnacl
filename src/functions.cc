@@ -16,34 +16,34 @@
 #include <math.h>
 
 namespace {
-  const double kPi = 3.14159265358979323846;
+  const real kPi = 3.14159265358979323846;
 }
 
-double func_hard(double x, double a) {
+real func_hard(real x, real a) {
   if (x>=a) return 1.0; else return 0.0;
 }
 
-double func_linear(double x, double a, double ea) {
+real func_linear(real x, real a, real ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
   else return (x-a)/ea + 0.5;
 }
 
-double func_hermite(double x, double a, double ea) {
+real func_hermite(real x, real a, real ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
   else {
-    double m = (x-(a-ea/2.0))/ea;
+    real m = (x-(a-ea/2.0))/ea;
     return m*m*(3.0-2.0*m);
   }
 }
 
-double func_sin(double x, double a, double ea) {
+real func_sin(real x, real a, real ea) {
   if (x < a-ea/2.0) return 0.0;
   else if (x > a+ea/2.0) return 1.0;
   else return sin(kPi*(x-a)/ea)*0.5+0.5;
 }
 
-double func_smooth(double x, double a, double ea) {
+real func_smooth(real x, real a, real ea) {
   return 1.0/(1.0+exp(-(x-a)*4.0/ea));
 }

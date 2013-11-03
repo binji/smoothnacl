@@ -18,8 +18,6 @@
 #include <assert.h>
 #include <ppapi/cpp/size.h>
 
-#include <fftw3.h>
-
 #include "fft_allocation.h"
 #include "kernel_config.h"
 
@@ -34,8 +32,6 @@ class Kernel {
   const AlignedReals& kd() const { assert(!dirty_); return kd_; }
   const AlignedComplexes& krf() const { assert(!dirty_); return krf_; }
   const AlignedComplexes& kdf() const { assert(!dirty_); return kdf_; }
-  double kflr() const { assert(!dirty_); return kflr_; }
-  double kfld() const { assert(!dirty_); return kfld_; }
 
   void MakeKernel();
 
@@ -47,8 +43,6 @@ class Kernel {
   AlignedReals kd_;
   AlignedComplexes krf_;
   AlignedComplexes kdf_;
-  double kflr_;
-  double kfld_;
 
   Kernel(const Kernel&);  // undefined
   Kernel& operator =(const Kernel&);  // undefined

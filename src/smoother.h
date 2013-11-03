@@ -31,13 +31,13 @@ class Smoother {
   void MakeLookup();
 
  private:
-  double CalculateValue(double n, double m) const;
-  double Lookup(double n, double m) const;
-  void Apply_Discrete(const double* an, const double* am, double* na) const;
-  void Apply_Smooth1(const double* an, const double* am, double* na) const;
-  void Apply_Smooth2(const double* an, const double* am, double* na) const;
-  void Apply_Smooth3(const double* an, const double* am, double* na) const;
-  void Apply_Smooth4(const double* an, const double* am, double* na) const;
+  real CalculateValue(real n, real m) const;
+  real Lookup(real n, real m) const;
+  void Apply_Discrete(const real* an, const real* am, real* na) const;
+  void Apply_Smooth1(const real* an, const real* am, real* na) const;
+  void Apply_Smooth2(const real* an, const real* am, real* na) const;
+  void Apply_Smooth3(const real* an, const real* am, real* na) const;
+  void Apply_Smooth4(const real* an, const real* am, real* na) const;
 
   pp::Size size_;
   SmootherConfig config_;

@@ -20,10 +20,10 @@
 #include <vector>
 
 struct ColorStop {
-  ColorStop(uint32_t color, double pos);
+  ColorStop(uint32_t color, real pos);
 
   uint32_t color;
-  double pos;
+  real pos;
 };
 typedef std::vector<ColorStop> ColorStops;
 
@@ -37,7 +37,7 @@ struct PaletteConfig {
 class Palette {
  public:
   explicit Palette(const PaletteConfig& config);
-  uint32_t GetColor(double value) const;
+  uint32_t GetColor(real value) const;
 
   void SetConfig(const PaletteConfig& config);
 

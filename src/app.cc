@@ -36,16 +36,13 @@
 #include "ppapi_simple/ps_main.h"
 
 #include "simulation.h"
+#include "timer.h"
 
 namespace {
 
+//const pp::Size kSimSize(256, 256);
+//const pp::Size kSimSize(384, 384);
 const pp::Size kSimSize(512, 512);
-
-#ifndef NDEBUG
-bool IsPowerOf2(uint32_t x) {
-  return x && (x & (x - 1)) == 0;
-}
-#endif
 
 int TimevalToMs(struct timeval* t) {
     return (t->tv_sec * 1000 + t->tv_usec / 1000);
@@ -63,9 +60,8 @@ App::App() :
     simulation_config_(kSimSize),
     simulation_(simulation_config_),
     palette_(palette_config_),
-    screen_to_sim_scale_(1),
-    screen_to_sim_x_offset_(0),
-    screen_to_sim_y_offset_(0),
+    scale_numer_(1),
+    scale_denom_(1),
     mouse_down_(false),
     brush_radius_(10),
     brush_color_(1) {
@@ -91,13 +87,13 @@ void App::Run() {
       PSEventRelease(event);
     }
 
-    Update();
+    TIME(Update());
 
     PSContext2DGetBuffer(context_);
     if (context_->data) {
-      Render();
+      TIME(Render());
       frames_drawn++;
-      PSContext2DSwapBuffer(context_);
+      TIME(PSContext2DSwapBuffer(context_));
     }
 
     struct timeval current_frame_time;
@@ -105,7 +101,7 @@ void App::Run() {
 
     int diff_ms = TimeDeltaMs(&last_frame_time, &current_frame_time);
     if (diff_ms > kFpsUpdateMs) {
-      double fps = static_cast<double>(frames_drawn * 1000) / diff_ms;
+      real fps = static_cast<real>(frames_drawn * 1000) / diff_ms;
       pp::Var fps_var(fps);
       PSInterfaceMessaging()->PostMessage(PSGetInstanceId(), fps_var.pp_var());
       frames_drawn = 0;
@@ -136,29 +132,28 @@ void App::HandleDidChangeView(PSEvent* event) {
   PSInterfaceView()->GetRect(event->as_resource, &rect);
 
   // Update cached screen_to_sim_* vars.
-  // Keep the aspect ratio.
-  int sim_width = simulation_.size().width();
-  int sim_height = simulation_.size().height();
+  // Keep the aspect ratio, and wrap in the longer dimension.
+  int buffer_width = simulation_.size().width();
+  int buffer_height = simulation_.size().height();
   int screen_width = rect.size.width;
   int screen_height = rect.size.height;
-  screen_to_sim_scale_ = std::max(
-      static_cast<double>(sim_width) / screen_width,
-      static_cast<double>(sim_height) / screen_height);
-  screen_to_sim_x_offset_ =
-      static_cast<int>((screen_width - sim_width / screen_to_sim_scale_) / 2);
-  screen_to_sim_y_offset_ =
-      static_cast<int>((screen_height - sim_height / screen_to_sim_scale_) / 2);
 
-  printf("HandleDidChangeView: scale: %f, xoff: %f, yoff: %f\n",
-      screen_to_sim_scale_, screen_to_sim_x_offset_, screen_to_sim_y_offset_);
+  if (buffer_width * screen_height > buffer_height * screen_width) {
+    // tall
+    scale_numer_ = buffer_width;
+    scale_denom_ = screen_width;
+  } else {
+    // wide
+    scale_numer_ = buffer_height;
+    scale_denom_ = screen_height;
+  }
+
+  printf("HandleDidChangeView: scale: %d/%d\n", scale_numer_, scale_denom_);
 }
 
 pp::Point App::ScreenToSim(const pp::Point& p) const {
-  double x_offset = screen_to_sim_x_offset_;
-  double y_offset = screen_to_sim_y_offset_;
-  double scale = screen_to_sim_scale_;
-  return pp::Point(static_cast<int>((p.x() - x_offset) * scale),
-                   static_cast<int>((p.y() - y_offset) * scale));
+  return pp::Point(p.x() * scale_numer_ / scale_denom_,
+                   p.y() * scale_numer_ / scale_denom_);
 }
 
 void App::HandleInput(const pp::InputEvent& event) {
@@ -186,7 +181,7 @@ void App::HandleMessage(const pp::Var& var) {
   std::string cmd = dictionary.Get("cmd").AsString();
 
   if (cmd == "clear") {
-    double color = dictionary.Get("color").AsDouble();
+    real color = dictionary.Get("color").AsDouble();
     printf("clear{color: %f}\n", color);
     simulation_.Clear(color);
   } else if (cmd == "setBrush") {
@@ -210,7 +205,7 @@ void App::HandleMessage(const pp::Var& var) {
     uint32_t length = std::min(colors.GetLength(), stops.GetLength());
     printf("setPalette{repeating: %d, colors: [", config.repeating);
     for (uint32_t i = 0; i < length; ++i) {
-      double stop = stops.Get(i).AsDouble() / 100;
+      real stop = stops.Get(i).AsDouble() / 100;
       std::string color_string = colors.Get(i).AsString();
       if (color_string.length() < 1)
         continue;
@@ -271,24 +266,46 @@ void App::Render() {
   const AlignedReals& buffer = simulation_.buffer();
   int buffer_width = buffer.size().width();
   int buffer_height = buffer.size().height();
-  assert(IsPowerOf2(buffer_width));
-  assert(IsPowerOf2(buffer_height));
-
   int screen_width = context_->width;
   int screen_height = context_->height;
-  double x_offset = screen_to_sim_x_offset_;
-  double y_offset = screen_to_sim_y_offset_;
-  double scale = screen_to_sim_scale_;
 
-  for (int y = 0; y < screen_height; ++y) {
-    int buffer_y = static_cast<int>((y - y_offset) * scale);
-    buffer_y = (buffer_y + buffer_height) & (buffer_height - 1);
-    for (int x = 0; x < screen_width; ++x) {
-      int buffer_x = static_cast<int>((x - x_offset) * scale);
-      buffer_x = (buffer_x + buffer_width) & (buffer_width - 1);
-      double color_value = buffer[buffer_y * buffer_width + buffer_x];
-      uint32_t color = palette_.GetColor(color_value);
-      pixels[y * screen_width + x] = color;
+  int by = 0;
+  int x_accum = 0;
+  int y_accum = 0;
+  int no_wrap_width = buffer_width * scale_denom_ / scale_numer_;
+
+  const real* row_start = buffer.data();
+  const real* src = row_start;
+  uint32_t* dst = pixels;
+  uint32_t color = palette_.GetColor(*src);
+  for (int sy = 0; sy < screen_height; ++sy) {
+    int row_count = screen_width;
+
+    while (row_count > 0) {
+      int no_wrap_count = std::min(row_count, no_wrap_width);
+      for (int x = 0; x < no_wrap_count; ++x) {
+        *dst++ = color;
+        x_accum += scale_numer_;
+        while (x_accum >= scale_denom_) {
+          x_accum -= scale_denom_;
+          color = palette_.GetColor(*src++);
+        }
+      }
+      row_count -= no_wrap_count;
+      src = row_start;
+    }
+
+    y_accum += scale_numer_;
+    while (y_accum >= scale_denom_) {
+      y_accum -= scale_denom_;
+      if (++by == buffer_height) {
+        by = 0;
+        src = row_start = buffer.data();
+      } else {
+        row_start += buffer_width;
+        src = row_start;
+      }
+      color = palette_.GetColor(*src);
     }
   }
 }

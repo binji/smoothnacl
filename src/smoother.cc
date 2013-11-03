@@ -17,13 +17,13 @@
 
 namespace {
 
-const int kLookupSize = 512;
+const int kLookupSize = 256;
 
-double my_hard(double x, double a, double) {
+real my_hard(real x, real a, real) {
   return func_hard(x, a);
 }
 
-typedef double (*SigmoidFunc)(double, double, double);
+typedef real (*SigmoidFunc)(real, real, real);
 SigmoidFunc GetFunc(Sigmoid s) {
   switch (s) {
     case SIGMOID_HARD: return &my_hard;
@@ -35,19 +35,19 @@ SigmoidFunc GetFunc(Sigmoid s) {
   }
 }
 
-double mix(double x, double y, double m) {
+real mix(real x, real y, real m) {
   return x + m * (y - x);
 }
 
-double sigmoid_ab(SigmoidFunc f, double sn, double x, double a, double b) {
+real sigmoid_ab(SigmoidFunc f, real sn, real x, real a, real b) {
   return (*f)(x, a, sn)*(1.0 - (*f)(x, b, sn));
 }
 
-double sigmoid_mix(SigmoidFunc f, double sm, double x, double y, double m) {
+real sigmoid_mix(SigmoidFunc f, real sm, real x, real y, real m) {
   return x + (*f)(m, 0.5, sm) * (y - x);
 }
 
-double clamp01(double x) {
+real clamp01(real x) {
   return x > 1.0 ? 1.0 : x < 0.0 ? 0.0 : x;
 }
 
@@ -91,8 +91,8 @@ void Smoother::Apply(const AlignedReals& buf1, const AlignedReals& buf2,
 void Smoother::MakeLookup() {
   for (int i = 0; i < kLookupSize; ++i) {
     for (int j = 0; j < kLookupSize; ++j) {
-      double n = static_cast<double>(i)/kLookupSize;
-      double m = static_cast<double>(j)/kLookupSize;
+      real n = static_cast<real>(i)/kLookupSize;
+      real m = static_cast<real>(j)/kLookupSize;
       lookup_[i * kLookupSize + j] = clamp01(CalculateValue(n, m));
     }
   }
@@ -100,7 +100,7 @@ void Smoother::MakeLookup() {
   dirty_ = false;
 }
 
-double Smoother::CalculateValue(double n, double m) const {
+real Smoother::CalculateValue(real n, real m) const {
   SigmoidFunc ab_func = GetFunc(config_.sigmoid);
   SigmoidFunc mix_func = GetFunc(config_.mix);
 
@@ -135,51 +135,61 @@ double Smoother::CalculateValue(double n, double m) const {
   }
 }
 
-double Smoother::Lookup(double n, double m) const {
+real Smoother::Lookup(real n, real m) const {
   return lookup_[static_cast<int>(n * kLookupSize) * kLookupSize +
-    static_cast<int>(m * kLookupSize)];
+                 static_cast<int>(m * kLookupSize)];
 }
 
-void Smoother::Apply_Discrete(const double* an, const double* am,
-                              double* na) const {
+void Smoother::Apply_Discrete(const real* an, const real* am, real* na) const {
   int count = size_.width() * size_.height();
+  real scale = 1.0 / count;
   for (int i = 0; i < count; ++i) {
-    na[i] = Lookup(an[i], am[i]);
+    real ani = an[i] * scale;
+    real ami = am[i] * scale;
+    na[i] = Lookup(ani, ami);
   }
 }
 
-void Smoother::Apply_Smooth1(const double* an, const double* am,
-                             double* na) const {
+void Smoother::Apply_Smooth1(const real* an, const real* am, real* na) const {
   int count = size_.width() * size_.height();
+  real scale = 1.0 / count;
   for (int i = 0; i < count; ++i) {
-    double f = Lookup(an[i], am[i]);
+    real ani = an[i] * scale;
+    real ami = am[i] * scale;
+    real f = Lookup(ani, ami);
     na[i] = clamp01(na[i] + config_.timestep.dt * (2 * f - 1));
   }
 }
 
-void Smoother::Apply_Smooth2(const double* an, const double* am,
-                             double* na) const {
+void Smoother::Apply_Smooth2(const real* an, const real* am, real* na) const {
   int count = size_.width() * size_.height();
+  real scale = 1.0 / count;
   for (int i = 0; i < count; ++i) {
-    double f = Lookup(an[i], am[i]);
+    real ani = an[i] * scale;
+    real ami = am[i] * scale;
+    real f = Lookup(ani, ami);
     na[i] = clamp01(na[i] + config_.timestep.dt * (f - na[i]));
   }
 }
 
-void Smoother::Apply_Smooth3(const double* an, const double* am,
-                             double* na) const {
+void Smoother::Apply_Smooth3(const real* an, const real* am, real* na) const {
   int count = size_.width() * size_.height();
+  real scale = 1.0 / count;
   for (int i = 0; i < count; ++i) {
-    double f = Lookup(an[i], am[i]);
-    na[i] = clamp01(am[i] + config_.timestep.dt * (2 * f - 1));
+    real ani = an[i] * scale;
+    real ami = am[i] * scale;
+    real f = Lookup(ani, ami);
+    na[i] = clamp01(ami + config_.timestep.dt * (2 * f - 1));
   }
 }
 
-void Smoother::Apply_Smooth4(const double* an, const double* am,
-                             double* na) const {
+void Smoother::Apply_Smooth4(const real* an, const real* am, real* na) const {
   int count = size_.width() * size_.height();
+  real scale = 1.0 / count;
   for (int i = 0; i < count; ++i) {
-    double f = Lookup(an[i], am[i]);
-    na[i] = clamp01(am[i] + config_.timestep.dt * (f - am[i]));
+    real ani = an[i] * scale;
+    real ami = am[i] * scale;
+    real f = Lookup(ani, ami);
+    na[i] = clamp01(ami + config_.timestep.dt * (f - ami));
   }
 }

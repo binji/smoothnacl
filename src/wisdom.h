@@ -12,13 +12,4 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef FUNCTIONS_H_
-#define FUNCTIONS_H_
-
-real func_hard(real x, real a);
-real func_linear(real x, real a, real ea);
-real func_hermite(real x, real a, real ea);
-real func_sin(real x, real a, real ea);
-real func_smooth(real x, real a, real ea);
-
-#endif  // FUNCTIONS_H_
+extern const char kWisdom512[];

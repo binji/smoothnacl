@@ -51,14 +51,13 @@ class App {
   PaletteConfig palette_config_;
   Palette palette_;
 
-  double screen_to_sim_scale_;
-  double screen_to_sim_x_offset_;
-  double screen_to_sim_y_offset_;
+  int scale_numer_;
+  int scale_denom_;
 
   pp::Point mouse_point_;
   bool mouse_down_;
-  double brush_radius_;
-  double brush_color_;
+  real brush_radius_;
+  real brush_color_;
 };
 
 #endif  // APP_H_

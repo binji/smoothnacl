@@ -15,10 +15,11 @@
 #ifndef FFT_ALLOCATION_H_
 #define FFT_ALLOCATION_H_
 
-#include <fftw3.h>
 #include <stdint.h>
 #include <string.h>
 #include "ppapi/cpp/size.h"
+
+#include "fftw.h"
 
 struct ReduceSizeForComplex {};
 
@@ -72,7 +73,7 @@ class FftAllocation {
 };
 
 typedef FftAllocation<uint32_t> AlignedUint32;
-typedef FftAllocation<double> AlignedReals;
+typedef FftAllocation<real> AlignedReals;
 typedef FftAllocation<float> AlignedFloats;
 typedef FftAllocation<fftw_complex> AlignedComplexes;
 

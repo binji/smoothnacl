@@ -12,11 +12,32 @@ ifeq (,$(NACL_SDK_ROOT))
 endif
 include $(NACL_SDK_ROOT)/tools/common.mk
 
+USE_FLOAT = 1
+USE_WISDOM = 1
+USE_THREADS = 0
 
 TARGET = smoothnacl
-LIBS = fftw3 ppapi_simple nacl_io ppapi_cpp ppapi pthread
 
-CFLAGS = -Wall
+ifeq (1,$(USE_FLOAT))
+  ifeq (1,$(USE_THREADS))
+    LIBS = fftw3f_threads
+  endif
+  LIBS += fftw3f
+  CFLAGS = -DUSE_FLOAT -Dreal=float
+else
+  ifeq (1,$(USE_THREADS))
+    LIBS = fftw3_threads
+  endif
+  LIBS += fftw3
+  CFLAGS = -Dreal=double
+endif
+LIBS += ppapi_simple nacl_io ppapi_cpp ppapi pthread
+
+ifeq (1,$(USE_THREADS))
+  CFLAGS += -DUSE_THREADS
+endif
+
+CFLAGS += -Wall -Isrc
 SOURCES = \
   src/app.cc \
   src/functions.cc \
@@ -25,6 +46,18 @@ SOURCES = \
   src/palette.cc \
   src/simulation.cc \
   src/smoother.cc
+
+ifeq (1,$(USE_WISDOM))
+  SOURCES += \
+    wisdom/i686.double.x.cc \
+    wisdom/i686.float.x.cc \
+    wisdom/pnacl.double.x.cc \
+    wisdom/pnacl.float.x.cc \
+    wisdom/x86-64.double.x.cc \
+    wisdom/x86-64.float.x.cc
+  CFLAGS += -DUSE_WISDOM
+endif
+
 
 .PHONY: ports
 ports:

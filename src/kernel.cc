@@ -17,6 +17,7 @@
 #include <algorithm>
 #include <math.h>
 
+#include "fftw.h"
 #include "functions.h"
 
 namespace {
@@ -28,6 +29,13 @@ void FFT(const pp::Size& size, AlignedReals& in, AlignedComplexes* out) {
   fftw_destroy_plan(plan);
 }
 
+void Scale(AlignedComplexes* c, real scale) {
+  for (fftw_complex* i = c->begin(), *e = c->end(); i != e; ++i) {
+    (*i)[0] *= scale;
+    (*i)[1] *= scale;
+  }
+}
+
 }  // namespace
 
 Kernel::Kernel(const pp::Size& size, const KernelConfig& config)
@@ -37,9 +45,7 @@ Kernel::Kernel(const pp::Size& size, const KernelConfig& config)
       kr_(size),
       kd_(size),
       krf_(size, ReduceSizeForComplex()),
-      kdf_(size, ReduceSizeForComplex()),
-      kflr_(0),
-      kfld_(0) {
+      kdf_(size, ReduceSizeForComplex()) {
 }
 
 void Kernel::SetConfig(const KernelConfig& config) {
@@ -48,13 +54,13 @@ void Kernel::SetConfig(const KernelConfig& config) {
 }
 
 void Kernel::MakeKernel() {
-  double ri = config_.disc_radius;
-  double bb = config_.blend_radius;
+  real ri = config_.disc_radius;
+  real bb = config_.blend_radius;
 
   int Ra = (int)(config_.ring_radius*2);
 
-  kflr_ = 0.0;
-  kfld_ = 0.0;
+  real kflr = 0.0;
+  real kfld = 0.0;
 
   std::fill(kd_.begin(), kd_.end(), 0);
   std::fill(kr_.begin(), kr_.end(), 0);
@@ -65,21 +71,24 @@ void Kernel::MakeKernel() {
       for (int ix=0; ix<size_.width(); ix++) {
         int x = (ix < size_.width()/2) ? ix : ix - size_.width();
         if (x >= -Ra && x <= Ra) {
-          double l = sqrt(x * x + y * y);
-          double m = 1 - func_linear(l, ri, bb);
-          double n = func_linear(l, ri, bb) *
+          real l = sqrt(x * x + y * y);
+          real m = 1 - func_linear(l, ri, bb);
+          real n = func_linear(l, ri, bb) *
               (1 - func_linear(l, config_.ring_radius, bb));
           kd_[iy * size_.width() + ix] = m;
           kr_[iy * size_.width() + ix] = n;
-          kfld_ += m;
-          kflr_ += n;
+          kfld += m;
+          kflr += n;
         }
       }
     }
   }
 
   FFT(size_, kd_, &kdf_);
+  Scale(&kdf_, 1.0 / kfld);
+
   FFT(size_, kr_, &krf_);
+  Scale(&krf_, 1.0 / kflr);
 
   dirty_ = false;
 }

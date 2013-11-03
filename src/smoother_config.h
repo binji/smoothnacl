@@ -25,7 +25,7 @@ enum Timestep {
 
 struct TimestepConfig {
   Timestep type;
-  double dt;
+  real dt;
 };
 
 enum Sigmoid {
@@ -54,15 +54,15 @@ struct SmootherConfig {
     sn(0), sm(0) {}
 
   TimestepConfig timestep;
-  double b1;
-  double d1;
-  double b2;
-  double d2;
+  real b1;
+  real d1;
+  real b2;
+  real d2;
   SigmoidMode mode;
   Sigmoid sigmoid;
   Sigmoid mix;
-  double sn;
-  double sm;
+  real sn;
+  real sm;
 };
 
 #endif  // SMOOTHER_CONFIG_H_
