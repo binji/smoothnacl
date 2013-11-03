@@ -31,7 +31,7 @@ else
   LIBS += fftw3
   CFLAGS = -Dreal=double
 endif
-LIBS += ppapi_simple nacl_io ppapi_cpp ppapi pthread
+LIBS += ppapi_cpp ppapi pthread
 
 ifeq (1,$(USE_THREADS))
   CFLAGS += -DUSE_THREADS
@@ -42,7 +42,6 @@ SOURCES = \
   src/app.cc \
   src/functions.cc \
   src/kernel.cc \
-  src/main.cc \
   src/palette.cc \
   src/simulation.cc \
   src/smoother.cc
