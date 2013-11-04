@@ -5,16 +5,20 @@
 # GNU Makefile based on shared rules provided by the Native Client SDK.
 # See README.Makefiles for more details.
 
-VALID_TOOLCHAINS := newlib glibc pnacl
+VALID_TOOLCHAINS := newlib pnacl emscripten
 
 ifeq (,$(NACL_SDK_ROOT))
   $(error NACL_SDK_ROOT is not set.)
 endif
-include $(NACL_SDK_ROOT)/tools/common.mk
+ifeq (,$(PEPPERJS_SRC_ROOT))
+  include $(NACL_SDK_ROOT)/tools/common.mk
+else
+  include $(PEPPERJS_SRC_ROOT)/tools/common.mk
+endif
 
 USE_FLOAT = 1
-USE_WISDOM = 1
-USE_THREADS = 1
+USE_WISDOM = 0
+USE_THREADS = 0
 
 TARGET = smoothnacl
 
@@ -57,6 +61,11 @@ ifeq (1,$(USE_WISDOM))
   CFLAGS += -DUSE_WISDOM
 endif
 
+ifeq (emscripten,$(TOOLCHAIN))
+  CFLAGS += -I$(PEPPERJS_SRC_ROOT)/emscripten/usr/include
+  LDFLAGS += -L$(PEPPERJS_SRC_ROOT)/emscripten/usr/lib
+endif
+
 
 .PHONY: ports
 ports:
@@ -67,10 +76,10 @@ ports:
 $(foreach src,$(SOURCES),$(eval $(call COMPILE_RULE,$(src),$(CFLAGS))))
 
 ifeq ($(CONFIG),Release)
-$(eval $(call LINK_RULE,$(TARGET)_unstripped,$(SOURCES),$(LIBS),$(DEPS)))
+$(eval $(call LINK_RULE,$(TARGET)_unstripped,$(SOURCES),$(LIBS),$(DEPS),$(LDFLAGS)))
 $(eval $(call STRIP_RULE,$(TARGET),$(TARGET)_unstripped))
 else
-$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS)))
+$(eval $(call LINK_RULE,$(TARGET),$(SOURCES),$(LIBS),$(DEPS),$(LDFLAGS)))
 endif
 
 $(eval $(call NMF_RULE,$(TARGET),))

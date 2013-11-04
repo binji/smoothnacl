@@ -51,7 +51,7 @@ function onFunctionChanged(e) {
     if (functionEls[i].id === divId)
       functionEls[i].removeAttribute('hidden');
     else
-      functionEls[i].setAttribute('hidden');
+      functionEls[i].setAttribute('hidden', true);
   }
 }
 
@@ -111,12 +111,12 @@ function getBoolArg(arg, id, trueVal, falseVal) {
 
 function clear() {
   var color = getFloatArg(arguments[0], 'clearColor');
-  postMessage({cmd: 'clear', color: color});
+  sendMessage({cmd: 'clear', color: color});
 }
 
 function setSize() {
   var size = getIntArg(arguments[0], 'setSizeSize');
-  postMessage({cmd: 'setSize', size: size});
+  sendMessage({cmd: 'setSize', size: size});
 }
 
 function setMaxScale() {
@@ -132,14 +132,14 @@ function setThreadCount() {
 function setBrush() {
   var radius = getFloatArg(arguments[0], 'setBrushRadius');
   var color = getFloatArg(arguments[1], 'setBrushColor');
-  postMessage({cmd: 'setBrush', radius: radius, color: color});
+  sendMessage({cmd: 'setBrush', radius: radius, color: color});
 }
 
 function setKernel() {
   var discRadius = getFloatArg(arguments[0], 'setKernelDiscRadius');
   var ringRadius = getFloatArg(arguments[1], 'setKernelRingRadius');
   var blendRadius = getFloatArg(arguments[2], 'setKernelBlendRadius');
-  postMessage({
+  sendMessage({
     cmd: 'setKernel',
     discRadius: discRadius,
     ringRadius: ringRadius,
@@ -164,7 +164,7 @@ function setPalette() {
     }
   }
 
-  postMessage({
+  sendMessage({
     cmd: 'setPalette',
     repeating: repeating,
     colors: colors,
@@ -183,7 +183,7 @@ function setSmoother() {
   var mix = getIntArg(arguments[8], 'setSmootherMix');
   var sn = getFloatArg(arguments[9], 'setSmootherSn');
   var sm = getFloatArg(arguments[10], 'setSmootherSm');
-  postMessage({
+  sendMessage({
     cmd: 'setSmoother',
     type: type,
     dt: dt,
@@ -199,10 +199,10 @@ function setSmoother() {
 }
 
 function splat() {
-  postMessage({cmd: 'splat'});
+  sendMessage({cmd: 'splat'});
 }
 
-function postMessage(msg) {
+function sendMessage(msg) {
   console.log(msg);
   common.naclModule.postMessage(msg);
 }
