@@ -109,7 +109,16 @@ class Instance : public pp::Instance {
         event.GetType() == PP_INPUTEVENT_TYPE_MOUSEMOVE) {
       pp::MouseInputEvent mouse_event(event);
 
-      if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT) {
+      // The docs say that mouse_event.GetButton() is NONE for MOUSEMOVE
+      // events, but Chrome PPAPI returns LEFT if the left button is down.
+      // pepper.js returns NONE, though, so we can't rely on it.
+      //
+      // Instead, update mouse_event_ if it is a MOUSEMOVE event, and the
+      // mouse_event_ resource is non-null; this will only be true if the left
+      // mouse button is down.
+      if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT ||
+          (event.GetType() == PP_INPUTEVENT_TYPE_MOUSEMOVE &&
+           !mouse_event_.is_null())) {
         mouse_event_ = mouse_event;
         if (event.GetType() == PP_INPUTEVENT_TYPE_MOUSEUP)
           mouse_event_ = pp::MouseInputEvent();
