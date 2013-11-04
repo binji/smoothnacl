@@ -119,6 +119,11 @@ function setSize() {
   postMessage({cmd: 'setSize', size: size});
 }
 
+function setMaxScale() {
+  var scale = getIntArg(arguments[0], 'setMaxScaleScale');
+  postMessage({cmd: 'setMaxScale', scale: scale});
+}
+
 function setThreadCount() {
   var threadCount = getIntArg(arguments[0], 'setThreadCountThreadCount');
   postMessage({cmd: 'setThreadCount', threadCount: threadCount});

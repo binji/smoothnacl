@@ -48,6 +48,7 @@
 
 namespace {
 
+const int kDefaultMaxScale = 0;  // 0 means any scale is OK.
 const int kDefaultThreadCount = 1;
 const int kMaxThreadCount = 32;
 
@@ -74,6 +75,7 @@ class Instance : public pp::Instance {
         simulation_config_(kDefaultThreadCount, kSimSize),
         simulation_(simulation_config_),
         palette_(palette_config_),
+        max_scale_(kDefaultMaxScale),
         scale_numer_(1),
         scale_denom_(1),
         mouse_down_(false),
@@ -145,6 +147,15 @@ class Instance : public pp::Instance {
         return;
       }
       simulation_.SetSize(pp::Size(size, size));
+      UpdateScreenScale();
+    } else if (cmd == "setMaxScale") {
+      int scale = dictionary.Get("scale").AsInt();
+      printf("setMaxScale{scale: %d}\n", scale);
+      if (scale < 0) {
+        printf("  invalid max scale (%d), ignoring.\n", scale);
+        return;
+      }
+      max_scale_ = scale;
       UpdateScreenScale();
     } else if (cmd == "setThreadCount") {
 #ifdef USE_THREADS
@@ -247,6 +258,11 @@ class Instance : public pp::Instance {
       // wide
       scale_numer_ = buffer_height;
       scale_denom_ = screen_height;
+    }
+
+    if (max_scale_ > 0 && scale_denom_ > max_scale_ * scale_numer_) {
+      printf("%d/%d > %d. Clamping.\n", scale_denom_, scale_numer_, max_scale_);
+      scale_denom_ = max_scale_ * scale_numer_;
     }
 
     printf("UpdateScreenScale: scale: %d/%d\n", scale_numer_, scale_denom_);
@@ -362,6 +378,7 @@ class Instance : public pp::Instance {
   PaletteConfig palette_config_;
   Palette palette_;
 
+  int max_scale_;
   int scale_numer_;
   int scale_denom_;
 
