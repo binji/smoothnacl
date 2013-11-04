@@ -78,13 +78,12 @@ class Instance : public pp::Instance {
         max_scale_(kDefaultMaxScale),
         scale_numer_(1),
         scale_denom_(1),
-        mouse_down_(false),
         brush_radius_(10),
         brush_color_(1),
         frames_drawn_(0) {}
 
   virtual bool Init(uint32_t argc, const char* argn[], const char* argv[]) {
-    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE);
+    RequestInputEvents(PP_INPUTEVENT_CLASS_MOUSE | PP_INPUTEVENT_CLASS_TOUCH);
     gettimeofday(&last_frame_time_, NULL);
     return true;
   }
@@ -110,18 +109,26 @@ class Instance : public pp::Instance {
         event.GetType() == PP_INPUTEVENT_TYPE_MOUSEMOVE) {
       pp::MouseInputEvent mouse_event(event);
 
-      if (event.GetType() != PP_INPUTEVENT_TYPE_MOUSEMOVE &&
-          mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT) {
-        mouse_down_ = event.GetType() == PP_INPUTEVENT_TYPE_MOUSEDOWN;
+      if (mouse_event.GetButton() == PP_INPUTEVENT_MOUSEBUTTON_LEFT) {
+        mouse_event_ = mouse_event;
+        if (event.GetType() == PP_INPUTEVENT_TYPE_MOUSEUP)
+          mouse_event_ = pp::MouseInputEvent();
       }
-
-      mouse_point_ = ScreenToSim(mouse_event.GetPosition());
+      return true;
+    } else if (event.GetType() == PP_INPUTEVENT_TYPE_TOUCHSTART ||
+               event.GetType() == PP_INPUTEVENT_TYPE_TOUCHMOVE ||
+               event.GetType() == PP_INPUTEVENT_TYPE_TOUCHEND) {
+      touch_event_ = pp::TouchInputEvent(event);
       return true;
     }
     return false;
   }
 
   pp::Point ScreenToSim(const pp::Point& p) const {
+    return ScreenToSim(pp::FloatPoint(p.x(), p.y()));
+  }
+
+  pp::Point ScreenToSim(const pp::FloatPoint& p) const {
     return pp::Point(p.x() * scale_numer_ / scale_denom_,
                      p.y() * scale_numer_ / scale_denom_);
   }
@@ -269,9 +276,22 @@ class Instance : public pp::Instance {
   }
 
   void Update() {
-    if (mouse_down_) {
-      simulation_.DrawFilledCircle(mouse_point_.x(), mouse_point_.y(),
+    if (!mouse_event_.is_null()) {
+      pp::Point sim_point = ScreenToSim(mouse_event_.GetPosition());
+      simulation_.DrawFilledCircle(sim_point.x(), sim_point.y(),
                                    brush_radius_, brush_color_);
+    }
+
+    if (!touch_event_.is_null()) {
+      uint32_t touch_count =
+          touch_event_.GetTouchCount(PP_TOUCHLIST_TYPE_TOUCHES);
+      for (uint32_t i = 0; i < touch_count; ++i) {
+        pp::TouchPoint touch_point =
+            touch_event_.GetTouchByIndex(PP_TOUCHLIST_TYPE_TOUCHES, i);
+        pp::Point sim_point = ScreenToSim(touch_point.position());
+        simulation_.DrawFilledCircle(sim_point.x(), sim_point.y(),
+                                     brush_radius_, brush_color_);
+      }
     }
 
     simulation_.Step();
@@ -382,8 +402,8 @@ class Instance : public pp::Instance {
   int scale_numer_;
   int scale_denom_;
 
-  pp::Point mouse_point_;
-  bool mouse_down_;
+  pp::MouseInputEvent mouse_event_;
+  pp::TouchInputEvent touch_event_;
   real brush_radius_;
   real brush_color_;
 
