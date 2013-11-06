@@ -14,12 +14,17 @@ function $(id) {
   return document.getElementById(id);
 }
 
+function moduleDidLoad() {
+  loadPreset(0);
+}
+
 function attachListeners() {
   $('functionValue').addEventListener('change', onFunctionChanged, false);
   $('setThreadCountThreadCount').addEventListener('change', onThreadCountChanged, false);
   $('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged, false);
   $('execute').addEventListener('click', onExecute, false);
-  $('loadPreset').addEventListener('click', onLoadPreset, false);
+  $('preset').addEventListener('change', onLoadPreset, false);
+  $('resetPreset').addEventListener('click', onLoadPreset, false);
   $('listener').addEventListener('message', handleMessage, true);
 }
 
