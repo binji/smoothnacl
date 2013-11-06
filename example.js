@@ -10,6 +10,20 @@ var presets = [
   [[10.6,31.8,1],[1,0.157,0.092,0.256,0.098,0.607,3,4,4,0.015,0.34],[0,"#4d3e3e",0,"#9a1ac9",77,"#aaf09e",100]],
 ];
 
+var colorPresets = [
+  [0, '#ffffff', 0, '#000000', 100],
+  [0, '#000000', 0, '#ffffff', 100],
+  [0, '#000000', 0, '#ff00ff', 50, '#000000', 100],
+  [0,"#000000",0,"#0f8a84",38,"#f5f5c1",43,"#158a34",70,"#89e681",100],
+  [1,"#000000",3,"#f5f5c1",8,"#158a34",17,"#89e681",20],
+  [0,"#36065e",0,"#c24242",77,"#8a19b0",91,"#ff9900",99,"#f5c816",99],
+  [0,"#93afd9",11,"#9cf0ff",92,"#edfdff",100],
+  [0,"#000000",11,"#ffffff",22,"#19a68a",85,"#6b0808",98],
+  [0,"#0a1340",0,"#ffffff",55,"#4da8a3",83,"#2652ab",99,"#2f1e75",46],
+  [0,"#b8cfcf",0,"#3f5a5c",77,"#1a330a",91,"#c0e0dc",99],
+  [0,"#4d3e3e",0,"#9a1ac9",77,"#aaf09e",100],
+];
+
 function $(id) {
   return document.getElementById(id);
 }
@@ -25,6 +39,8 @@ function attachListeners() {
   $('execute').addEventListener('click', onExecute, false);
   $('preset').addEventListener('change', onLoadPreset, false);
   $('resetPreset').addEventListener('click', onLoadPreset, false);
+  $('colorPreset').addEventListener('change', onLoadColorPreset, false);
+  $('resetColorPreset').addEventListener('click', onLoadColorPreset, false);
   $('listener').addEventListener('message', handleMessage, true);
 }
 
@@ -43,9 +59,17 @@ function loadPreset(index) {
   setKernel.apply(null, preset[0]);
   setSmoother.apply(null, preset[1]);
   setPalette.apply(null, preset[2]);
-  //setDrawOptions('simulation');
-  //setRunOptions('simulation', 'run');
   splat();
+}
+
+function onLoadColorPreset(e) {
+  var index = parseInt(document.getElementById('colorPreset').value, 10);
+  loadColorPreset(index);
+}
+
+function loadColorPreset(index) {
+  var preset = colorPresets[index];
+  setPalette.apply(null, preset);
 }
 
 function onFunctionChanged(e) {
