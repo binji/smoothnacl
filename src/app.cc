@@ -89,7 +89,11 @@ class Instance : public pp::Instance {
   }
 
   virtual void DidChangeView(const pp::View& view) {
-    context_size_ = view.GetRect().size();
+    pp::Size new_size = view.GetRect().size();
+    if (new_size == context_size_)
+      return;
+
+    context_size_ = new_size;
     if (!CreateContext())
       return;
 
