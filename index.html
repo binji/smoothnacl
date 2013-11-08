@@ -40,6 +40,10 @@ found in the LICENSE file.
         <option value="6">Blink Tubes</option>
         <option value="7">Oil Slick</option>
         <option value="8">Worms</option>
+        <option value="9">Dried Moss</option>
+        <option value="10">Hungry Dots</option>
+        <option value="11">Wet Glass</option>
+        <option value="12">Dissolving Chains</option>
       </select>
       <button id="resetPreset">Reset</button>
     </div>
@@ -56,6 +60,7 @@ found in the LICENSE file.
         <option value="8">Cool Blue</option>
         <option value="9">Frostbite</option>
         <option value="10">Mint Flower</option>
+        <option value="11">Pyschedelic</option>
       </select>
       <button id="resetColorPreset">Reset</button>
     </div>
@@ -65,13 +70,17 @@ found in the LICENSE file.
         <option value="setSize">SetSize</option>
         <option value="setMaxScale">SetMaxScale</option>
         <option value="setThreadCount">SetThreadCount</option>
-        <option value="setBrush">SetBrush</option>
+        <option value="setBrush" selected>SetBrush</option>
         <option value="setKernel">SetKernel</option>
         <option value="setPalette">SetPalette</option>
         <option value="setSmoother">SetSmoother</option>
-        <option value="splat" selected>Splat</option>
       </select>
       <button id="execute">Run</button>
+    </div>
+    <div>
+      <button id="zero">Zero</button>
+      <button id="splat">Splat</button>
+      <button id="randomize">Randomize</button>
     </div>
     <div class="function" id="clear" hidden>
       <div>Color:<input type="text" id="clearColor" value="0"></div>
@@ -97,7 +106,7 @@ found in the LICENSE file.
           min="1" max="32" step="1" value="1">
       <span id="setThreadCountValue">1</span>
     </div>
-    <div class="function" id="setBrush" hidden>
+    <div class="function" id="setBrush">
       <div>Radius:<input type="text" id="setBrushRadius" value="50"></div>
       <div>Color:<input type="text" id="setBrushColor" value="1"></div>
     </div>
@@ -124,8 +133,6 @@ found in the LICENSE file.
       <div>mix:<input type="text" id="setSmootherMix"></div>
       <div>sn:<input type="text" id="setSmootherSn"></div>
       <div>sm:<input type="text" id="setSmootherSm"></div>
-    </div>
-    <div class="function" id="splat">
     </div>
   </div>
   <div id="listener"></div>
