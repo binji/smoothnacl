@@ -39,14 +39,21 @@ function $(id) {
 }
 
 function moduleDidLoad() {
+  addFunctions();
+  setSize(256);
+  setMaxScale(0);
   loadPreset(0);
+}
+
+function noEvent(func) {
+  return function(event) {
+    func();
+  };
 }
 
 function attachListeners() {
   $('functionValue').addEventListener('change', onFunctionChanged, false);
-  $('setThreadCountThreadCount').addEventListener('change', onThreadCountChanged, false);
-  $('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged, false);
-  $('execute').addEventListener('click', onExecute, false);
+
   $('preset').addEventListener('change', onLoadPreset, false);
   $('resetPreset').addEventListener('click', onLoadPreset, false);
   $('colorPreset').addEventListener('change', onLoadColorPreset, false);
@@ -55,6 +62,8 @@ function attachListeners() {
   $('zero').addEventListener('click', function() { clear(0); }, false);
   $('splat').addEventListener('click', splat, false);
   $('listener').addEventListener('message', handleMessage, true);
+
+  // $('setPaletteNumColorstops').addEventListener('change', onNumColorstopsChanged, false);
 }
 
 function handleMessage(e) {
@@ -161,11 +170,6 @@ function onFunctionChanged(e) {
   }
 }
 
-function onThreadCountChanged(e) {
-  var threadCount = parseInt(this.value, 10);
-  $('setThreadCountValue').textContent = threadCount;
-}
-
 function onNumColorstopsChanged(e) {
   var colorstops = parseInt(this.value, 10);
   var colorstopEl = document.getElementById('colorstops');
@@ -194,9 +198,185 @@ function onNumColorstopsChanged(e) {
   }
 }
 
-function onExecute(e) {
-  var fun = document.getElementById('functionValue').value;
-  window[fun].apply(null);
+var functions = [
+  {name: 'clear', params: [
+      {name: 'color', type: 'range', min: 0, max: 1, step: 0.1}]},
+  {name: 'setSize', params: [
+      {name: 'size', type: 'select', values: [
+          {name: '256x256', value: 256},
+          {name: '384x384', value: 384},
+          {name: '512x512', value: 512}]}]},
+  {name: 'setMaxScale', params: [
+      {name: 'scale', type: 'range', min: 0, max: 5, step: 0.1}]},
+  {name: 'setThreadCount', params: [
+      {name: 'threadCount', type: 'select', values: [
+          {name: '1 Thread', value: 1},
+          {name: '2 Threads', value: 2},
+          {name: '4 Threads', value: 4},
+          {name: '6 Threads', value: 6},
+          {name: '8 Threads', value: 8},
+          {name: '12 Threads', value: 12}]}]},
+  {name: 'setBrush', params: [
+      {name: 'radius', type: 'range', min: 0, max: 50, step: 0.1},
+      {name: 'color', type: 'range', min: 0, max: 1, step: 0.1}]},
+  {name: 'setKernel', params: [
+      {name: 'discRadius', type: 'range', min: 0, max: 50, step: 0.1},
+      {name: 'ringRadius', type: 'range', min: 0, max: 50, step: 0.1},
+      {name: 'blendRadius', type: 'range', min: 0, max: 50, step: 0.1}]},
+  {name: 'setSmoother', params: [
+      {name: 'type', type: 'range', min: 0, max: 4, step: 1},
+      {name: 'dt', type: 'range', min: 0, max: 1, step: 0.1},
+      {name: 'b1', type: 'range', min: 0, max: 1, step: 0.001},
+      {name: 'd1', type: 'range', min: 0, max: 1, step: 0.001},
+      {name: 'b2', type: 'range', min: 0, max: 1, step: 0.001},
+      {name: 'd2', type: 'range', min: 0, max: 1, step: 0.001},
+      {name: 'mode', type: 'range', min: 0, max: 4, step: 1},
+      {name: 'sigmoid', type: 'range', min: 0, max: 3, step: 1},
+      {name: 'mix', type: 'range', min: 0, max: 3, step: 1},
+      {name: 'sn', type: 'range', min: 0, max: 1, step: 0.1},
+      {name: 'sm', type: 'range', min: 0, max: 1, step: 0.1}]},
+];
+
+var values = {};
+
+function addFunctions() {
+  var fnsEl = $('functions');
+  for (var i = 0; i < functions.length; ++i) {
+    var f = functions[i];
+    var fnEl = document.createElement('table');
+    var fnVals = {};
+    var fnUpdateViews = {};
+
+    fnEl.classList.add('function');
+    fnEl.setAttribute('id', f.name);
+    fnEl.setAttribute('hidden', 'true');
+    for (var j = 0; j < f.params.length; ++j) {
+      var p = f.params[j];
+      var paramEl = document.createElement('tr');
+      var nameEl = document.createElement('td');
+      paramEl.classList.add('param');
+      nameEl.textContent = p.name;
+      paramEl.appendChild(nameEl);
+
+      var valueEl = document.createElement('td');
+      paramEl.appendChild(valueEl);
+      if (p.type === 'range') {
+        var rangeEl = document.createElement('input');
+        rangeEl.setAttribute('type', 'range');
+        rangeEl.setAttribute('min', p.min);
+        rangeEl.setAttribute('max', p.max);
+        rangeEl.setAttribute('step', p.step);
+        rangeEl.setAttribute('value', p.min);
+        valueEl.appendChild(rangeEl);
+
+        var textEl = document.createElement('span');
+        textEl.classList.add('value');
+        textEl.textContent = p.min;
+        valueEl.appendChild(textEl);
+
+        // Listener to bind view => model.
+        rangeEl.addEventListener('change', function(fnVals, f, p, textEl) {
+          return function() {
+            // Cheesy, but OK for now. detect float vs. int by step size.
+            var isInt = p.step === 1;
+            var value;
+            if (isInt)
+              value = parseInt(this.value, 10);
+            else
+              value = parseFloat(this.value);
+            fnVals[p.name] = value;
+            textEl.textContent = this.value;
+            // post these new values to the module.
+            window[f.name]();
+          };
+        }(fnVals, f, p, textEl), false);
+
+        // Function to bind model => view.
+        fnUpdateViews[p.name] = function(fnVals, p, rangeEl, textEl) {
+          return function() {
+            rangeEl.value = fnVals[p.name];
+            textEl.textContent = fnVals[p.name];
+          };
+        }(fnVals, p, rangeEl, textEl);
+
+        // Set initial model value.
+        fnVals[p.name] = p.min;
+      } else if (p.type === 'select') {
+        var selectEl = document.createElement('select');
+        for (var k = 0; k < p.values.length; ++k) {
+          var v = p.values[k];
+          var optionEl = document.createElement('option');
+          optionEl.textContent = v.name;
+          optionEl.setAttribute('value', v.value);
+          selectEl.appendChild(optionEl);
+        }
+        valueEl.appendChild(selectEl);
+
+        // Listener to bind view => model.
+        selectEl.addEventListener('change', function(fnVals, f, p) {
+          return function() {
+            fnVals[p.name] = parseInt(this.value, 10);
+            // post these new values to the module.
+            window[f.name]();
+          }
+        }(fnVals, f, p), false);
+
+        // Function to bind model => view.
+        fnUpdateViews[p.name] = function(fnVals, p, selectEl) {
+          return function() {
+            selectEl.value = fnVals[p.name];
+          }
+        }(fnVals, p, selectEl);
+
+        // Set initial model value.
+        fnVals[p.name] = p.values[0].value;
+      }
+      fnEl.appendChild(paramEl);
+    }
+    fnsEl.appendChild(fnEl);
+
+    // Set all initial values for this function.
+    values[f.name] = fnVals;
+
+    // Function to update view of all functions parameters, given the values
+    // in the model.
+    // For a function named "foo", this function is called "fooUpdateView".
+    window[f.name + 'UpdateView'] = function(fnUpdateViews) {
+      return function() {
+        for (var pName in fnUpdateViews) {
+          fnUpdateViews[pName]();
+        }
+      }
+    }(fnUpdateViews);
+
+    // Add function to post current values to NaCl module.
+    window[f.name] = function(f) {
+      return function() {
+        var fnVals = values[f.name];
+        if (arguments.length) {
+          // This is being called externally, use the values passed in and
+          // update the view.
+          for (var i = 0; i < f.params.length; ++i) {
+            var pName = f.params[i].name;
+            fnVals[pName] = arguments[i];
+          }
+          window[f.name + 'UpdateView']();
+        }
+
+        // Make the command dict and send it to the module.
+        var cmd = {cmd: f.name};
+        for (var pName in fnVals) {
+          cmd[pName] = fnVals[pName];
+        }
+
+        postMessage(cmd);
+      };
+    }(f);
+  }
+}
+
+function splat() {
+  postMessage({cmd: 'splat'});
 }
 
 function getValueArg(arg, id) {
@@ -216,43 +396,6 @@ function getFloatArg(arg, id) {
 
 function getBoolArg(arg, id, trueVal, falseVal) {
   return getValueArg(arg, id) ? trueVal : falseVal;
-}
-
-function clear() {
-  var color = getFloatArg(arguments[0], 'clearColor');
-  postMessage({cmd: 'clear', color: color});
-}
-
-function setSize() {
-  var size = getIntArg(arguments[0], 'setSizeSize');
-  postMessage({cmd: 'setSize', size: size});
-}
-
-function setMaxScale() {
-  var scale = getIntArg(arguments[0], 'setMaxScaleScale');
-  postMessage({cmd: 'setMaxScale', scale: scale});
-}
-
-function setThreadCount() {
-  var threadCount = getIntArg(arguments[0], 'setThreadCountThreadCount');
-  postMessage({cmd: 'setThreadCount', threadCount: threadCount});
-}
-
-function setBrush() {
-  var radius = getFloatArg(arguments[0], 'setBrushRadius');
-  var color = getFloatArg(arguments[1], 'setBrushColor');
-  postMessage({cmd: 'setBrush', radius: radius, color: color});
-}
-
-function setKernel() {
-  var discRadius = getFloatArg(arguments[0], 'setKernelDiscRadius');
-  var ringRadius = getFloatArg(arguments[1], 'setKernelRingRadius');
-  var blendRadius = getFloatArg(arguments[2], 'setKernelBlendRadius');
-  postMessage({
-    cmd: 'setKernel',
-    discRadius: discRadius,
-    ringRadius: ringRadius,
-    blendRadius: blendRadius});
 }
 
 function setPalette() {
@@ -278,37 +421,6 @@ function setPalette() {
     repeating: repeating,
     colors: colors,
     stops: stops});
-}
-
-function setSmoother() {
-  var type = getIntArg(arguments[0], 'setSmootherType');
-  var dt = getFloatArg(arguments[1], 'setSmootherDt');
-  var b1 = getFloatArg(arguments[2], 'setSmootherB1');
-  var d1 = getFloatArg(arguments[3], 'setSmootherD1');
-  var b2 = getFloatArg(arguments[4], 'setSmootherB2');
-  var d2 = getFloatArg(arguments[5], 'setSmootherD2');
-  var mode = getIntArg(arguments[6], 'setSmootherMode');
-  var sigmoid = getIntArg(arguments[7], 'setSmootherSigmoid');
-  var mix = getIntArg(arguments[8], 'setSmootherMix');
-  var sn = getFloatArg(arguments[9], 'setSmootherSn');
-  var sm = getFloatArg(arguments[10], 'setSmootherSm');
-  postMessage({
-    cmd: 'setSmoother',
-    type: type,
-    dt: dt,
-    b1: b1,
-    d1: d1,
-    b2: b2,
-    d2: d2,
-    mode: mode,
-    sigmoid: sigmoid,
-    mix: mix,
-    sn: sn,
-    sm: sm});
-}
-
-function splat() {
-  postMessage({cmd: 'splat'});
 }
 
 function postMessage(msg) {

@@ -160,10 +160,10 @@ class Instance : public pp::Instance {
       simulation_.SetSize(pp::Size(size, size));
       UpdateScreenScale();
     } else if (cmd == "setMaxScale") {
-      int scale = dictionary.Get("scale").AsInt();
-      printf("setMaxScale{scale: %d}\n", scale);
+      real scale = dictionary.Get("scale").AsDouble();
+      printf("setMaxScale{scale: %f}\n", scale);
       if (scale < 0) {
-        printf("  invalid max scale (%d), ignoring.\n", scale);
+        printf("  invalid max scale (%f), ignoring.\n", scale);
         return;
       }
       max_scale_ = scale;
@@ -272,8 +272,8 @@ class Instance : public pp::Instance {
     }
 
     if (max_scale_ > 0 && scale_denom_ > max_scale_ * scale_numer_) {
-      printf("%d/%d > %d. Clamping.\n", scale_denom_, scale_numer_, max_scale_);
-      scale_denom_ = max_scale_ * scale_numer_;
+      printf("%d/%d > %f. Clamping.\n", scale_denom_, scale_numer_, max_scale_);
+      scale_denom_ = static_cast<int>(max_scale_ * scale_numer_);
     }
 
     printf("UpdateScreenScale: scale: %d/%d\n", scale_numer_, scale_denom_);
@@ -402,7 +402,7 @@ class Instance : public pp::Instance {
   PaletteConfig palette_config_;
   Palette palette_;
 
-  int max_scale_;
+  real max_scale_;
   int scale_numer_;
   int scale_denom_;
 

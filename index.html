@@ -65,6 +65,11 @@ found in the LICENSE file.
       <button id="resetColorPreset">Reset</button>
     </div>
     <div>
+      <button id="zero">Zero</button>
+      <button id="splat">Splat</button>
+      <button id="randomize">Randomize</button>
+    </div>
+    <div>
       <select id="functionValue">
         <option value="clear">Clear</option>
         <option value="setSize">SetSize</option>
@@ -72,67 +77,18 @@ found in the LICENSE file.
         <option value="setThreadCount">SetThreadCount</option>
         <option value="setBrush" selected>SetBrush</option>
         <option value="setKernel">SetKernel</option>
-        <option value="setPalette">SetPalette</option>
+        <!-- <option value="setPalette">SetPalette</option> -->
         <option value="setSmoother">SetSmoother</option>
       </select>
-      <button id="execute">Run</button>
     </div>
-    <div>
-      <button id="zero">Zero</button>
-      <button id="splat">Splat</button>
-      <button id="randomize">Randomize</button>
-    </div>
-    <div class="function" id="clear" hidden>
-      <div>Color:<input type="text" id="clearColor" value="0"></div>
-    </div>
-    <div class="function" id="setSize" hidden>
-      <label for="setSizeSize">
-        BufferSize:
-      </label>
-      <select id="setSizeSize">
-        <option value="256">256x256</option>
-        <option value="384">384x384</option>
-        <option value="512" selected>512x512</option>
-      </select>
-    </div>
-    <div class="function" id="setMaxScale" hidden>
-      <div>MaxScale:<input type="text" id="setMaxScaleScale" value="0"></div>
-    </div>
-    <div class="function" id="setThreadCount" hidden>
-      <label for="setThreadCountThreadCount">
-        ThreadCount:
-      </label>
-      <input type="range" id="setThreadCountThreadCount"
-          min="1" max="32" step="1" value="1">
-      <span id="setThreadCountValue">1</span>
-    </div>
-    <div class="function" id="setBrush">
-      <div>Radius:<input type="text" id="setBrushRadius" value="50"></div>
-      <div>Color:<input type="text" id="setBrushColor" value="1"></div>
-    </div>
-    <div class="function" id="setKernel" hidden>
-      <div>DiscRadius:<input type="text" id="setKernelDiscRadius"></div>
-      <div>RingRadius:<input type="text" id="setKernelRingRadius"></div>
-      <div>BlendRadius:<input type="text" id="setKernelBlendRadius"></div>
-    </div>
-    <div class="function" id="setPalette" hidden>
-      <div>Repeating:<input type="checkbox" id="setPaletteRepeating"></div>
-      <div>#ColorStops:<input type="text" id="setPaletteNumColorstops"></div>
-      <div id="colorstops">
+    <div id="functions">
+      <!--
+      <div class="function" id="setPalette" hidden>
+        <div>Repeating:<input type="checkbox" id="setPaletteRepeating"></div>
+        <div>#ColorStops:<input type="text" id="setPaletteNumColorstops"></div>
+        <div id="colorstops"></div>
       </div>
-    </div>
-    <div class="function" id="setSmoother" hidden>
-      <div>Type:<input type="text" id="setSmootherType"></div>
-      <div>dt:<input type="text" id="setSmootherDt"></div>
-      <div>b1:<input type="text" id="setSmootherB1"></div>
-      <div>b2:<input type="text" id="setSmootherB2"></div>
-      <div>d1:<input type="text" id="setSmootherD1"></div>
-      <div>d2:<input type="text" id="setSmootherD2"></div>
-      <div>mode:<input type="text" id="setSmootherMode"></div>
-      <div>sigmoid:<input type="text" id="setSmootherSigmoid"></div>
-      <div>mix:<input type="text" id="setSmootherMix"></div>
-      <div>sn:<input type="text" id="setSmootherSn"></div>
-      <div>sm:<input type="text" id="setSmootherSm"></div>
+      -->
     </div>
   </div>
   <div id="listener"></div>
