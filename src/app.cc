@@ -336,13 +336,15 @@ class Instance : public pp::Instance {
           x_accum += scale_numer_;
           while (x_accum >= scale_denom_) {
             x_accum -= scale_denom_;
-            color = palette_.GetColor(*src++);
+            color = palette_.GetColor(*++src);
           }
         }
         row_count -= no_wrap_count;
         src = row_start;
+        color = palette_.GetColor(*src);
       }
 
+      x_accum = 0;
       y_accum += scale_numer_;
       while (y_accum >= scale_denom_) {
         y_accum -= scale_denom_;
