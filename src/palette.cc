@@ -22,7 +22,6 @@
 namespace {
 
 const uint32_t kBlack = 0xff000000;
-const uint32_t kWhite = 0xffffffff;
 
 real NonnegativeFmod(real x, real y) {
   return fmod(fmod(x, y) + y, y);
