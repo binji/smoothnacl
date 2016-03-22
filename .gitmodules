@@ -1,3 +1,3 @@
-[submodule "third_party/naclports"]
-	path = third_party/naclports
-	url = https://github.com/binji/naclports
+[submodule "third_party/webports"]
+	path = third_party/webports
+	url = https://chromium.googlesource.com/webports
